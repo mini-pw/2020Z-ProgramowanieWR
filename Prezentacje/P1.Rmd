@@ -1,0 +1,54 @@
+---
+title: "Dobre praktyki tworzenia kodu w R"
+author: "Michał Burdukiewicz"s
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Konwencje pisania kodu
+
+https://style.tidyverse.org/
+
+## Arytmetyka zmiennopozycyjna
+
+```{r}
+sqrt(2)*sqrt(2) == 2
+all.equal(sqrt(2)*sqrt(2), 2)
+
+0.3 + 0.6 == 0.9
+all.equal(0.3 + 0.6, 0.9)
+```
+
+
+[FAQ 7.31](https://cran.r-project.org/doc/FAQ/R-FAQ.html#Why-doesn_0027t-R-think-these-numbers-are-equal_003f)
+
+Alternatywa: [seven31::compare](https://rdrr.io/github/ThinkRstat/seven31/man/compare.html)
+
+## Przetwarzanie potokowe
+
+```{r}
+x <- 1L:10
+y <- mean(x)
+paste0(y, " to średnia")
+```
+
+Powyższy kod można przepisać z wykorzystaniem operatora przetwarzania potokowego %>% 
+
+```{r}
+library(magrittr)
+1L:10 %>% mean %>% paste0(" to średnia")
+```
+
+## Przetwarzanie potokowe
+
+Operator %>%
+
+```{r}
+1L:10 %>% mean %>% paste0(" to średnia")
+local({
+  1L:10 -> .; mean(.) -> .; paste0(., " to średnia")
+})
+```
