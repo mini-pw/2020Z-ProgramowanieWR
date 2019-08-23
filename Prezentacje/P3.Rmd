@@ -1,0 +1,13 @@
+---
+title: "Tworzenie pakietów R"
+author: "Michał Burdukiewicz"s
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Roxygen
+
+Dokumentacja w markdownie https://cran.r-project.org/web/packages/roxygen2/vignettes/markdown.html

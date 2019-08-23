@@ -1,0 +1,15 @@
+---
+title: "Shiny i programowanie reaktywne"
+author: "Michał Burdukiewicz"s
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## golem
+
+https://github.com/ThinkR-open/golem
+
+Upraszcza development i deployment aplikacji Shiny (np. do shinyapps, shinyproxy)
