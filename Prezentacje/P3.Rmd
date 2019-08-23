@@ -8,6 +8,15 @@ output: ioslides_presentation
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
+## Struktura pakietu
+
+Subiektywny ranking pakietów do tworzenia pakietów:
+
+- [pkgkitten::kitten](https://github.com/eddelbuettel/pkgkitten): szkielet pakietu przyjazny dla CHECK.
+- [devtools::create](https://github.com/r-lib/devtools): bardzo (czasami przesadnie) kompletny szkielet pakietu.
+- [utils::package.skeleton](https://stat.ethz.ch/R-manual/R-devel/library/utils/html/package.skeleton.html).
+- [skeletor::skeletor](https://github.com/nealrichardson/skeletor): unikalne tworzenie pakietów poprzez makefile.
+
 ## Roxygen
 
 Dokumentacja w markdownie https://cran.r-project.org/web/packages/roxygen2/vignettes/markdown.html
