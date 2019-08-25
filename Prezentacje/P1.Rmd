@@ -1,6 +1,6 @@
 ---
 title: "Dobre praktyki tworzenia kodu w R"
-author: "Michał Burdukiewicz"s
+author: "Michał Burdukiewicz"
 output: ioslides_presentation
 ---
 

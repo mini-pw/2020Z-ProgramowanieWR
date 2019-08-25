@@ -1,6 +1,6 @@
 ---
 title: "Shiny i programowanie reaktywne"
-author: "Michał Burdukiewicz"s
+author: "Michał Burdukiewicz"
 output: ioslides_presentation
 ---
 
