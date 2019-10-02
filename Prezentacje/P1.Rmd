@@ -5,12 +5,24 @@ output: ioslides_presentation
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## Konwencje pisania kodu
 
 https://style.tidyverse.org/
+
+## Konwencje nazywania funkcji
+
+ - base::is.na()
+ - base::rowSums()
+ - base::strsplit()
+ - base::intToUtf8()
+ - base::Sys.sleep()
+ - base::UseMethod()
+ - base::seq_along()
+ 
+Również: https://journal.r-project.org/archive/2012-2/RJournal_2012-2_Baaaath.pdf 
 
 ## Arytmetyka zmiennopozycyjna
 
@@ -51,4 +63,90 @@ Operator %>%
 local({
   1L:10 -> .; mean(.) -> .; paste0(., " to średnia")
 })
+```
+
+## Przetwarzanie potokowe
+
+```{r}
+x <- 1L:10
+x %>% mean
+x %>% mean()
+x %>% mean(.)
+```
+
+## Przetwarzanie potokowe
+
+Ceną dowolności jest niejednoznaczność
+
+```{r}
+vec <- 1L:10
+y <- vec - 1
+mean(y)
+```
+
+Intuicyjne rozwiązanie nie działa
+
+```{r}
+vec - 1 %>% mean
+```
+
+## Przetwarzanie potokowe
+
+Następujące wyrażenia są synonimiczne:
+```{r}
+(vec - 1) %>% mean
+{vec - 1} %>% mean
+```
+
+## Przetwarzanie potokowe
+
+{ i ( mają różne znaczenie.
+
+```{r}
+vec %>% {. - 1} %>% mean # yes
+```
+
+```{r, eval=FALSE}
+vec %>% (. - 1) %>% mean # no
+```
+
+Wyrażenia poniżej są zawsze niewłaściwe.
+
+```{r, eval=FALSE}
+vec %>% (.) - 1 %>% mean
+vec %>% {.} - 1 %>% mean
+```
+
+## Przetwarzanie potokowe
+
+Te wyrażenia również, ale z innych powodów.
+
+```{r, eval=FALSE}
+vec %>% mean(. - 1)
+vec  %>%  mean((. - 1)) 
+vec  %>%  mean({. - 1})
+```
+
+Here, pipe forwards vec to mean() in a peculariar way. vec is a first argument, and {. - 1} is treated as an argument to trim.
+
+## Przetwarzanie potokowe
+
+```{r}
+simple_fun <- function(x, y = 1, z = 1) {
+  list(x, y, z)
+}
+(vec - 1) %>% simple_fun
+```
+```{r}
+vec %>% simple_fun({. - 1})
+```
+
+If we use '{' or '(' inside the function called after pipe, it will automatically switch to the second argument. 
+
+Of course, the most magrittr way to use operators is to rely on pipe-friendly aliases as 'add':
+
+```{r}
+vec %>% 
+  add(-1) %>% 
+  mean
 ```
