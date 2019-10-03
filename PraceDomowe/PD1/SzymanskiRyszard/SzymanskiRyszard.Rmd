@@ -1,0 +1,173 @@
+---
+title: "Praca Domowa 1"
+author: "Ryszard Szymański"
+date: "10/3/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(data.table)
+library(ggplot2)
+library(graphics)
+library(lattice)
+library(magrittr)
+library(patchwork)
+```
+
+
+```{r, echo = FALSE}
+run_benchmark <- function(plotting_functions, n, title) {
+  results <- sapply(plotting_functions, function(plotting_function) {
+    t <- system.time(lapply(seq_len(n), function(x) {
+      plotting_function()
+    }))
+    
+    t[3]
+  })
+  
+  data.frame(
+    "time" = results,
+    "package" = names(plotting_functions),
+    "title" = rep(title, length(results))
+  )
+}
+
+plot_benchmark_results <- function(benchmark_result) {
+  ggplot(data = benchmark_result, aes(x = package, y = time, fill = package)) +
+    geom_col() + 
+    coord_flip() +
+    facet_wrap(. ~ title, ncol = 1)
+}
+```
+
+
+```{r, echo = FALSE}
+create_ggplot_scatter <- function() {
+  ggplot(mpg, aes(displ, hwy)) + 
+    geom_point()
+}
+
+create_lattice_scatter <- function() {
+  xyplot(hwy ~ displ, data = mpg)
+}
+
+create_graphics_scatter <- function() {
+  plot(x = mpg$displ, y = mpg$hwy)
+}
+
+scatter_functions <- list(
+  "ggplot" = create_ggplot_scatter,
+  "lattice" = create_lattice_scatter,
+  "graphics" = create_graphics_scatter
+)
+```
+
+```{r, echo = FALSE}
+create_ggplot_barplot <- function() {
+  ggplot(data = mpg, aes(x = manufacturer)) +
+    geom_bar()
+}
+
+create_lattice_barplot <- function() {
+  lattice::barchart(x = mpg$manufacturer)
+}
+
+create_graphics_barplot <- function() {
+  df <- as.data.frame(table(mpg$manufacturer))
+  barplot(df$Freq)
+}
+
+barplot_functions <- list(
+  "ggplot" = create_ggplot_barplot,
+  "lattice" = create_lattice_barplot,
+  "graphics" = create_graphics_barplot
+)
+
+```
+
+```{r, echo = FALSE}
+create_ggplot_line <- function() {
+  ggplot(economics, aes(x = date, y = pop)) + 
+    geom_line()
+}
+
+create_lattice_line <- function() {
+  lattice::xyplot(pop ~ date, data = economics, type = "l")
+}
+
+create_graphics_line <- function() {
+  plot(economics$date, economics$pop, type = "l")
+}
+
+lineplot_functions <- list(
+  "ggplot" = create_ggplot_line,
+  "lattice" = create_lattice_line,
+  "graphics" = create_graphics_line
+)
+```
+
+```{r, echo = FALSE}
+create_ggplot_boxplot <- function() {
+  ggplot(ToothGrowth, aes(x = supp, y = len)) + 
+    geom_boxplot()
+}
+
+create_lattice_boxplot <- function() {
+  bwplot(len ~ supp, data = ToothGrowth)
+}
+
+create_graphics_boxplot <- function() {
+  boxplot(len ~ supp, data = ToothGrowth)
+}
+
+boxplot_funcs <- list(
+  "ggplot" = create_ggplot_boxplot,
+  "lattice" = create_lattice_boxplot,
+  "graphics" = create_graphics_boxplot
+)
+```
+
+```{r, echo = FALSE}
+create_ggplot_hist <- function() {
+ ggplot(diamonds, aes(carat)) +
+    geom_histogram()
+}
+
+create_lattice_hist <- function() {
+  lattice::histogram(x = diamonds$carat)
+}
+
+create_graphics_hist <- function() {
+  graphics::hist(x = diamonds$carat)
+}
+
+hist_functions <- list(
+  "ggplot" = create_ggplot_hist,
+  "lattice" = create_lattice_hist,
+  "graphics" = create_graphics_hist
+)
+```
+
+
+## Benchmark results
+```{r, include = FALSE}
+n <- 100
+benchmark_configs <- list(
+  list("funcs" = scatter_functions, "title" = sprintf("Test 1: scatter plots %s times", n)),
+  list("funcs" = barplot_functions, "title" = sprintf("Test 2: bar plots %s times", n)),
+  list("funcs" = lineplot_functions, "title" = sprintf("Test 3: line plots %s times", n)),
+  list("funcs" = boxplot_funcs, "title" = sprintf("Test 4: box plots %s times", n)),
+  list("funcs" = hist_functions, "title" = sprintf("Test 5: histograms %s times", n))
+)
+
+benchmark_results <- lapply(benchmark_configs, function(config) {
+  run_benchmark(config$funcs, n = n, title = config$title)
+}) %>% rbindlist()
+```
+
+
+```{r echo = FALSE}
+plot_benchmark_results(benchmark_results)
+```
