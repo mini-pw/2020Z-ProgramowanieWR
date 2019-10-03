@@ -63,4 +63,24 @@ Prezentację na zadany temat przygotowuje i wygłasza w grupach do 3 osób. Nie 
  - od 0 do 5 punktów za prawidłowo przygotowaną prezentację.
  - od 0 do 5 punktów za ciekawe wygłoszenie prezentacji.
 
- 
+#### Prace domowe
+
+W trakcie semestru pojawią cztery prace domowe. Prace domowe należy oddać do północy do dnia w którym zostanie ogłoszona następna praca domowa. Prace domowe należy rozwiązywać samodzielnie.
+
+#### Wyjściówki
+
+W trakcie semestru podczas zajęć laboratoryjnych pojawi się pięć wyjściówek. Wyjściówki należy rozwiązać samodzielnie i zgłosić rozwiązanie w repozytorium przed zakończeniem zajęć laboratoryjnych danej grupy.
+
+### Efekty kształcenia
+
+Student:
+
+- Zna i potrafi używać zaawansowanych narzędzi do wizualizacji danych w R.
+- Zna i potrafi wykorzystywać obiektowe i funkcyjne paradygmaty programowania w R.
+- Potrafi korzystać i tworzyć w R narzędzia do wizualizacji danych.
+- Potrafi tworzyć internetowe aplikacje Shiny.
+- Potrafi wykorzystać R jako interfejs do systemów rozproszonych.
+- Potrafi tworzyć pakiety R wraz z dokumentacja i testami jednostkowymi.
+- Potrafi w zespole tworzyć pakiety R i aplikacje internetowe Shiny.
+
+

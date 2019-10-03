@@ -3253,7 +3253,7 @@ vec %&gt;% {.} - 1 %&gt;% mean</pre>
 vec  %&gt;%  mean((. - 1)) 
 vec  %&gt;%  mean({. - 1})</pre>
 
-<p>Here, pipe forwards vec to mean() in a peculariar way. vec is a first argument, and {. - 1} is treated as an argument to trim.</p>
+<p>vec to pierwszy argument dla funkcji mean, a {. - 1} jest traktowane jak argument funkcji trim.</p>
 
 </article></slide><slide class=""><hgroup><h2>Przetwarzanie potokowe</h2></hgroup><article  id="przetwarzanie-potokowe-7">
 
@@ -3271,6 +3271,8 @@ vec  %&gt;%  mean({. - 1})</pre>
 ## [[3]]
 ## [1] 1</pre>
 
+</article></slide><slide class=""><hgroup><h2>Przetwarzanie potokowe</h2></hgroup><article  id="przetwarzanie-potokowe-8">
+
 <pre class = 'prettyprint lang-r'>vec %&gt;% simple_fun({. - 1})</pre>
 
 <pre >## [[1]]
@@ -3280,17 +3282,7 @@ vec  %&gt;%  mean({. - 1})</pre>
 ##  [1] 0 1 2 3 4 5 6 7 8 9
 ## 
 ## [[3]]
-## [1] 1</pre>
-
-<p>If we use &lsquo;{&rsquo; or &lsquo;(&rsquo; inside the function called after pipe, it will automatically switch to the second argument.</p>
-
-<p>Of course, the most magrittr way to use operators is to rely on pipe-friendly aliases as &lsquo;add&rsquo;:</p>
-
-<pre class = 'prettyprint lang-r'>vec %&gt;% 
-  add(-1) %&gt;% 
-  mean</pre>
-
-<pre >## [1] 4.5</pre></article></slide>
+## [1] 1</pre></article></slide>
 
 
   <slide class="backdrop"></slide>

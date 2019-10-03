@@ -8,6 +8,10 @@ output: ioslides_presentation
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## Zaliczanie przedmiotu
+
+https://github.com/mini-pw/2020Z-ProgramowanieWR
+
 ## Konwencje pisania kodu
 
 https://style.tidyverse.org/
@@ -127,7 +131,7 @@ vec  %>%  mean((. - 1))
 vec  %>%  mean({. - 1})
 ```
 
-Here, pipe forwards vec to mean() in a peculariar way. vec is a first argument, and {. - 1} is treated as an argument to trim.
+vec to pierwszy argument dla funkcji mean, a {. - 1} jest traktowane jak argument funkcji trim.
 
 ## Przetwarzanie potokowe
 
@@ -137,16 +141,10 @@ simple_fun <- function(x, y = 1, z = 1) {
 }
 (vec - 1) %>% simple_fun
 ```
+
+## Przetwarzanie potokowe
+
 ```{r}
 vec %>% simple_fun({. - 1})
 ```
 
-If we use '{' or '(' inside the function called after pipe, it will automatically switch to the second argument. 
-
-Of course, the most magrittr way to use operators is to rely on pipe-friendly aliases as 'add':
-
-```{r}
-vec %>% 
-  add(-1) %>% 
-  mean
-```
