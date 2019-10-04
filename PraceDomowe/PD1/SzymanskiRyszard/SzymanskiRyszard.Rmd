@@ -38,7 +38,9 @@ plot_benchmark_results <- function(benchmark_result) {
   ggplot(data = benchmark_result, aes(x = package, y = time, fill = package)) +
     geom_col() + 
     coord_flip() +
-    facet_wrap(. ~ title, ncol = 1)
+    facet_wrap(. ~ title, ncol = 1) +
+    xlab("Package used") +
+    ylab("Time [s]")
 }
 ```
 
