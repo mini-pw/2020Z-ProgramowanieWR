@@ -39,6 +39,7 @@ plot_benchmark_results <- function(benchmark_result) {
     geom_col() + 
     coord_flip() +
     facet_wrap(. ~ title, ncol = 1) +
+    theme(axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 0))) +
     xlab("Package used") +
     ylab("Time [s]")
 }
