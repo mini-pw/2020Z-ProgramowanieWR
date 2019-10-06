@@ -14,10 +14,10 @@ Strona przedmiotu Zaawansowane programowanie w R na wydziale MiNI PW.
 |-------|-------------------------------------------------------------------------|--------------------------------------------------------------------|---------|----|------------|
 | 03.10 | Dobre praktyki tworzenia kodu w R.                                      | Efektywne programowanie w R.                                       |         | 1  |            |
 | 10.10 | Znajomość pakietów z rodziny tidyverse.                                 | Elementy programowania obiektowego (S3, S4 i R6) oraz funkcyjnego. | 1       |    | 1          |
-| 17.10 | Tworzenie pakietów R (część 1).                                         | Dokumentacja (roxygen2, pkgdown) i testowanie kodu (testthat).     | 1       | 2  |            |
+| 17.10 | Tworzenie pakietów R (część 1).                                         | Dokumentacja (roxygen2, pkgdown) i testowanie kodu (testthat).     | 1*      | 2  |            |
 | 24.10 | Tworzenie pakietów R (część 2).                                         | Tworzenie aplikacji Shiny.                                         | 1       |    |            |
-| 31.10 | Shiny i programowanie reaktywne.                                        | Testy jednostkowe w Shiny (RSelenium, shinytest).                  | 1       |    | 2          |
-| 07.11 | ShinyProxy i Kubernetes.                                                | Zaawansowane aplikacje Shiny. ShinyJS. Shiny i Electron.           | 1       |    |            |
+| 31.10 |                                                                         |                                                                    |         |    |            |
+| 07.11 | ShinyProxy i Kubernetes.                                                | Zaawansowane aplikacje Shiny. ShinyJS. Shiny i Electron.           | 1       |    | 2          |
 | 14.11 | Prezentacje wyników projektu 1.                                         |                                                                    |         |    |            |
 | 21.11 | Prezentacje studentów.                                                  | Tworzenie aplikacji REST z użyciem plumber lub OpenCPU.            |         | 3  |            |
 | 28.11 | Prezentacje studentów.                                                  | Programowanie równoległe w R.                                      | 2       |    | 3          |
@@ -63,4 +63,24 @@ Prezentację na zadany temat przygotowuje i wygłasza w grupach do 3 osób. Nie 
  - od 0 do 5 punktów za prawidłowo przygotowaną prezentację.
  - od 0 do 5 punktów za ciekawe wygłoszenie prezentacji.
 
- 
+#### Prace domowe
+
+W trakcie semestru pojawią cztery prace domowe. Prace domowe należy oddać do północy do dnia w którym zostanie ogłoszona następna praca domowa. Prace domowe należy rozwiązywać samodzielnie.
+
+#### Wyjściówki
+
+W trakcie semestru podczas zajęć laboratoryjnych pojawi się pięć wyjściówek. Wyjściówki należy rozwiązać samodzielnie i zgłosić rozwiązanie w repozytorium przed zakończeniem zajęć laboratoryjnych danej grupy.
+
+### Efekty kształcenia
+
+Student:
+
+- Zna i potrafi używać zaawansowanych narzędzi do wizualizacji danych w R.
+- Zna i potrafi wykorzystywać obiektowe i funkcyjne paradygmaty programowania w R.
+- Potrafi korzystać i tworzyć w R narzędzia do wizualizacji danych.
+- Potrafi tworzyć internetowe aplikacje Shiny.
+- Potrafi wykorzystać R jako interfejs do systemów rozproszonych.
+- Potrafi tworzyć pakiety R wraz z dokumentacja i testami jednostkowymi.
+- Potrafi w zespole tworzyć pakiety R i aplikacje internetowe Shiny.
+
+
