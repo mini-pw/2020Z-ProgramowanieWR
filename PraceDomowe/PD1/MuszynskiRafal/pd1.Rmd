@@ -1,0 +1,173 @@
+---
+title: "pd1"
+author: "Rafał Muszyński"
+date: "10/4/2019"
+output: html_document
+---
+
+## ggplot, lattice and graphics comparision
+
+```{r setup}
+data("EuStockMarkets")
+library(tidyr)
+library(ggplot2)
+library(dplyr)
+library(lattice)
+
+timings = data.frame()
+
+```
+
+## Time series plot
+
+```{r}
+
+df <- cbind(as.data.frame(EuStockMarkets), data.frame(date=as.vector(time(EuStockMarkets))))
+gathered_df <- gather(df, stock, price, -date)
+
+ggplot_time <- system.time({
+  ggplot_plot <- ggplot(gathered_df, aes(x=date, y=price, color=stock)) + geom_line()
+})[['elapsed']]
+
+ggplot_plot
+ggplot_time
+
+lattice_time <- system.time({
+  lattice_plot <- xyplot(price~date, data = gathered_df, groups = stock, type='l')
+})[['elapsed']]
+lattice_plot
+lattice_time
+
+plot_with_base_r <- function (){
+  
+  # 2. Plot a first line
+  plot(df[['date']], df[['DAX']], type = "l", frame = FALSE, pch = 18,
+       col = "red", xlab = "x", ylab = "y")
+  
+  # 3. Add a second line
+  lines(df[['date']], df[['SMI']], pch = 18, col = "blue", type = "l")
+  # 3. Add a second line
+  lines(df[['date']], df[['CAC']], pch = 18, col = "green", type = "l")
+  # 3. Add a second line
+  lines(df[['date']], df[['FTSE']], pch = 18, col = "purple", type = "l")
+  
+  # 4. Add a legend to the plot and set legend lty
+  legend("topleft", legend = c("DAX", "SMI", "CAC", "FTSE"),
+         col = c("red", "blue", "green", "purple"), lty = 1:4, cex = 0.8)
+  
+}
+
+base_r_time <- system.time(plot_with_base_r())[['elapsed']]
+
+timings <- rbind(timings, data.frame(base_r_time = base_r_time, ggplot_time = ggplot_time, lattice_time = lattice_time, type='lines'))
+
+```
+
+# Barplots
+```{r plot}
+df <- data.frame(y=c(1, 5 ,6 , 9 , 0 , 2), x=c('a', 'b', 'c', 'd', 'e', 'f'))
+ggplot_time <- system.time( {
+  ggplot_bar_chart <- ggplot(df, aes(x=x,y=y)) + geom_bar(stat='identity')
+})[['elapsed']]
+ggplot_bar_chart
+
+lattice_time <- system.time( {lattice_plot <- barchart(y~x, data=df)} )[['elapsed']]
+lattice_plot
+base_r_time <- system.time( barplot(df[['y']], names=df[['x']]) )[['elapsed']]
+timings <- rbind(timings, data.frame(base_r_time = base_r_time, ggplot_time = ggplot_time, lattice_time = lattice_time, type='barplot'))
+
+```
+# Density plot
+
+```{r}
+n <- 10000
+df <- data.frame(x = rnorm(n, mean=0, sd=1), 
+                 y = rnorm(n, mean=1, sd=3), 
+                 z = rnorm(n, mean=0.5, sd=0.25)) 
+gathered_data <- gather(df, key, value)
+
+ggplot_time <- system.time({
+  ggplot_output <- ggplot(gathered_data, aes(x=value, fill=key, alpha=0.5)) + geom_density()
+})[['elapsed']]
+ggplot_output
+
+lattice_time <- system.time({
+  lattice_output <- densityplot(~value, data=gathered_data, groups=key, plot.points=FALSE, auto.key=TRUE)
+})[['elapsed']]
+lattice_output
+
+base_r_density <- function(){
+  plot(density(df[['x']], from=-5, to=5), col='red', ylim=c(0,2), xlim=c(-5,5), main='density', xlab='x')
+  lines(density(df[['y']], from=-5, to=5), col='blue')
+  lines(density(df[['z']], from=-5, to=5), col='green')
+  legend("topleft", legend = colnames(df),  col = c("red", "blue", "green"), lty = 1:4, cex = 0.8)
+}
+
+base_r_time <- system.time(base_r_density())[['elapsed']]
+
+timings <- rbind(timings, data.frame(base_r_time = base_r_time, ggplot_time = ggplot_time, lattice_time = lattice_time, type='density plot'))
+
+```
+
+# box plot
+```{r}
+n <- 10000
+df <- data.frame(x = rnorm(n, mean=0, sd=1), 
+                 y = rnorm(n, mean=1, sd=3), 
+                 z = rnorm(n, mean=0.5, sd=0.25)) 
+gathered_data <- gather(df, key, value)
+
+ggplot_time <- system.time({
+  ggplot_output <- ggplot(gathered_data, aes(x=key, y=value)) + geom_boxplot()
+})[['elapsed']]
+ggplot_output
+
+lattice_time <- system.time({
+  lattice_output <- bwplot(value~key, data=gathered_data, groups=key, plot.points=FALSE)
+})[['elapsed']]
+lattice_output
+
+base_r_density <- function(){
+  boxplot(value~key, data = gathered_data)
+}
+
+base_r_time <- system.time(base_r_density())[['elapsed']]
+
+timings <- rbind(timings, data.frame(base_r_time = base_r_time, ggplot_time = ggplot_time, lattice_time = lattice_time, type='box plot'))
+```
+
+
+
+# points
+
+
+```{r}
+  data(iris)
+  ggplot_scatter_time <- system.time({
+    ggplot_scatter_plot <- ggplot(iris, aes(x=Sepal.Length, y=Sepal.Width, color=Species)) + 
+      geom_point()
+  })[['elapsed']]
+  ggplot_scatter_plot
+  
+  base_r_scatter <- function(){
+    plot(iris[['Sepal.Length']], iris[['Sepal.Width']], pch=21, bg=c("red","green","blue")[unclass(iris$Species)], 
+         main="Iris", xlab='Sepal.Length', ylab='Sepal.Width' )
+    legend("topleft", legend = unique(factor(iris$Species)),  col = c("red", "green", "blue"), lty = 1:4, cex = 0.8)
+  }
+  
+  base_r_scatter_time <- system.time(base_r_scatter())[['elapsed']]
+  
+  lattice_scatter_time <- system.time({
+    lattice_scatter <- xyplot(Sepal.Width~Sepal.Length, data=iris, group=Species, auto.key = TRUE)
+  })[['elapsed']]
+  lattice_scatter
+  
+  timings <- rbind(timings, data.frame(base_r_time = base_r_scatter_time, ggplot_time = ggplot_scatter_time, lattice_time = lattice_scatter_time, type='scatter'))
+  
+```
+# Results
+
+```{r}
+gather(timings, method, time, - type) %>% 
+  ggplot(aes(x=type, y=time, fill=method)) + geom_bar(stat='identity', position='dodge')
+```
