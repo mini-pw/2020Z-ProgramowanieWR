@@ -19,7 +19,7 @@ library(forcats)
 library(dplyr)
 library(microbenchmark)
 
-setwd("C:/Users/jaiko/Desktop/Data")
+
 Accidents <- read.csv2('Accidents0515.csv',sep=',')
 Vehicles <- read.csv2('Vehicles0515.csv', sep=',')
 allData <- inner_join(Accidents, Vehicles, by='ï.¿Accident_Index')
@@ -30,11 +30,15 @@ allData[allData$Sex_of_Driver == 2,]$Sex_of_Driver = "Female"
 allData  <- allData[allData$Sex_of_Driver == "Male" | allData$Sex_of_Driver == "Female",]
 
 
-format(as.POSIXct(allData$Time, format="%y/%m/%d %H:%M:%S %Z"), format = '%H:%M')
 
 temp <- allData
 format(as.POSIXct(temp$Time, format="%y/%m/%d %H:%M:%S %Z"), format = '%H')
 temp$Time <- as.numeric(temp$Time)
+
+
+format(as.POSIXct(allData$Time, format="%y/%m/%d %H:%M:%S %Z"), format = '%H:%M')
+
+
 
 allData <- allData[(allData$Road_Type != -1 & allData$Road_Type != 9),]
 
@@ -294,6 +298,8 @@ results <- microbenchmark(unit = "ms", times = 1L,
   
 )
 names = rep(c('ggplot', 'lattice', 'baseR'),5)
+results <- results[order(results$expr),]
+results$time <- results$time/10^6
 resultsDataFrame = data.frame(results$expr,results$time, names)
 ```
 
