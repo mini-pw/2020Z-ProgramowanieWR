@@ -10,7 +10,7 @@ output:
     code_folding: hide
     number_sections: true
 ---
-```{r include=FALSE,eval=FALSE}
+```{r include=FALSE}
 library('lattice')
 library('ggplot2')
 library(scales)
@@ -255,7 +255,7 @@ b5 <- plot(allData[c(1:1000),]$Age_of_Driver, allData[c(1:1000),]$Age_of_Vehicle
 
 # Porównanie
 
-```{r, warning=F, message=F, results=F,eval=FALSE}
+```{r, warning=F, message=F, results=F}
 
 results <- microbenchmark(unit = "ms", times = 1L,
   g1 = ggplot(allData, aes(Number_of_Casualties)) + geom_histogram(binwidth = 0.5) +
