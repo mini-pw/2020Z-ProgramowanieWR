@@ -8,6 +8,8 @@ output: html_document
 Dataset:
 x = runif(100)
 y = runif(100)
+
+The graphs themselves are in a separate file.
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = T,
                       results = "hide", fig.width=12)
