@@ -15,6 +15,7 @@ Rezultaty projektu są prezentowane przez studentów podczas wykładów 14.11. K
 **Przetwarzanie danych**
 
 1. Szybkie zliczanie k-merów występujących w stringach. Należy umożliwić użytkownikowi zdefiniowanie alfabetu w jakim zapisane są stringi, aby pakiet mógł uwzględniać również k-mery zawierające takie kombinacje liter, które nie występują w źródłowych sekwencjach.
+2. Pakiet do refactoringu kodu (Dominik Rafacz i Mateusz Bąkała)
 
 **Grafika**
 
@@ -22,9 +23,13 @@ Rezultaty projektu są prezentowane przez studentów podczas wykładów 14.11. K
 2. Diagram Gantta (harmonogram Adamieckiego) z wykorzystaniem ggplot2.
 3. [Wydzialowy beamer template](https://www.promocja.pw.edu.pl/content/download/706/4011/file/Wydzial%20Matematyki%20i%20Nauk%20Informacyjnych.zip) jak Rmd template.
 4. Wydziałowy szablon dla prac dyplomowych jako bookdown template.
+5. Pakiet do rysunowania zależności między pakietami estetyczniejszych niż istniejące (miniCRAN, DependenciesGraph) (Dominik Rafacz, Mateusz Bąkała).
 
 **API**
 
 1. Interfejs do API [quickchart.io](https://quickchart.io/) oparty na Grammar of Graphics.
 2. Komunikacja z oficjalnym API Hacker News (grupa Ryszarda Szymańskiego).
 3. API do systemów kolejkowych Otwartych Danych Warszawskich.
+4. API do Wikidata.
+5. Wysyłanie informacji o zakończeniu obliczeń w R poprzez gmail itp. (Tymoteusz Makowski, Tomasz Kloncecki).
+

@@ -3124,6 +3124,44 @@ slide:not(.current) .plotly.html-widget{
 
 <p><a href='https://www.tidyverse.org/' title=''>tidyverse</a></p>
 
+</article></slide><slide class=""><hgroup><h2>Pakiety w tidyverse</h2></hgroup><article  id="pakiety-w-tidyverse">
+
+<p><img src="http://www.storybench.org/wp-content/uploads/2017/05/tidyverse-730x294.png" width="800px"></p>
+
+</article></slide><slide class=""><hgroup><h2>Pakiety w tidyverse</h2></hgroup><article  id="pakiety-w-tidyverse-1">
+
+<p>Core tidyverse packages (za <a href='https://github.com/tidyverse/tidyverse' title=''>https://github.com/tidyverse/tidyverse</a>):</p>
+
+<ul>
+<li><a href='http://ggplot2.tidyverse.org' title=''>ggplot2</a>, for data visualisation.</li>
+<li><a href='http://dplyr.tidyverse.org' title=''>dplyr</a>, for data manipulation.</li>
+<li><a href='http://tidyr.tidyverse.org' title=''>tidyr</a>, for data tidying.</li>
+<li><a href='http://readr.tidyverse.org' title=''>readr</a>, for data import.</li>
+<li><a href='http://purrr.tidyverse.org' title=''>purrr</a>, for functional programming.</li>
+<li><a href='http://tibble.tidyverse.org' title=''>tibble</a>, for tibbles, a modern re-imagining of data frames.</li>
+<li><a href='https://github.com/tidyverse/stringr' title=''>stringr</a>, for strings.</li>
+<li><a href='https://github.com/hadley/forcats' title=''>forcats</a>, for factors.</li>
+</ul>
+
+</article></slide><slide class=""><hgroup><h2>Popularność tidyverse</h2></hgroup><article  id="popularnosc-tidyverse">
+
+<div data-height="449" class="atlas-chart" data-id="NQ9tEMM58" data-width="640">
+<img src="https://s3.us-east-1.amazonaws.com/qz-production-atlas-assets/charts/atlas_NQ9tEMM58.png" style="max-width: 100%; min-width:100%;"></div>
+
+<script src="https://www.theatlas.com/javascripts/atlas.js"></script>
+
+</article></slide><slide class=""><hgroup><h2>Problemy z tidyverse</h2></hgroup><article  id="problemy-z-tidyverse">
+
+<p><a href='https://github.com/matloff/TidyverseSkeptic' title=''>https://github.com/matloff/TidyverseSkeptic</a></p>
+
+</article></slide><slide class=""><hgroup><h2>Założenia tidyverse</h2></hgroup><article  id="zaozenia-tidyverse">
+
+<ul>
+<li>przetwarzanie potokowe,</li>
+<li>programowanie funkcyjne,</li>
+<li>non-standard evaluation (NSE)</li>
+</ul>
+
 </article></slide><slide class=""><hgroup><h2>NSE</h2></hgroup><article  id="nse">
 
 <pre class = 'prettyprint lang-r'>library(dplyr)
@@ -3212,15 +3250,92 @@ example_x</pre>
 
 <pre >## [1] 9</pre>
 
-</article></slide><slide class=""><hgroup><h2>getElement for NSE</h2></hgroup><article  id="getelement-for-nse">
+</article></slide><slide class=""><hgroup><h2>getElement dla NSE</h2></hgroup><article  id="getelement-dla-nse">
 
 <pre class = 'prettyprint lang-r'>getElement_NSE &lt;- function(input_list, element_name) {
   eval(substitute(element_name), input_list)
+}</pre>
+
+</article></slide><slide class=""><hgroup><h2>getElement dla NSE</h2></hgroup><article  id="getelement-dla-nse-1">
+
+<pre class = 'prettyprint lang-r'>x</pre>
+
+<pre >## $a
+## [1] 1 2 3
+## 
+## $b
+## [1] 2 3 4</pre>
+
+<pre class = 'prettyprint lang-r'>x %&gt;% getElement(&quot;a&quot;)</pre>
+
+<pre >## [1] 1 2 3</pre>
+
+<pre class = 'prettyprint lang-r'>x %&gt;% getElement_NSE(a)</pre>
+
+<pre >## [1] 1 2 3</pre>
+
+</article></slide><slide class=""><hgroup><h2>Problemy z NSE</h2></hgroup><article  id="problemy-z-nse">
+
+<pre class = 'prettyprint lang-r'>x %&gt;% getElement(&quot;a&quot;)</pre>
+
+<pre >## [1] 1 2 3</pre>
+
+<pre class = 'prettyprint lang-r'>x %&gt;% getElement(&quot;b&quot;)</pre>
+
+<pre >## [1] 2 3 4</pre>
+
+<pre class = 'prettyprint lang-r'>x %&gt;% getElement(&quot;c&quot;)</pre>
+
+<pre >## NULL</pre>
+
+</article></slide><slide class=""><hgroup><h2>Problemy z NSE</h2></hgroup><article  id="problemy-z-nse-1">
+
+<pre class = 'prettyprint lang-r'>x %&gt;% getElement_NSE(a)</pre>
+
+<pre >## [1] 1 2 3</pre>
+
+<pre class = 'prettyprint lang-r'>x %&gt;% getElement_NSE(b)</pre>
+
+<pre >## [1] 2 3 4</pre>
+
+<pre class = 'prettyprint lang-r'>x %&gt;% getElement_NSE(c)</pre>
+
+<pre >## function (...)  .Primitive(&quot;c&quot;)</pre>
+
+</article></slide><slide class=""><hgroup><h2>Problemy z NSE</h2></hgroup><article  id="problemy-z-nse-2">
+
+<pre class = 'prettyprint lang-r'>getElement_NSE &lt;- function(input_list, element_name) {
+  s_element_name &lt;- substitute(element_name)
+  print(s_element_name)
+  eval(s_element_name, input_list)
 }
-  
+
 x %&gt;% getElement_NSE(a)</pre>
 
-<pre >## [1] 1 2 3</pre></article></slide>
+<pre >## a</pre>
+
+<pre >## [1] 1 2 3</pre>
+
+<pre class = 'prettyprint lang-r'>x %&gt;% getElement_NSE(c)</pre>
+
+<pre >## c</pre>
+
+<pre >## function (...)  .Primitive(&quot;c&quot;)</pre>
+
+</article></slide><slide class=""><hgroup><h2>Problemy z NSE</h2></hgroup><article  id="problemy-z-nse-3">
+
+<pre class = 'prettyprint lang-r'>getElement_NSE2 &lt;- function(input_list, element_name) {
+  s_element_name &lt;- substitute(element_name)
+  if(as.character(s_element_name) %in% names(input_list)) {
+    eval(s_element_name, input_list)
+  } else {
+    NULL
+  }
+}
+
+x %&gt;% getElement_NSE2(c)</pre>
+
+<pre >## NULL</pre></article></slide>
 
 
   <slide class="backdrop"></slide>
