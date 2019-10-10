@@ -5,7 +5,7 @@ is.grade <- function(x, possible_grades) {
 construct_student <- function(id, grades, possible_grades = c(2, 3, 3.5, 4, 4.5, 5), ...) {
   # grades must be numeric (because of mean)
   stopifnot(is.numeric(possible_grades))
-  stopifnot(validate_student(id, grades))
+  stopifnot(validate_student(id, grades, possible_grades))
   return(structure(list(id = id, grades = grades), class = "student"))
 }
 
