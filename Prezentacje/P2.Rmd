@@ -1,0 +1,84 @@
+---
+title: "Znajomość pakietów z rodziny tidyverse"
+author: "Michał Burdukiewicz"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## tidyverse
+
+"The tidyverse is an opinionated collection of R packages designed for data science."
+
+[tidyverse](https://www.tidyverse.org/)
+
+## NSE
+
+```{r,message=FALSE}
+library(dplyr)
+iris %>% 
+  group_by(Species) %>% 
+  summarise(mean(Petal.Length))
+```
+
+## NSE
+
+```{r}
+x <- list(a = 1L:3, b = 2:4)
+x %>% getElement("a")
+x %>% purrr::pluck("a")
+# x %>% purrr::pluck(a)
+```
+
+## quote
+
+```{r,error=TRUE}
+quote(example_x <- "a")
+example_x
+```
+
+## eval
+
+eval(expr, envir, enclos)
+
+```{r,error=TRUE}
+eval(quote(example_x <- "a"))
+example_x
+```
+
+## eval
+
+```{r,error=TRUE}
+eval(quote(x), list(x = 3))
+eval(quote(x^2), list(x = 3))
+eval(quote(x^y), list(x = 3, y = 2))
+```
+
+## substitute
+
+```{r,error=TRUE}
+substitute(x, list(x = 3))
+substitute(x^2, list(x = 3))
+substitute(x^y, list(x = 3, y = 2))
+```
+
+## Ponownie eval
+
+```{r,error=TRUE}
+eval(substitute(x, list(x = 3)))
+eval(substitute(x^2, list(x = 3)))
+eval(substitute(x^y, list(x = 3, y = 2)))
+```
+
+## getElement for NSE
+
+```{r,error=TRUE}
+getElement_NSE <- function(input_list, element_name) {
+  eval(substitute(element_name), input_list)
+}
+  
+x %>% getElement_NSE(a)
+```
+
