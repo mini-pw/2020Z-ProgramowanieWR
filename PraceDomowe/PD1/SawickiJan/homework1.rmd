@@ -1,0 +1,68 @@
+---
+title: "homework1"
+author: "Jan Sawicki"
+output: html_document
+---
+
+## Execution times of different charts of different libraries
+Dataset:
+x = runif(100)
+y = runif(100)
+
+The graphs themselves are in a separate file.
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T,
+                      results = "hide", fig.width=12)
+library(ggplot2)
+library(lattice)
+
+library(microbenchmark)
+
+data = data.frame(x = runif(10), y = runif(10))
+
+options(microbenchmark.unit = "ns")
+
+measurements = microbenchmark(
+  ggplot_pointchart = ggplot(data = data, aes(x = data$x, y = data$y)) +
+    geom_point(),
+  ggplot_linechart = ggplot(data = data, aes(x = data$x, y = data$y)) +
+    geom_line(),
+  ggplot_barchart = ggplot(data = data, aes(
+    x = data$x, y = data$y, col = data$x
+  )) +
+    geom_bar(stat = "identity"),
+  ggplot_boxchart = ggplot(data = data, aes(
+    x = data$x, y = data$y, col = data$x
+  )) + geom_boxplot(),
+  ggplot_densitychart = ggplot(data = data, aes(x = data$x)) +
+    geom_histogram(binwidth = 1),
+  ggplot_nochart = ggplot(),
+  lattice_pointchart = xyplot(y ~ x, data),
+  lattice_linechart = xyplot(y ~ x, data, type = c("smooth")),
+  lattice_barchart = barchart(y ~ x, data),
+  lattice_boxchart = bwplot(y ~ x, data),
+  lattice_densitychart = histogram(data$x),
+  lattice_nochart = xyplot(0 ~ 0, data = data),
+  graphics_pointchart = plot(data$x, data$y, type = "p"),
+  graphics_linechart = plot(data$x, data$y, type = "l"),
+  graphics_barchart = plot(data$x, data$y, type = "h"),
+  graphics_boxchart = boxplot(data$x, data$y),
+  graphics_densitychart =   hist(data$x),
+  graphics_nochart = plot(data$x, data$y, type = "n")
+)
+
+measurements = as.data.frame(summary(measurements))
+
+framework = c(rep("ggplot", 6), rep("lattice", 6), rep("graphics", 6))
+
+measurements = cbind(measurements, framework)
+```
+
+```{r echo=F}
+ggplot(data = measurements, aes(x = reorder(expr, mean), y = mean, fill = framework)) +
+  geom_bar(stat = "identity") +
+  theme_classic() + 
+  scale_fill_manual(values = c("#1D3461", "#BC9EC1", "#D282A6")) +
+  labs(x = "algorithm", y = "mean execution time [ns]", fill = "mean execution time [ns]") +
+  coord_flip()
+```
