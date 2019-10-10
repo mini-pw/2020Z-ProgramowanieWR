@@ -19,6 +19,10 @@ library(forcats)
 library(dplyr)
 library(microbenchmark)
 
+if(Sys.info()[["nodename"]] == "DESKTOP-R7AK5L3"){
+  setwd("C:/Users/jaiko/Desktop/Data")
+}
+
 
 Accidents <- read.csv2('Accidents0515.csv',sep=',')
 Vehicles <- read.csv2('Vehicles0515.csv', sep=',')
@@ -255,7 +259,7 @@ b5 <- plot(allData[c(1:1000),]$Age_of_Driver, allData[c(1:1000),]$Age_of_Vehicle
 
 # Porównanie
 
-```{r, warning=F, message=F, results=F}
+```{r,results="hide", message=FALSE, warning=FALSE, fig.show="hide", include=FALSE, fig.keep="none"}
 
 results <- microbenchmark(unit = "ms", times = 1L,
   g1 = ggplot(allData, aes(Number_of_Casualties)) + geom_histogram(binwidth = 0.5) +
