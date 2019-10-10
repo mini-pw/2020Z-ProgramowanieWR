@@ -4,22 +4,17 @@ length_m <- function(...) {
   lengths(list(...))
 }
 
-length_m(c(1, 2), c(1:5), c(2:100))
+length_m(c(1, 2), c(1:5), c(2:100), c(1:2))
 
 x <- list(c(1, 2), c(1:5), c(2:100))
 length_m(x)
 do.call(length_m, x)
 
+1L:5
+
 # S3 -----------------------------
 
 methods(print)
-
-example_object1 <- structure(c("A", "B", "C"), class = "example_class")
-
-str(example_object1)
-
-example_object2 <- c("A", "B", "C")
-class(example_object2) <- "example_class"
 
 # x <- matrix(rnorm(20), nrow = 5)
 # class(x)
@@ -28,7 +23,16 @@ class(example_object2) <- "example_class"
 # storage.mode(x) <- "integer"
 # class(x)
 # attributes(x)
-# str(example_object2)
+
+
+example_object1 <- structure(c("A", "B", "C"), class = "example_class")
+
+str(example_object1)
+
+example_object2 <- c("A", "B", "C")
+class(example_object2) <- "example_class"
+
+str(example_object2)
 
 example_object3 <- c("A", "B", "C")
 attr(example_object3, "class") <- "example_class"
@@ -46,6 +50,8 @@ print.example_class <- function(x, ...) {
   cat("Letters:\n")
   cat(x)
 }
+
+plot.example_class(x, y, bar_color = "red", ...)
 
 print(example_object1)
 
@@ -72,4 +78,4 @@ example_object <- new("example_class", value = c("A", "B", "C"))
 setMethod("as.character", "example_class", function(x) slot(x, "value"))
 as.character(example_object)
 
-# zadanie: stwórz obiekt z dwoma klasami. Pokaż jak działa multiple
+# zadanie: stwórz obiekt z dwoma klasami. Pokaż jak działa multiple dispatch

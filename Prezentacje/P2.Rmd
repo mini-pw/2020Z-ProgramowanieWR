@@ -1,0 +1,165 @@
+---
+title: "Znajomość pakietów z rodziny tidyverse"
+author: "Michał Burdukiewicz"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## tidyverse
+
+"The tidyverse is an opinionated collection of R packages designed for data science."
+
+[tidyverse](https://www.tidyverse.org/)
+
+## Pakiety w tidyverse
+
+<img src="http://www.storybench.org/wp-content/uploads/2017/05/tidyverse-730x294.png" width="800px">
+
+## Pakiety w tidyverse
+
+Core tidyverse packages (za https://github.com/tidyverse/tidyverse):
+
+  - [ggplot2](http://ggplot2.tidyverse.org), for data visualisation.
+  - [dplyr](http://dplyr.tidyverse.org), for data manipulation.
+  - [tidyr](http://tidyr.tidyverse.org), for data tidying.
+  - [readr](http://readr.tidyverse.org), for data import.
+  - [purrr](http://purrr.tidyverse.org), for functional programming.
+  - [tibble](http://tibble.tidyverse.org), for tibbles, a modern
+    re-imagining of data frames.
+  - [stringr](https://github.com/tidyverse/stringr), for strings.
+  - [forcats](https://github.com/hadley/forcats), for factors.
+
+## Popularność tidyverse
+
+<div class="atlas-chart" data-id="NQ9tEMM58" data-width="640" data-height="449"><img src="https://s3.us-east-1.amazonaws.com/qz-production-atlas-assets/charts/atlas_NQ9tEMM58.png" style="max-width: 100%; min-width:100%;"></div><script src="https://www.theatlas.com/javascripts/atlas.js"></script>
+
+## Problemy z tidyverse
+
+https://github.com/matloff/TidyverseSkeptic
+
+## Założenia tidyverse
+
+- przetwarzanie potokowe,
+- programowanie funkcyjne,
+- non-standard evaluation (NSE)
+
+## NSE
+
+```{r,message=FALSE}
+library(dplyr)
+iris %>% 
+  group_by(Species) %>% 
+  summarise(mean(Petal.Length))
+```
+
+## NSE
+
+```{r}
+x <- list(a = 1L:3, b = 2:4)
+x %>% getElement("a")
+x %>% purrr::pluck("a")
+# x %>% purrr::pluck(a)
+```
+
+## quote
+
+```{r,error=TRUE}
+quote(example_x <- "a")
+example_x
+```
+
+## eval
+
+eval(expr, envir, enclos)
+
+```{r,error=TRUE}
+eval(quote(example_x <- "a"))
+example_x
+```
+
+## eval
+
+```{r,error=TRUE}
+eval(quote(x), list(x = 3))
+eval(quote(x^2), list(x = 3))
+eval(quote(x^y), list(x = 3, y = 2))
+```
+
+## substitute
+
+```{r,error=TRUE}
+substitute(x, list(x = 3))
+substitute(x^2, list(x = 3))
+substitute(x^y, list(x = 3, y = 2))
+```
+
+## Ponownie eval
+
+```{r,error=TRUE}
+eval(substitute(x, list(x = 3)))
+eval(substitute(x^2, list(x = 3)))
+eval(substitute(x^y, list(x = 3, y = 2)))
+```
+
+## getElement dla NSE
+
+```{r,error=TRUE}
+getElement_NSE <- function(input_list, element_name) {
+  eval(substitute(element_name), input_list)
+}
+```
+
+## getElement dla NSE
+
+```{r,error=TRUE}
+x
+x %>% getElement("a")
+x %>% getElement_NSE(a)
+```
+
+## Problemy z NSE
+
+```{r,error=TRUE}
+x %>% getElement("a")
+x %>% getElement("b")
+x %>% getElement("c")
+```
+
+## Problemy z NSE
+
+```{r}
+x %>% getElement_NSE(a)
+x %>% getElement_NSE(b)
+x %>% getElement_NSE(c)
+```
+
+## Problemy z NSE
+
+```{r,error=TRUE}
+getElement_NSE <- function(input_list, element_name) {
+  s_element_name <- substitute(element_name)
+  print(s_element_name)
+  eval(s_element_name, input_list)
+}
+
+x %>% getElement_NSE(a)
+x %>% getElement_NSE(c)
+```
+
+## Problemy z NSE
+
+```{r,error=TRUE}
+getElement_NSE2 <- function(input_list, element_name) {
+  s_element_name <- substitute(element_name)
+  if(as.character(s_element_name) %in% names(input_list)) {
+    eval(s_element_name, input_list)
+  } else {
+    NULL
+  }
+}
+
+x %>% getElement_NSE2(c)
+```
