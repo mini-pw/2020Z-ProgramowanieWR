@@ -1,6 +1,18 @@
+#  ellipsis in R
+
+length_m <- function(...) {
+  lengths(list(...))
+}
+
+length_m(c(1, 2), c(1:5), c(2:100))
+
+x <- list(c(1, 2), c(1:5), c(2:100))
+length_m(x)
+do.call(length_m, x)
+
 # S3 -----------------------------
 
-methods(summary)
+methods(print)
 
 example_object1 <- structure(c("A", "B", "C"), class = "example_class")
 
@@ -9,7 +21,14 @@ str(example_object1)
 example_object2 <- c("A", "B", "C")
 class(example_object2) <- "example_class"
 
-str(example_object2)
+# x <- matrix(rnorm(20), nrow = 5)
+# class(x)
+# str(x)
+# attributes(x)
+# storage.mode(x) <- "integer"
+# class(x)
+# attributes(x)
+# str(example_object2)
 
 example_object3 <- c("A", "B", "C")
 attr(example_object3, "class") <- "example_class"
@@ -19,6 +38,16 @@ str(example_object3)
 identical(example_object1, example_object2)
 identical(example_object1, example_object3)
 identical(example_object2, example_object3)
+
+example_factor <- factor(letters[1L:3])
+class(example_factor) <- "example_class"
+
+print.example_class <- function(x, ...) {
+  cat("Letters:\n")
+  cat(x)
+}
+
+print(example_object1)
 
 summary.example_class <- function(object, ...) {
   summ <- table(factor(object, levels = letters))
