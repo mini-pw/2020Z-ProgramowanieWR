@@ -13,7 +13,7 @@ Strona przedmiotu Zaawansowane programowanie w R na wydziale MiNI PW.
 | Data  | Wykład                                                                  | Laboratoria                                                        | Projekt | PD | Wyjściówka |
 |-------|-------------------------------------------------------------------------|--------------------------------------------------------------------|---------|----|------------|
 | 03.10 | Dobre praktyki tworzenia kodu w R.                                      | Efektywne programowanie w R.                                       |         | 1  |            |
-| 10.10 | Znajomość pakietów z rodziny tidyverse.                                 | Elementy programowania obiektowego (S3, S4 i R6) oraz funkcyjnego. | 1       |    | 1          |
+| 10.10 | Znajomość pakietów z rodziny tidyverse.                                 | Lexical scoping. Elementy programowania obiektowego.               | 1       |    | 1          |
 | 17.10 | Tworzenie pakietów R (część 1).                                         | Dokumentacja (roxygen2, pkgdown) i testowanie kodu (testthat).     | 1*      | 2  |            |
 | 24.10 | Tworzenie pakietów R (część 2).                                         | Tworzenie aplikacji Shiny.                                         | 1       |    |            |
 | 31.10 |                                                                         |                                                                    |         |    |            |
@@ -83,4 +83,11 @@ Student:
 - Potrafi tworzyć pakiety R wraz z dokumentacja i testami jednostkowymi.
 - Potrafi w zespole tworzyć pakiety R i aplikacje internetowe Shiny.
 
+### Materiały pomocnicze
 
+- [Przemysław Biecek; Przewodnik po pakiecie R](http://pbiecek.github.io/Przewodnik/).
+- Marek Gągolewski; Programowanie w języku R.
+- [Hadley Wickham; Advanced R](https://adv-r.hadley.nz/).
+- [Patrick Burns; The R Inferno](https://www.burns-stat.com/documents/books/the-r-inferno/).
+- Michael J. Crawley; R Book.
+- [Hadley Wickham, Jennifer Bryan;](https://r-pkgs.org/).
