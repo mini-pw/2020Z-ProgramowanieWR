@@ -2,7 +2,7 @@
 
 Każdy projekt wykonuje się w grupie do 5 osób. Nie wolno wykonywać projektu z osobami, z którymi wykonywało się inny projekt na tym przedmiocie bądź prezentację. Projekty można realizować z osobami z innej grupy ćwiczeniowej. Za każdy projekt można otrzymać do 25 punktów z czego:
  
- - 1 punkt za każdą konsultację projektu podczas spotkania projektowego. Za każdą konsultację uznaje się przedyskutowanie z prowadzącym postępów w pracy nad projektem podczas spotkania projektowego. W ciągu jednego spotkania nie można zdobyć więcej niż 1 punkt.
+ - 1 punkt za konsultację projektu podczas spotkania projektowego 07.11 i 2 punkty za konsultacje podczas spotkania projektowego 17.10 i 24.10. Za każdą konsultację uznaje się przedyskutowanie z prowadzącym postępów w pracy nad projektem podczas spotkania projektowego. W ciągu jednego spotkania nie można zdobyć więcej niż 1 punkt.
  - od 0 do 10 punktów za poprawność techniczną projektu (np. dobrze skomentowany, udokumentowany i przetestowany kod).
  - od 0 do 5 punktów za dodatkowy wysiłek włożony w projekt (np. porównanie z innymi, istniejącymi rozwiązaniami).
  - od 0 do 5 punktów za ciekawą prezentację projektu.  
