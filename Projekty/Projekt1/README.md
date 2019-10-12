@@ -22,14 +22,14 @@ Każdy zespół musi realizować inny temat projektu.
 **Grafika**
 
 1. Diagrammy Venna jako geom_venn
-2. Diagram Gantta (harmonogram Adamieckiego) z wykorzystaniem ggplot2 (grupa Jana Sawickiego).
+2. Diagram Gantta (harmonogram Adamieckiego) z wykorzystaniem ggplot2.
 3. [Wydzialowy beamer template](https://www.promocja.pw.edu.pl/content/download/706/4011/file/Wydzial%20Matematyki%20i%20Nauk%20Informacyjnych.zip) jak Rmd template.
 4. Wydziałowy szablon dla prac dyplomowych jako bookdown template.
 5. Pakiet do rysunowania zależności między pakietami estetyczniejszych niż istniejące (miniCRAN, DependenciesGraph) (Dominik Rafacz, Mateusz Bąkała).
 
 **API**
 
-1. Interfejs do API [quickchart.io](https://quickchart.io/) oparty na Grammar of Graphics.
+1. Interfejs do API [quickchart.io](https://quickchart.io/) oparty na Grammar of Graphics (grupa Jana Sawickiego).
 2. Komunikacja z oficjalnym API Hacker News (grupa Ryszarda Szymańskiego).
 3. API do systemów kolejkowych Otwartych Danych Warszawskich.
 4. API do Wikidata.
