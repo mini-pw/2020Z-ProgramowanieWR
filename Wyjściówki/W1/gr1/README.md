@@ -1,0 +1,1 @@
+Stworz obiekt klasy S3, ktory bedzie zawieral dwa pola: id studenta oraz nazwany wektor jego ocen z 10 przedmiotow. Stworz funkcje mean.student ktora wylicza srednia ocen studenta oraz konstrukor i walidator obiektow klasy student.
