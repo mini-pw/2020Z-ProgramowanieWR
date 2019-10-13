@@ -23,7 +23,7 @@ show_table <- function(file_name) {
 Do wygenerowania wykresów został użyty zbiór `maturaExam` z pakietu `SmarterPoland`.
 Ów zbiór zawiera dane dotyczące wyników matury z języka polskiego i matematyki.
 
-W niniejszej pracy zajęłam się danymi dotyczącymi wyniki z matury z matematyki.
+W niniejszej pracy zajęłam się danymi dotyczącymi wyników z matury z matematyki.
 Kolejne wykresy bazowały na danych przetworzonych w następujący sposób:
 
 1. *BoxPlot*: Wszystkie wyniki z matury z matematyki w latach 2010-2015
