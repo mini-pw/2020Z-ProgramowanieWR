@@ -12,10 +12,12 @@ Rezultaty projektu są prezentowane przez studentów podczas wykładów 14.11. K
 
 ### Tematy projektów (pakietów)
 
+Każdy zespół musi realizować inny temat projektu.
+
 **Przetwarzanie danych**
 
-1. Szybkie zliczanie k-merów występujących w stringach. Należy umożliwić użytkownikowi zdefiniowanie alfabetu w jakim zapisane są stringi, aby pakiet mógł uwzględniać również k-mery zawierające takie kombinacje liter, które nie występują w źródłowych sekwencjach.
-2. Pakiet do refactoringu kodu (Dominik Rafacz i Mateusz Bąkała)
+1. Szybkie zliczanie k-merów występujących w stringach. Należy umożliwić użytkownikowi zdefiniowanie alfabetu w jakim zapisane są stringi, aby pakiet mógł uwzględniać również k-mery zawierające takie kombinacje liter, które nie występują w źródłowych sekwencjach. (grupa: Piotr Olesiejuk, Jadwiga Słowik)
+2. Pakiet do refactoringu kodu.
 
 **Grafika**
 
@@ -27,9 +29,9 @@ Rezultaty projektu są prezentowane przez studentów podczas wykładów 14.11. K
 
 **API**
 
-1. Interfejs do API [quickchart.io](https://quickchart.io/) oparty na Grammar of Graphics.
+1. Interfejs do API [quickchart.io](https://quickchart.io/) oparty na Grammar of Graphics (grupa Jana Sawickiego).
 2. Komunikacja z oficjalnym API Hacker News (grupa Ryszarda Szymańskiego).
 3. API do systemów kolejkowych Otwartych Danych Warszawskich.
 4. API do Wikidata.
-5. Wysyłanie informacji o zakończeniu obliczeń w R poprzez gmail itp. (Tymoteusz Makowski, Tomasz Kloncecki).
+5. Wysyłanie informacji o zakończeniu obliczeń w R poprzez gmail itp. (Tymoteusz Makowski, Tomasz Klonecki).
 

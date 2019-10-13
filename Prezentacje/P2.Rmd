@@ -18,6 +18,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 <img src="http://www.storybench.org/wp-content/uploads/2017/05/tidyverse-730x294.png" width="800px">
 
+Źródło: http://www.storybench.org/getting-started-with-tidyverse-in-r/
+
 ## Pakiety w tidyverse
 
 Core tidyverse packages (za https://github.com/tidyverse/tidyverse):
