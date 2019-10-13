@@ -154,13 +154,14 @@ plot_names <- c(
 
 package_names <- c("ggplot", "lattice", "graphics")
 
-benchmark_res <- Reduce(
-  cbind,
-  lapply(plot_names,
-         function(r) read.csv(sprintf("benchmark_results/%s.csv", r)) %>% select("mean")))
+benchmark_res <- cbind(
+  data.frame(package=package_names),
+  Reduce(
+    cbind,
+    lapply(plot_names,
+         function(r) read.csv(sprintf("benchmark_results/%s.csv", r)) %>% select("mean"))))
 
-colnames(benchmark_res) <- plot_names
-rownames(benchmark_res) <- package_names
+colnames(benchmark_res) <- c("package", plot_names)
 knitr::kable(benchmark_res)
 ```
 
