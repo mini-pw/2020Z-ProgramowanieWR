@@ -10,6 +10,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 library("pander")
 library("dplyr")
+library("ggplot2")
 ```
 
 ```{r show_table, echo=FALSE, cache=TRUE}
@@ -143,7 +144,7 @@ show_table("benchmark_results/density_plot.csv")
 # Podsumowanie
 Wyniki zbiorcze prezentują się następująco:
 
-```{r all_results, echo=FALSE, cache=TRUE}
+```{r all_results, echo=FALSE}
 plot_names <- c(
   "box_plot",
   "bar_plot",
@@ -154,14 +155,26 @@ plot_names <- c(
 
 package_names <- c("ggplot", "lattice", "graphics")
 
+get_package_benchmark <- function(package_name) {
+  read.csv(sprintf("benchmark_results/%s.csv", package_name)) %>% select("mean")
+}
+
 benchmark_res <- cbind(
   data.frame(package=package_names),
-  Reduce(
-    cbind,
-    lapply(plot_names,
-         function(r) read.csv(sprintf("benchmark_results/%s.csv", r)) %>% select("mean"))))
+  Reduce(cbind, lapply(plot_names, get_package_benchmark)))
 
 colnames(benchmark_res) <- c("package", plot_names)
 knitr::kable(benchmark_res)
 ```
 
+```{r, echo=FALSE}
+plot_final_data <- Reduce(
+  rbind,
+  lapply(
+    plot_names,
+    function(r) get_package_benchmark(r) %>% cbind(data.frame(package=as.factor(package_names), plot=r))))
+
+knitr::kable(plot_final_data)
+
+
+```
