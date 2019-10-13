@@ -21,7 +21,7 @@ Każdy zespół musi realizować inny temat projektu.
 
 **Grafika**
 
-1. Diagrammy Venna jako geom_venn
+1. Diagrammy Venna jako geom_venn lepsze niż https://github.com/gaospecial/ggVennDiagram
 2. Diagram Gantta (harmonogram Adamieckiego) z wykorzystaniem ggplot2.
 3. [Wydzialowy beamer template](https://www.promocja.pw.edu.pl/content/download/706/4011/file/Wydzial%20Matematyki%20i%20Nauk%20Informacyjnych.zip) jak Rmd template.
 4. Wydziałowy szablon dla prac dyplomowych jako bookdown template.
