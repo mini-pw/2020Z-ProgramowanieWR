@@ -1,0 +1,200 @@
+---
+title: "Praca domowa 1"
+author: "Witold Merkel"
+date: "6 10 2019"
+output:
+  html_document:
+    df_print: paged
+    toc: true
+    toc_float: true
+    code_folding: hide
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(graphics)
+library(lattice)
+library(datasets)
+```
+
+# Wprowadzenie
+
+W tej pracy zajmiemy się porównywaniem czasu tworzenia się takich samych wykresów przy użyciu 3 różnych pakietów. Tymi pakietami są: *ggplot2*, *lattice* oraz *graphics*.
+
+Kolejność wyświetlania danych jest następująca, najpierw napisane jest przy pomocy jakiego pakietu uzyskaliśmy wykres, potem przedstawiony jest wykres, a na koniec pokazany jest czas tworzenia.
+
+# Scatter plot
+
+W celu porównania czasu w tym przypadku losowo wygenerujemy 250 punktów. Do generowania punktów użyjemy funkcji: *rnorm()*, czyli będą to punkty z rozkładu normalnego o wartości oczekiwanej równej 0 oraz wariancji równej 1.
+
+```{r echo=FALSE}
+x <- rnorm(250)
+y <- rnorm(250)
+data1 <- as.data.frame(cbind(x, y))
+gg_s <- ggplot(data1, aes(x = x, y = y)) + geom_point()
+la_s <- xyplot(x ~ y, data = data1)
+gg_s_t <- system.time(ggplot(data1, aes(x = x, y = y)) + geom_point())
+la_s_t <- system.time(xyplot(x ~ y, data = data1))
+"Graphics"
+gr_s <- plot(x = data1$x, y = data1$y)
+gr_s_t <- system.time(plot(x = data1$x, y = data1$y))
+gr_s_t
+"GGplot"
+gg_s
+gg_s_t
+"Lattice"
+la_s
+la_s_t
+```
+
+# Histogram
+
+W tej sekcji przybliżymy rozkład gamma z parametrami 8 i 24 przy użyciu histogramu i funckji *rgamma()*.
+
+```{r echo = FALSE}
+gamma <- as.data.frame(rgamma(250, 8, 24))
+colnames(gamma) <- "wartosc"
+gg_h <- ggplot(gamma, aes(x = wartosc)) + geom_histogram(bins = 30)
+la_h <- lattice::histogram(x = gamma$wartosc)
+"Graphics"
+gr_h <- graphics::hist(x = gamma$wartosc)
+gr_h_t <- system.time(hist(x = gamma$wartosc))
+gr_h_t
+gg_h_t <- system.time(ggplot(gamma, aes(x = wartosc)) + geom_histogram())
+la_h_t <- system.time(histogram(x = gamma$wartosc))
+"Ggplot"
+gg_h
+gg_h_t
+"Lattice"
+la_h
+la_h_t
+```
+
+# Bar plot
+
+W tej sekcji spojrzymy na rozłożenie tego w jakich klasach byli pasażerowie rejsu tytanika.
+
+```{r echo=FALSE}
+data <- titanic::titanic_train
+data$Pclass <- as.factor(data$Pclass)
+data1 <- as.data.frame(table(data$Pclass))
+gg_b <- ggplot(data = data, aes(x = Pclass)) + geom_bar()
+la_b <- lattice::barchart(x = data$Pclass)
+"Graphics"
+gr_b <- barplot(data1$Freq)
+gr_b_t <- system.time(barplot(data1$Freq))
+gr_b_t
+gg_b_t <- system.time(ggplot(data = data, aes(x = Pclass)) + geom_bar())
+la_b_t <- system.time(barchart(x = data$Pclass))
+"Ggplot"
+gg_b
+gg_b_t
+"Lattice"
+la_b
+la_b_t
+```
+
+# Line plot
+
+Przedstawimy tu wykres liniowy cen zamknięć kursu DAX na giełdzie w latach 1991-1998.
+
+```{r echo=FALSE}
+df <- as.data.frame(EuStockMarkets)
+df <- cbind(1:nrow(df), df)
+colnames(df)[1] <- "Day"
+gg_l <- ggplot(df, aes(x = Day, y = DAX)) + geom_line()
+la_l <- xyplot(DAX ~ Day, data = df, type = "l")
+"Graphics"
+gr_l <- plot(df$Day, df$DAX, type = "l")
+gr_l_t <- system.time(plot(df$Day, df$DAX, type = "l"))
+gr_l_t
+gg_l_t <- system.time(ggplot(df, aes(x = Day, y = DAX)) + geom_line())
+la_l_t <- system.time(xyplot(DAX ~ Day, data = df, type = "l"))
+"Ggplot"
+gg_l
+gg_l_t
+"Lattice"
+la_l
+la_l_t
+```
+
+# Boxplot
+
+Tutaj posłużymy się zbiorem danych, który jest już każdemu znany, mianowicie *mtcars*.
+
+```{r echo=FALSE}
+mtcars <- cbind(mtcars, 1)
+colnames(mtcars)[12] <- "jeden"
+gg_bx <- ggplot(mtcars, aes(y = disp)) + geom_boxplot()
+la_bx <- bwplot( ~ disp, data = mtcars)
+"Graphics"
+gr_bx <- boxplot(disp ~ jeden, data = mtcars)
+gr_bx_t <- system.time(boxplot(disp ~ jeden, data = mtcars))
+gr_bx_t
+gg_bx_t <- system.time(ggplot(mtcars, aes(y = disp)) + geom_boxplot())
+la_bx_t <- system.time(bwplot( ~ disp, data = mtcars))
+"Ggplot"
+gg_bx
+gg_bx_t
+"Lattice"
+la_bx
+gg_bx_t
+```
+
+# Podsumowanie
+
+Widzimy, że w każdym z tych przypadków zdecydowanie najdłużej trwa tworzenie się wykresu przy użyciu pakietu: *graphics*, jest to zdecydowana różnica. Pozostałe dwa pakiety mają zbliżony czas działania, minimalnie lepszy prawie zawsze oprócz przypadku *Column plota* okazuje się pakiet *lattice*.
+
+Dla ułatwienia czytelnikowi na koniec porównamy te czasy na wykresach.
+
+## Scatter plot
+
+```{r echo=FALSE}
+data_s <- as.data.frame(rbind(gr_s_t[3], gg_s_t[3], la_s_t[3])) * 1000
+data_s <- cbind(data_s, factor(c("Graphics", "Ggplot", "Lattice")))
+colnames(data_s)[1] <- "Czas [ms]"
+colnames(data_s)[2] <- "Pakiet"
+ggplot(data_s, aes(x = Pakiet, y = data_s[,1])) + geom_col() + ylab("Czas [ms]")
+```
+
+## Histogram
+
+```{r echo=FALSE}
+data_h <- as.data.frame(rbind(gr_h_t[3], gg_h_t[3], la_h_t[3])) * 1000
+data_h <- cbind(data_h, factor(c("Graphics", "Ggplot", "Lattice")))
+colnames(data_h)[1] <- "Czas [ms]"
+colnames(data_h)[2] <- "Pakiet"
+ggplot(data_h, aes(x = Pakiet, y = data_h[,1])) + geom_col() + ylab("Czas [ms]")
+```
+
+## Bar plot
+
+```{r echo=FALSE}
+data_b <- as.data.frame(rbind(gr_b_t[3], gg_b_t[3], la_b_t[3])) * 1000
+data_b <- cbind(data_b, factor(c("Graphics", "Ggplot", "Lattice")))
+colnames(data_b)[1] <- "Czas [ms]"
+colnames(data_b)[2] <- "Pakiet"
+ggplot(data_b, aes(x = Pakiet, y = data_b[,1])) + geom_col() + ylab("Czas [ms]")
+```
+
+## Line plot
+
+```{r echo=FALSE}
+data_l <- as.data.frame(rbind(gr_l_t[3], gg_l_t[3], la_l_t[3])) * 1000
+data_l <- cbind(data_l, factor(c("Graphics", "Ggplot", "Lattice")))
+colnames(data_l)[1] <- "Czas [ms]"
+colnames(data_l)[2] <- "Pakiet"
+ggplot(data_l, aes(x = Pakiet, y = data_l[,1])) + geom_col() + ylab("Czas [ms]")
+```
+
+## Boxplot
+
+```{r echo=FALSE}
+data_bx <- as.data.frame(rbind(gr_bx_t[3], gg_bx_t[3], la_bx_t[3])) * 1000
+data_bx <- cbind(data_bx, factor(c("Graphics", "Ggplot", "Lattice")))
+colnames(data_bx)[1] <- "Czas [ms]"
+colnames(data_bx)[2] <- "Pakiet"
+ggplot(data_bx, aes(x = Pakiet, y = data_s[,1])) + geom_col() + ylab("Czas [ms]")
+```
