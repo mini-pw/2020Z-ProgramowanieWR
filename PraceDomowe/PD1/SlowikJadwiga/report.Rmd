@@ -167,23 +167,39 @@ colnames(benchmark_res) <- c("package", plot_names)
 knitr::kable(benchmark_res)
 ```
 
-Powyższe wyniki można przedstawić na wykresie w następujący sposób:
+Wyniki zostały przedstawione na poniższych dwóch wykresach:
 
-```{r, echo=FALSE, out.width="1000px", out.height="400px", out.align="center"}
+```{r, echo=FALSE}
+
+show_summary_bar_chart <- function(data) {
+  data %>% 
+    ggplot(aes(x=plot, y=mean, group=package, fill=package, label=round(mean,2))) + 
+    geom_bar(stat='identity', position=position_dodge(1)) +
+    ylab("mean [ns]") +
+    theme_classic()
+}
+```
+
+```{r, echo=FALSE, out.width="700px", out.align="center"}
 plot_final_data <- Reduce(
   rbind,
   lapply(
     plot_names,
     function(r) get_package_benchmark(r) %>% cbind(data.frame(package=as.factor(package_names), plot=r))))
 
-plot_final_data %>% 
-  ggplot(aes(x=plot, y=mean, group=package, fill=package)) + 
-  geom_bar(stat='identity', position=position_dodge(1)) +
-  theme_classic()
+first_plot_final_data <- plot_final_data %>% 
+  filter(plot != "point_plot" & plot != "bar_plot")
 
-#knitr::kable(plot_final_data)
-
+show_summary_bar_chart(first_plot_final_data)
 ```
 
-Na powyższym wykresie można zauważyć, że w większości przypadków najlepszą szybkość uzyskuje pakiet `ggplot`.
-Wyjątkiem jest jedynie generowanie wykresu słupkowego. W tym przypadku (nieznacznie) wygrał pakiet `lattice`.
+Na powyższym wykresie można zauważyć, że we wszystkich trzech przypadkach (generowanie wykresu pudełkowego, histogramu oraz wykresu gęstości) najszybszy był pakiet `ggplot`. Jednakże, na następnym wykresie wyraźnie widać, że istnieje przypadek, gdy biblioteka `ggplot` nie jest najlepsza (pod względem szybkości).
+
+```{r, echo=FALSE, out.width="700px", out.align="center"}
+second_plot_final_data <- plot_final_data %>% 
+  filter(plot == "point_plot" | plot == "bar_plot")
+
+show_summary_bar_chart(second_plot_final_data)
+```
+
+Dzieje się tak w przypadku generowania wykresu słupkowego. Warto również zwrócić uwagę na znaczącą różnicę pomiędzy pakietem `ggplot` a pozostałymi w szybkości generowania wykresu punktowego.
