@@ -167,14 +167,23 @@ colnames(benchmark_res) <- c("package", plot_names)
 knitr::kable(benchmark_res)
 ```
 
-```{r, echo=FALSE}
+Powyższe wyniki można przedstawić na wykresie w następujący sposób:
+
+```{r, echo=FALSE, out.width="1000px", out.height="400px", out.align="center"}
 plot_final_data <- Reduce(
   rbind,
   lapply(
     plot_names,
     function(r) get_package_benchmark(r) %>% cbind(data.frame(package=as.factor(package_names), plot=r))))
 
-knitr::kable(plot_final_data)
+plot_final_data %>% 
+  ggplot(aes(x=plot, y=mean, group=package, fill=package)) + 
+  geom_bar(stat='identity', position=position_dodge(1)) +
+  theme_classic()
 
+#knitr::kable(plot_final_data)
 
 ```
+
+Na powyższym wykresie można zauważyć, że w większości przypadków najlepszą szybkość uzyskuje pakiet `ggplot`.
+Wyjątkiem jest jedynie generowanie wykresu słupkowego. W tym przypadku (nieznacznie) wygrał pakiet `lattice`.
