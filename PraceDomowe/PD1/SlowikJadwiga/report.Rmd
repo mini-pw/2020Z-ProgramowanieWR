@@ -53,7 +53,7 @@ Otrzymałam następujące wykresy:
 
 ![](plots/box_graphics.png)
 
-### Porównanie szybkości generowania wykresów
+### Porównanie szybkości generowania wykresów [ns]
 
 ```{r, dependson=show_table, echo=FALSE}
 show_table("benchmark_results/box_plot.csv")
@@ -73,7 +73,7 @@ show_table("benchmark_results/box_plot.csv")
 
 ![](plots/bar_graphics.png)
 
-### Porównanie szybkości generowania wykresów
+### Porównanie szybkości generowania wykresów [ns]
 
 ```{r, dependson=show_table, echo=FALSE}
 show_table("benchmark_results/bar_plot.csv")
@@ -95,7 +95,7 @@ generowania wykresu przez trzy różne biblioteki.
 
 ![](plots/point_graphics.png)
 
-### Porównanie szybkości generowania wykresów
+### Porównanie szybkości generowania wykresów [ns]
 
 ```{r, dependson=show_table, echo=FALSE}
 show_table("benchmark_results/point_plot.csv")
@@ -115,7 +115,7 @@ show_table("benchmark_results/point_plot.csv")
 
 ![](plots/histogram_graphics.png)
 
-### Porównanie szybkości generowania wykresów
+### Porównanie szybkości generowania wykresów [ns]
 
 ```{r, dependson=show_table, echo=FALSE}
 show_table("benchmark_results/histogram.csv")
@@ -135,7 +135,7 @@ show_table("benchmark_results/histogram.csv")
 
 ![](plots/density_graphics.png)
 
-### Porównanie szybkości generowania wykresów
+### Porównanie szybkości generowania wykresów [ns]
 
 ```{r, dependson=show_table, echo=FALSE}
 show_table("benchmark_results/density_plot.csv")
