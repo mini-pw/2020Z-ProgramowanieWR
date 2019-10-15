@@ -1,0 +1,36 @@
+library(graphics)
+library(ggplot2)
+library(lattice)
+library(microbenchmark)
+
+set.seed(123)
+data = data.frame(x = rbinom(200,2,0.5), y = rbinom(200,2,0.5), z = runif(100))
+wyniki <- microbenchmark(unit = "s", times = 10L,
+                           base_scatter = plot(data$x,data$y),
+                           ggplot_scatter = ggplot(data, aes(x,y))+geom_point(),
+                           lattice_scatter = xyplot(x~y, data),
+                           
+                           base_boxplot = boxplot(data),
+                           ggplot_boxplot = ggplot(data, aes(x=x,y=z))+geom_boxplot(),
+                           lattice_boxplot = bwplot(x ~ y,  data),
+                           
+                           base_hist = hist(data$x),
+                           ggplot_hist = ggplot(data, aes(x=x)) +   geom_histogram(binwidth=0.5),
+                           lattice_hist = histogram(~x, data),
+                           
+                           base_line = plot (data$x, data$y, type='l'),
+                           ggplot_line = ggplot(data, aes(x, y)) + geom_line(),
+                           lattice_line = xyplot(z~x, data, type = c("smooth")),
+                           
+                           base_barplot = barplot(data$z, data$x),
+                           ggplot_barlot = ggplot(data, aes(x, z)) + geom_bar(stat="identity"),
+                           lattice_barplot = barchart(x~z, data)
+                           )
+wyniki = as.data.frame(summary(wyniki))
+wyniki$colo = rep(c(1,2,3),5)
+ggplot(wyniki, aes(expr, mean, fill = colo)) + 
+  geom_bar(stat="identity") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  theme(legend.position="none")+ 
+  labs(title="Wykres przedstawiający średni czas generowania danego wykresu", 
+                                      x="Rodzaj wykresu", y = "Średni czas (sek)")
