@@ -1,0 +1,184 @@
+---
+title: "PD1"
+author: "Hanna Zdulska"
+date: "October 5, 2019"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, message = FALSE)
+```
+# Porównanie szybkości generowania wykresów przez biblioteki lattice, ggplot2 i graphics
+Do porównywania użyte zostaną dane USMortality opisujące statystki śmiertelności obywaletli USA, dane Crimes(package Ecdat), które opisują przestępstwa w stanie Północna Karolina oraz mapa USA(USAboundaries)
+```{r, echo=FALSE, message=FALSE, cache=TRUE}
+library(lattice)
+library(ggplot2)
+library(microbenchmark)
+library(dplyr)
+library(sf)
+library(USAboundaries)
+data("USMortality")
+```
+## Barplot
+```{r, cache = TRUE}
+data(USMortality)
+
+bar_1 <- function(){
+  CausedDeath <- USMortality %>% group_by(Cause, Sex) %>% summarise(Rate = sum(Rate))
+  d1 <- CausedDeath[CausedDeath$Sex == 'Male',c("Cause", "Rate")]
+  d2 <- CausedDeath[CausedDeath$Sex == 'Female',"Rate"]
+  CD <- data.frame(CausedDeath[CausedDeath$Sex == 'Male',"Rate"], CausedDeath[CausedDeath$Sex == 'Female',"Rate"])
+  colnames(CD) <- c("MaleRate", "FemaleRate")
+  rownames(CD) <- unique(CausedDeath$Cause)
+  par(oma=c(0,7,0,0))
+  barplot(as.matrix(t(CD)), beside = TRUE, las = 1, col = CausedDeath$Sex, legend.text = c("Male", "Female"), horiz = TRUE, xlab="Rate")
+}
+bar_1()
+
+bar_2 <- function(){
+  lattice::barchart(Cause ~ Rate, data = USMortality, groups = Sex, auto.key=list(corner=c(1,1), columns=1, title="Causes of death", cex.title=1))
+}
+bar_2()
+
+bar_3 <- function(){
+  ggplot2::ggplot(USMortality, aes(Cause, Rate, fill = Sex)) + geom_bar(stat = "identity", position=position_dodge()) + coord_flip() + theme()
+}
+bar_3()
+```
+```{r, echo = FALSE, fig.show = 'hide'}
+library(ggplot2)
+pomiar1 <- microbenchmark::microbenchmark(
+  graphics = bar_1(),
+  ggplot = bar_3(),
+  lattice = bar_2()
+)
+pomiar1
+```
+
+## Dot chart
+```{r}
+d_1 <- function(){
+  dotchart(USMortality$Rate, color = USMortality$Sex, xlab = "Rate", groups = USMortality$Cause, pch = ifelse(USMortality$Status=='Rural', 1,2))
+}
+d_1()
+
+d_2 <- function(){
+  lattice::dotplot(USMortality$Cause ~ USMortality$Rate, xlab = "Rate", alpha = 0.7, pch = ifelse(USMortality$Status=='Rural', 1,2), col = USMortality$Sex)
+}
+d_2()
+
+d_3 <- function(){
+ ggplot2::ggplot(USMortality, aes(Rate, Cause)) + geom_point(color = ifelse(USMortality$Sex == 'Male', 'red', 'black'), alpha = 0.7, shape = USMortality$Status)
+}
+d_3()
+```
+```{r, echo = FALSE, fig.show = 'hide'}
+library(ggplot2)
+pomiar2 <- microbenchmark::microbenchmark(
+  graphics = d_1(),
+  lattice = d_2(),
+  ggplot = d_3()
+)
+pomiar2
+```
+
+## Histogram
+
+```{r}
+crimes <- Ecdat::Crime
+h_1 <- function(){
+  graphics::hist(crimes$avgsen, breaks = 65, xlab = "Sentence in years", main = "Lenghts of sentences in years '81 - '87", col = "steelblue")
+}
+h_1()
+
+h_2 <- function(){
+  ggplot2::ggplot(data = crimes, aes(avgsen)) + geom_histogram(color = "black", fill = "darkgreen") + ggtitle("Lenghts of sentences in years '81 - '87")
+}
+h_2()
+
+h_3 <- function(){
+  lattice::histogram(crimes$avgsen, xlab = "Sentence in years", breaks = 65, col = "coral3", main = "Lenghts of sentences in years '81 - '87")
+}
+h_3()
+```
+
+```{r, echo = FALSE, fig.show = 'hide'}
+pomiar3 <- microbenchmark::microbenchmark(
+  graphics = h_1(),
+  ggplot = h_2(),
+  lattice = h_3()
+)
+pomiar3
+```
+
+## Boxplot
+```{r}
+
+b_1 <- function(){
+  ggplot2::ggplot(USMortality, aes(Cause, log(Rate), fill = Sex)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+}
+b_1()
+
+b_2 <- function(){
+  n <- lapply(unique(USMortality$Cause), toString)
+  names <- lapply(n, function(x){c(x,"")})
+  par(mar=c(10,2,1,1))
+  graphics::boxplot(log(USMortality$Rate) ~ USMortality$Sex*factor(USMortality$Cause),ylab = "log(Rate)", 
+                     col=c("blue" , "red"), las = 2, names = unlist(names), xlab = "")
+}
+b_2()
+
+b_3 <- function(){
+  lattice::bwplot(log(Rate) ~ Cause | Sex, data = USMortality,scales=list(x=list(rot=45)))
+}
+b_3()
+```
+
+
+```{r, fig.show = "hide"}
+pomiar4 <- microbenchmark::microbenchmark(
+  graphics =b_1(),
+  ggplot = b_2(),
+  lattice = b_3()
+)
+pomiar4
+```
+## Lineplot
+```{r}
+l_1 <- function(){
+  c <- crimes %>% group_by(year) %>% summarise(CrimePerPerson = mean(crmrte))
+  plot(c$year, c$CrimePerPerson, type = "l", col = "darkblue")
+}
+l_1()
+
+l_2 <- function(){
+  c <- crimes %>% group_by(year,region) %>% summarise(CrimePerPerson = mean(crmrte))
+  ggplot(c, aes(year, CrimePerPerson, group = region, col = region)) + geom_line()
+}
+l_2()
+
+l_3 <- function(){
+  c <- crimes %>% group_by(year,region) %>% summarise(CrimePerPerson = mean(crmrte))
+  xyplot( CrimePerPerson ~ year, c, groups = region, t = "l", auto.key = TRUE)
+}
+l_3()
+```
+
+```{r}
+pomiar5 <- microbenchmark::microbenchmark(
+  graphics =l_1(),
+  ggplot = l_2(),
+  lattice = l_3()
+)
+pomiar5
+```
+
+## Podsumowanie
+```{r}
+pomiar <- rbind(pomiar1, pomiar2, pomiar3, pomiar4, pomiar5)
+
+p <- pomiar %>% group_by(expr) %>% summarise(meanTime = mean(time))
+ggplot(p, aes(expr, meanTime)) + geom_col() + theme_minimal()
+```
+
+
+Jak widać lattice jest najszybszy oraz graphics najwolniejszy.
