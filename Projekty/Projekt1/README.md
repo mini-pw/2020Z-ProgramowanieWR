@@ -31,7 +31,7 @@ Każdy zespół musi realizować inny temat projektu.
 
 1. Interfejs do API [quickchart.io](https://quickchart.io/) oparty na Grammar of Graphics (grupa Jana Sawickiego).
 2. Komunikacja z oficjalnym API Hacker News (grupa Ryszarda Szymańskiego).
-3. API do systemów kolejkowych Otwartych Danych Warszawskich.
+3. API do systemów kolejkowych Otwartych Danych Warszawskich (Paweł Morgen, Hanna Zdulska).
 4. API do Wikidata.
-5. Wysyłanie informacji o zakończeniu obliczeń w R poprzez gmail itp. (Tymoteusz Makowski, Tomasz Klonecki).
+5. Wysyłanie informacji o zakończeniu obliczeń w R poprzez gmail itp. (Tomasz Klonecki, Tymoteusz Makowski).
 
