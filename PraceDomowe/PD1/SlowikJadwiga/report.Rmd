@@ -1,0 +1,205 @@
+---
+title: "Praca domowa nr 1"
+subtitle: "porównanie szybkości generowania wybranych wykresów przy pomocy trzech pakietów: `ggplot`, `lattice`, `graphics`"
+author: "Jadwiga Słowik"
+date: "October 13, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("pander")
+library("dplyr")
+library("ggplot2")
+```
+
+```{r show_table, echo=FALSE, cache=TRUE}
+show_table <- function(file_name) {
+  df <- read.csv(file_name)
+  knitr::kable(df)
+}
+```
+
+# Zbiór danych
+Do wygenerowania wykresów został użyty zbiór `maturaExam` z pakietu `SmarterPoland`.
+Ów zbiór zawiera dane dotyczące wyników matury z języka polskiego i matematyki.
+
+W niniejszej pracy zajęłam się danymi dotyczącymi wyników z matury z matematyki.
+Kolejne wykresy bazowały na danych przetworzonych w następujący sposób:
+
+1. *BoxPlot*: Wszystkie wyniki z matury z matematyki w latach 2010-2015
+
+2. *BarPlot*: Średnia punktów z matury z matematyki dla każdego roku (2010-2015)
+
+3. *PointPlot*: Wszystkie wyniki z matury z matematyki w latach 2010-2015
+
+4. *Histogram*: Wszystkie wyniki z matury z matematyki dla roku 2014
+
+5. *DensityPlot*: Wszystkie wyniki z matury z matematyki dla roku 2014
+
+# Otrzymane wykresy
+
+Otrzymałam następujące wykresy:
+
+## BoxPlot
+### ggplot2
+![](plots/box_ggplot.png)
+
+### lattice
+
+![](plots/box_lattice.png)
+
+### graphics
+
+![](plots/box_graphics.png)
+
+### Porównanie szybkości generowania wykresów [ns]
+
+```{r, dependson=show_table, echo=FALSE}
+show_table("benchmark_results/box_plot.csv")
+```
+
+## BarPlot
+
+### ggplot2
+
+![](plots/bar_ggplot.png)
+
+### lattice
+
+![](plots/bar_lattice.png)
+
+### graphics
+
+![](plots/bar_graphics.png)
+
+### Porównanie szybkości generowania wykresów [ns]
+
+```{r, dependson=show_table, echo=FALSE}
+show_table("benchmark_results/bar_plot.csv")
+```
+
+## PointPlot
+Poniższe trzy wykresy nie są czytelne, jednakże celem zadania było zbadanie wydajności
+generowania wykresu przez trzy różne biblioteki.
+
+### ggplot2
+
+![](plots/point_ggplot.png)
+
+### lattice
+
+![](plots/point_lattice.png)
+
+### graphics
+
+![](plots/point_graphics.png)
+
+### Porównanie szybkości generowania wykresów [ns]
+
+```{r, dependson=show_table, echo=FALSE}
+show_table("benchmark_results/point_plot.csv")
+```
+
+## Histogram
+
+### ggplot2
+
+![](plots/histogram_ggplot.png)
+
+### lattice
+
+![](plots/histogram_lattice.png)
+
+### graphics
+
+![](plots/histogram_graphics.png)
+
+### Porównanie szybkości generowania wykresów [ns]
+
+```{r, dependson=show_table, echo=FALSE}
+show_table("benchmark_results/histogram.csv")
+```
+
+## DensityPlot
+
+### ggplot2
+
+![](plots/density_ggplot.png)
+
+### lattice
+
+![](plots/density_lattice.png)
+
+### graphics
+
+![](plots/density_graphics.png)
+
+### Porównanie szybkości generowania wykresów [ns]
+
+```{r, dependson=show_table, echo=FALSE}
+show_table("benchmark_results/density_plot.csv")
+```
+
+# Podsumowanie
+Wyniki zbiorcze prezentują się następująco:
+
+```{r all_results, echo=FALSE}
+plot_names <- c(
+  "box_plot",
+  "bar_plot",
+  "point_plot",
+  "histogram",
+  "density_plot"
+)
+
+package_names <- c("ggplot", "lattice", "graphics")
+
+get_package_benchmark <- function(package_name) {
+  read.csv(sprintf("benchmark_results/%s.csv", package_name)) %>% select("mean")
+}
+
+benchmark_res <- cbind(
+  data.frame(package=package_names),
+  Reduce(cbind, lapply(plot_names, get_package_benchmark)))
+
+colnames(benchmark_res) <- c("package", plot_names)
+knitr::kable(benchmark_res)
+```
+
+Wyniki zostały przedstawione na poniższych dwóch wykresach:
+
+```{r, echo=FALSE}
+
+show_summary_bar_chart <- function(data) {
+  data %>% 
+    ggplot(aes(x=plot, y=mean, group=package, fill=package, label=round(mean,2))) + 
+    geom_bar(stat='identity', position=position_dodge(1)) +
+    ylab("mean [ns]") +
+    theme_classic()
+}
+```
+
+```{r, echo=FALSE, out.width="700px", out.align="center"}
+plot_final_data <- Reduce(
+  rbind,
+  lapply(
+    plot_names,
+    function(r) get_package_benchmark(r) %>% cbind(data.frame(package=as.factor(package_names), plot=r))))
+
+first_plot_final_data <- plot_final_data %>% 
+  filter(plot != "point_plot" & plot != "bar_plot")
+
+show_summary_bar_chart(first_plot_final_data)
+```
+
+Na powyższym wykresie można zauważyć, że we wszystkich trzech przypadkach (generowanie wykresu pudełkowego, histogramu oraz wykresu gęstości) najszybszy był pakiet `ggplot`. Jednakże, na następnym wykresie wyraźnie widać, że istnieje przypadek, gdy biblioteka `ggplot` nie jest najlepsza (pod względem szybkości).
+
+```{r, echo=FALSE, out.width="700px", out.align="center"}
+second_plot_final_data <- plot_final_data %>% 
+  filter(plot == "point_plot" | plot == "bar_plot")
+
+show_summary_bar_chart(second_plot_final_data)
+```
+
+Dzieje się tak w przypadku generowania wykresu słupkowego. Warto również zwrócić uwagę na znaczącą różnicę pomiędzy pakietem `ggplot` a pozostałymi w szybkości generowania wykresu punktowego.
