@@ -1,0 +1,241 @@
+---
+title: "Praca domowa nr 1"
+author: "Agata Pałdyna"
+date: "15/10/2019"
+output: html_document
+---
+
+```{R, include = FALSE, echo = FALSE, message = FALSE, warning = FALSE}
+### Zaladowanie pakietow
+library(ggplot2)
+library(lattice)
+library(graphics)
+library(dplyr)
+library(microbenchmark)
+library(knitr)
+library(vioplot)
+
+
+
+### Wykresy
+
+## 1) barplot
+
+barplot_ggplot <- function() {
+  ggplot(data = storms, aes(x = status)) + geom_bar()
+}
+
+barplot_lattice <- function() {
+  barchart(x = storms$status)
+}
+
+barplot_graphics <- function() {
+  df <- as.data.frame(table(storms$status))
+  barplot(df$Freq, names.arg = unique(df$Var1))
+}
+
+
+## 2) scatterplot
+
+scatterplot_ggplot <- function() {
+  ggplot(data = storms, aes(x = wind, y = pressure, color = status)) + geom_point()
+}
+
+scatterplot_lattice <- function() {
+  xyplot(pressure ~ wind, data = storms, group = status)
+}
+
+scatterplot_graphics <- function() {
+  plot(pressure ~ wind, data = storms, col = as.factor(status))
+}
+
+
+## 3) boxplot
+
+boxplot_ggplot <- function() {
+  ggplot(data = storms, aes(x = status, y = wind)) + geom_boxplot()
+}
+
+boxplot_lattice <- function() {
+  bwplot(wind ~ status, data = storms)
+}
+
+boxplot_graphics <- function() {
+  boxplot(wind ~ status, data = storms)
+}
+
+
+## 4) density plot
+
+densityplot_ggplot <- function() {
+  ggplot(data = storms, aes(x = wind)) + geom_density()
+}
+
+densityplot_lattice <- function() {
+  densityplot(~ wind, data = storms, plot.points = FALSE)
+}
+
+densityplot_graphics <- function() {
+  plot(density(x = storms$wind), zero.line = FALSE)
+}
+
+
+## 5) histogram
+
+histogram_ggplot <- function() {
+  ggplot(data = storms, aes(x = wind)) + geom_histogram(binwidth = 20)
+}
+
+histogram_lattice <- function() {
+  histogram(~ wind, data = storms, type = "count", breaks = 20)
+}
+
+histogram_graphics <- function() {
+  hist(x = storms$wind)
+}
+
+
+
+### Mierzenie czasu + generowanie danych do koncowego wykresu + zapis obrazkow
+
+create_results <- function(plot_type, package_name) {
+  obj_name <- paste(plot_type, package_name, sep = "_")
+
+  # # Zapis wykresu do pliku '.png'
+  # png(paste(obj_name, "png", sep = "."))
+  # print(get(obj_name)())
+  # dev.off()
+
+  # Obliczanie czasu dla 100 powtorzen, wybranie mediany
+  micro_benchmark_results <- microbenchmark(get(obj_name)(), unit = "ms", times = 100)
+  elapsed_time <- summary(micro_benchmark_results)[["median"]]
+  
+  # Tworzenie nowego wiersza do danych do koncowego wykresu
+  new_row <- c(plot_type, package_name, elapsed_time)
+  new_row
+}
+
+plot_types <- c("barplot", "scatterplot", "boxplot", "densityplot", "histogram")
+package_names <- c("ggplot", "lattice", "graphics")
+
+results <- data.frame(matrix(ncol = 3, nrow = 15))
+colnames(results) <- c("Plot_type", "Package", "Time")
+i <- 0
+
+for(plot_type in plot_types) {
+  for(package_name in package_names) {
+    i <- i + 1
+    new_row <- create_results(plot_type, package_name)
+    results[i,] <- new_row
+  }
+}
+
+results$Time <- as.numeric(results$Time)
+results$Log_time <- log(results$Time)
+```
+
+
+
+## Opis zadania
+
+Zadanie polegalo na porownaniu szybkosci generowania co najmniej 5 roznych rodzajow wykresow wykonanych w pakietach `ggplot2`, `lattice`, `graphics`.
+
+Wybralam nastepujace rodzaje wykresow:
+
+1. barplot
+2. scatterplot
+3. boxplot
+4. density plot
+5. histogram
+
+Wykresy generowalam na danych `storms` z pakietu `dplyr` (dane o ok. 10000 wierszy), w miare mozliwosci dla domyslnych parametrow poszczegolnych wykresow.
+
+Czasy generowania wykresow mierzylam za pomoca funkcji `microbenchmark::microbenchmark` dla 100 powtorzen. Jako czas generacji wykresu przyjelam mediane z tych powtorzen. 
+
+Wszystkie wykresy znajduja sie w katalogu `plots` w plikach o nazwach `[rodzaj_wykresu]_[pakiet].png`.
+
+
+
+## Wyniki
+
+Wyniki obrazuje ponizszy wykres. W celu lepszego przedstawienia wynikow na osi pionowej znajduja sie wartosci w skali logarytmicznej.
+
+```{R, echo = FALSE, out.width = '90%', message = FALSE, warning = FALSE}
+ggplot(data = results, aes(x = Plot_type, y = Log_time, fill = Package)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  ggtitle("Porownanie czasu generowania roznych rodzajow wykresow") +
+  xlab("Rodzaj wykresu") + ylab("Czas generowania - mediana [log(ms)]") +
+  theme(plot.title = element_text(size = 14, face = "bold"),
+        axis.text = element_text(size = 11),
+        axis.title = element_text(size = 12, face = "bold"),
+        legend.title = element_text(size = 12, face = "bold"),
+        legend.text = element_text(size = 11),
+        legend.background = element_rect(colour = "grey"))
+```
+
+Dokladniejsze wyniki mozna sprawdzic w tabeli:
+
+```{R, echo = FALSE, message = FALSE, warning = FALSE}
+results %>% arrange(Plot_type, Package) %>% kable()
+```
+
+
+
+## Dodatek - wykres skrzypcowy
+
+Poza piecioma wymienionymi wyzej wykresami chcialam porownac czasy generowania wykresu skrzypcowego. Niestety nie znalazlam tego rodzaju wykresu w pakiecie `graphics`. Zamiast niego w porownaniu wykorzystalam pakiet `vioplot`.
+
+```{R, include = FALSE, echo = FALSE, message = FALSE, warning = FALSE}
+## 6) violin plot
+
+violinplot_ggplot <- function() {
+  ggplot(data = storms, aes(x = status, y = wind)) + geom_violin()
+}
+
+violinplot_lattice <- function() {
+  bwplot(wind ~ status, data = storms, panel = panel.violin)
+}
+
+violinplot_vioplot <- function() {
+  vioplot(wind ~ status, data = storms)
+}
+
+
+
+### Mierzenie czasu + generowanie danych do koncowego wykresu + zapis obrazkow
+package_names2 <- c("ggplot", "lattice", "vioplot")
+
+results2 <- data.frame(matrix(ncol = 3, nrow = 3))
+colnames(results2) <- c("Plot_type", "Package", "Time")
+i <- 0
+
+for(package_name in package_names2) {
+  i <- i + 1
+  new_row <- create_results("violinplot", package_name)
+  results2[i,] <- new_row
+}
+
+results2$Time <- as.numeric(results2$Time)
+results2$Log_time <- log(results2$Time)
+```
+
+Wyniki przedstawia ponizszy wykres:
+
+```{R, echo = FALSE, out.width = '70%', message = FALSE, warning = FALSE}
+ggplot(data = results2, aes(x = Plot_type, y = Log_time, fill = Package)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  ggtitle("Porownanie czasu generowania wykresu skrzypcowego") +
+  xlab("Rodzaj wykresu") + ylab("Czas generowania - mediana [log(ms)]") +
+  theme(plot.title = element_text(size = 14, face = "bold"),
+        axis.text = element_text(size = 11),
+        axis.title = element_text(size = 12, face = "bold"),
+        legend.title = element_text(size = 12, face = "bold"),
+        legend.text = element_text(size = 11),
+        legend.background = element_rect(colour = "grey"))
+```
+
+Dokladniejsze wyniki mozna sprawdzic w tabeli:
+
+```{R, echo = FALSE, message = FALSE, warning = FALSE}
+results2 %>% arrange(Package) %>% kable()
+```
