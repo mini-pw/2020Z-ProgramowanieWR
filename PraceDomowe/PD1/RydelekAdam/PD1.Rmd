@@ -1,5 +1,5 @@
 ---
-title: "WUM PD2"
+title: "PD2"
 author: "Adam Rydelek"
 date: "`r format(Sys.time(), '%d - %m - %Y')`"
 output:
