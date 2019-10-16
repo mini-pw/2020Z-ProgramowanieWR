@@ -1,0 +1,196 @@
+---
+title: "Praca domowa 1"
+author: "Paweł Morgen"
+date: "13/10/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.show='hold', fig.align = 'center',
+                      autodep=TRUE)
+library(nycflights13)
+library(dplyr)
+library(lattice)
+library(ggplot2)
+library(microbenchmark)
+```
+
+## Typy wykresów
+
+Zdecydowałem się na następujące typy wykresów : 
+
+ * Histogram na podstawie danych z ramki `flights` z pakietu `nycflights13`
+ * Boxplot na podstawie danych z ramki `PlantGrowth`
+ * Scatterplot z dorysowaną prostą najlepszego dopasowania na podstawie danych z ramki `Seatbelts`
+ * Wykres liniowy typu *Timeseries* na podstawie danych z ramki `airquality` z pakietu `nycflights13`
+ * Diverging barplot na podstawie danych z ramek `states.name` i `states.area` .
+
+## 1. Histogram
+Na wykresie przedstawimy odległości lotów z lotnisk w Nowym Jorku w 2013r.
+```{r histogram}
+#Konwertujemy na kilometry
+mutate(flights, distance=distance * 1.609344)->Flights
+quote(
+  hist(Flights$distance, xlab = "Distance[km]")
+) -> gr1
+quote(
+  ggplot(Flights, aes(x=distance)) +
+  geom_histogram(binwidth = 500) +
+  labs(title = "Histogram of distances of flights",
+       subtitle = "New York, 2013") +
+  xlab("distance [km]")
+) -> gg1
+quote(
+  histogram(~ distance, Flights, type = "count", xlab="Distance [km]",
+          main = "Histogram of distances of flights",
+          sub = "New York, 2013")
+) -> la1
+eval(gr1)
+eval(gg1)
+eval(la1)
+```
+
+## 2. Boxplot
+Na wykresie przedstawimy masy roślinek w zależności od badanej grupy.
+```{r boxplot}
+quote(
+  boxplot(weight ~ group, PlantGrowth, main = "Plant weight")
+) -> gr2
+quote(ggplot(PlantGrowth, aes(x = group, y = weight)) +
+  geom_boxplot() +
+  labs(title="Plant Weight")) -> gg2
+quote(
+  bwplot(weight ~ group, PlantGrowth, main="Plant weight")
+) -> la2
+eval(gr2)
+eval(gg2)
+eval(la2)
+```
+
+## 3. Scatterplot
+Na wykresie przedstawimy zależność ilości osób poszkodowanych w wypadkach samochodowych w Wielkiej Brytanii w danym roku od ceny paliwa w danym roku. Interesować nas będą tylko przypadki przed wprowadzeniem nakazu zapinania pasów (*law == 0*). Ponadto dorysujemy prostą najlepszego dopasowania.
+
+```{r scatterplot}
+Seatbelts%>%as.data.frame()%>%
+mutate(total=drivers+front+rear)%>%
+  filter(law==0)%>%
+  select(total, PetrolPrice)->Seatbelts2
+
+quote(
+  plot(Seatbelts2$PetrolPrice, Seatbelts2$total, pch=19,
+     las=1, xlab="Petrol price", ylab="Total injured",
+     abline(lm(Seatbelts2$total~Seatbelts2$PetrolPrice), col=2, lwd = 2),
+     main="Total passangers injured")
+) -> gr3
+quote(
+  ggplot(Seatbelts2, aes(x = PetrolPrice, y = total)) +
+  geom_point() + 
+  geom_smooth(method = "lm", se=F) +
+  labs(title = "Total passangers injured")
+) -> gg3
+quote(
+  xyplot(PetrolPrice ~ total, Seatbelts2, 
+       type=c("p","r", "g"), pch = 19, main = "Total passangers injured")
+) -> la3
+eval(gr3)
+eval(gg3)
+eval(la3)
+```
+
+## 4. Timeseries
+
+Na wykresie przedstawimy temperaturę w Nowym Jorku w 2013 r. w zależności od dnia.
+```{r timeseries}
+mutate(airquality, Date = paste("2013",
+                                 format(Month, width = 2),
+                                 format(Day, width = 2),
+                                sep="-") %>% as.Date()) %>%
+  select(Date, Temp)->Airquality
+quote(
+  plot(Airquality$Date, airquality$Temp, type = 'l', col='red',
+     xlab="Date",
+     ylab="Temperature [F]",
+     main="Temperature in New York in 2013",
+     las=1, lwd = 1.5)
+) -> gr4
+quote(
+  ggplot(Airquality, aes(Date, Temp)) +
+  geom_line() +
+  labs(title = "Temperature in New York in 2013") +
+  ylab("Temperature [F]")
+) -> gg4
+quote(
+  xyplot(Temp ~ Date, Airquality, type = c("l","g"), 
+       main = "Temperature in New York in 2013",
+       ylab = "Temperature [F]")
+) -> la4
+eval(gr4)
+eval(gg4)
+eval(la4)
+```
+
+## 5. Diverging barplot
+
+Na wykresie przedstawimy ustandaryzowaną powierzchnię stanów USA.
+```{r div_barplot}
+par("mar"=c(5,7,4,1))
+data.frame(Name=state.name, Area=state.area)%>%
+  mutate(sdArea=(Area-mean(Area))/sd(Area), 
+         Flag = if_else(sdArea>=0, "above", "below"))%>%
+  arrange(desc(sdArea)) -> Areas
+Areas$Name <- factor(Areas$Name, levels = Areas$Name)
+quote(
+  barplot(Areas$sdArea, horiz = TRUE, col = as.factor(Areas$Flag),
+        names.arg = Areas$Name,
+        las=1,
+        main = "Standarised area of US states")
+
+) -> gr5
+quote(
+  ggplot(Areas, aes(x = Name, y = sdArea, label = sdArea)) +
+  geom_bar(stat = "identity", aes(fill=Flag), width=0.5) + 
+  coord_flip()
+) -> gg5
+quote(
+  barchart(Name ~ sdArea, Areas, origin = 0, main = "Standarised area of US states", groups = Flag, auto.key=TRUE)
+) -> la5
+eval(gr5)
+eval(gg5)
+eval(la5)
+par("mar"=c(5,4,4,1))
+```
+
+## Czasy wynonywania wykresów oraz podsumowanie wyników
+
+Czasy mierzyłem za pomocą funkcji `microbenchmark::microbenchmark()`. Wyniki przedstawiłem jako wykresy skrzynkowe oraz tabelkę porównującą średnie czasy.
+
+```{r benchmark, cache=TRUE, fig.show='hide'}
+quotes <- list("Histogram" = c(gr1, gg1, la1),
+               "Boxplot" = c(gr2, gg2, la2),
+               "Scatterplot" = c(gr3, gg3, la3),
+               "Timeseries" = c(gr4, gg4, la4),
+               "Div_barplot" = c(gr5, gg5, la5))
+lapply(quotes, 
+       function(x) microbenchmark(
+         graphics = eval(x[[1]]),
+         ggplot2 = eval(x[[2]]),
+         lattice = eval(x[[3]]),
+         times = 25
+       )) -> results
+do.call(rbind, results)  %>%
+  mutate(Plot.kind = rep(names(results), each = 75)) -> results_df
+lapply(results, function(x) summary(x)$mean%>%format(digits=2)) %>% 
+  as.data.frame(row.names = c("graphics",
+                              "ggplot2",
+                              "lattice"))->mean_results
+```
+
+```{r summary}
+knitr::kable(mean_results,row.names = TRUE, caption = "Mean times of plot generation")
+bwplot(log(time) ~ expr | Plot.kind, results_df, main="Plot generation times")
+```
+
+## Komentarz
+
+Jak widzimy, w przypadku prostych wykresów najszybciej radzi sobie pakiet `lattice`, zaraz za nim `ggplot2`, a daleko w tyle `graphics`. Sytuacja zaczyna się komplikować przy złożonych wykresach.
+
