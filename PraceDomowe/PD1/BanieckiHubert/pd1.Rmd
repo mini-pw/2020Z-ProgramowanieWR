@@ -1,0 +1,124 @@
+---
+title: "Praca Domowa 1"
+subtitle: "2020Z-ProgramowanieWR"
+author: "Hubert Baniecki"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    df_print: paged
+    toc: true
+    toc_float: true
+    code_folding: hide
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.align = "center", fig.width = 8, fig.height = 5)
+library(OpenML)
+library(ggplot2)
+library(lattice)
+library(dplyr)
+```
+
+# Dane z Black Friday
+
+Do tej pracy domowej wybrałem dane `black_friday`. Mamy tu ponad 160 tys. osób robiących zakupy
+podczas amerykańskiego "święta zakupów". 
+Dane te pochodzą z [OpenML](https://www.openml.org/d/41540).
+Nie są do końca opisane, ale jest to duży i przejrzysty zbiór danych. Znajdują się w nim
+między innymi płeć, grupa wiekowa, kategorie produktów oraz wartość wydanych na zakupy pieniędzy.
+
+```{r results = "hide", message=FALSE, warning=FALSE}
+dataset <- getOMLDataSet(data.id = 41540)
+data <- dataset$data
+
+#visdat::vis_dat(data, warn_large_data = FALSE)
+```
+
+Do danych dodaje kolumnę "sumy popularności" kategorii danego produktu.
+
+```{r}
+t <- table(c(data$Product_Category_1, data$Product_Category_2, data$Product_Category_3))
+pop <- t/sum(t)
+pop <- pop/max(pop)
+pop["0"] <- 0
+data$Popularity <- as.numeric(pop[data$Product_Category_1] + pop[data$Product_Category_2] + pop[data$Product_Category_3])
+```
+
+# Wykresy
+## scatterplot
+
+```{r}
+graphics::plot(data$Popularity, data$Purchase, main = "graphics")
+lattice::xyplot(data$Purchase ~ data$Popularity, main = "lattice")
+ggplot(data) + geom_point(aes(x = Popularity, y = Purchase)) + ggtitle("ggplot2")
+```
+
+```{r results = "hide", include = FALSE}
+m1 <- microbenchmark::microbenchmark("graphics" = {graphics::plot(data$Popularity, data$Purchase, main = "graphics")}, "lattice" = {lattice::xyplot(data$Purchase ~ data$Popularity, main = "lattice")}, ggplot2 = {ggplot(data) + geom_point(aes(x = Popularity, y = Purchase)) + ggtitle("ggplot2")}, times = 4)
+```
+
+## barplot
+
+```{r}
+tdata <- data %>% group_by(Age) %>% summarise(count = n())
+graphics::barplot(count ~ Age, data = tdata, main = "graphics")
+lattice::barchart(count ~ Age, data = tdata, main = "lattice")
+ggplot(tdata) + geom_col(aes(x = Age, y = count)) + ggtitle("ggplot2")
+```
+```{r results = "hide", include = FALSE}
+m2 <- microbenchmark::microbenchmark("graphics" = {graphics::barplot(count ~ Age, data = tdata, main = "graphics")}, "lattice" = {lattice::barchart(count ~ Age, data = tdata, main = "lattice")}, ggplot2 = {ggplot(tdata) + geom_col(aes(x = Age, y = count)) + ggtitle("ggplot2")}, times = 4)
+```
+
+## boxplot
+
+```{r}
+graphics::boxplot(data$Purchase ~ data$Age, main = "graphics")
+lattice::bwplot(data$Purchase ~ data$Age, main = "lattice")
+ggplot(data) + geom_boxplot(aes(y = Purchase, x = Age)) + ggtitle("ggplot2")
+```
+```{r results = "hide", include = FALSE}
+m3 <- microbenchmark::microbenchmark("graphics" = {graphics::boxplot(data$Purchase ~ data$Age, main = "graphics")}, "lattice" = {lattice::bwplot(data$Purchase ~ data$Age, main = "lattice")}, ggplot2 = {ggplot(data) + geom_boxplot(aes(y = Purchase, x = Age)) + ggtitle("ggplot2")}, times = 4)
+```
+
+## densityplot
+
+```{r}
+plot(density(data$Purchase), main = "graphics")
+lattice::densityplot(data$Purchase, main = "lattice")
+ggplot(data = data, aes(x = Purchase)) +
+  geom_density() + ggtitle("ggplot2")
+```
+```{r results = "hide", include = FALSE}
+m4 <- microbenchmark::microbenchmark("graphics" = {plot(density(data$Purchase), main = "graphics")}, "lattice" = {lattice::densityplot(data$Purchase, main = "lattice")}, ggplot2 = {ggplot(data = data, aes(x = Purchase)) +
+  geom_density() + ggtitle("ggplot2")}, times = 4)
+```
+
+## histogram
+
+```{r}
+par(mfrow=c(1,2))
+graphics::hist(data$Purchase[data$Gender == "M"], main = "graphics")
+graphics::hist(data$Purchase[data$Gender == "F"], main = "graphics")
+lattice::histogram(~ Purchase | Gender, data = data, main = "lattice", type = "count")
+
+ggplot(data) + geom_histogram(aes(x = Purchase)) + facet_grid(~Gender) + ggtitle("ggplot2")
+
+```
+```{r results = "hide", include = FALSE}
+m5 <- microbenchmark::microbenchmark("graphics" = {par(mfrow=c(1,2))
+graphics::hist(data$Purchase[data$Gender == "M"], main = "graphics")
+graphics::hist(data$Purchase[data$Gender == "F"], main = "graphics")}, "lattice" = {lattice::histogram(~ Purchase | Gender, data = data, main = "lattice", type = "count")}, ggplot2 = {ggplot(data) + geom_histogram(aes(x = Purchase)) + facet_grid(~Gender) + ggtitle("ggplot2")}, times = 4)
+```
+
+# benchmark
+
+Obliczenia trochę trwały, ale jak widać, `ggplot2` jest średnio najszybszy.
+
+```{r}
+plot(m1, main = "scatterplot")
+plot(m2, main = "barplot")
+plot(m3, main = "boxplot")
+plot(m4, main = "densityplot")
+plot(m5, main = "histogram")
+```
