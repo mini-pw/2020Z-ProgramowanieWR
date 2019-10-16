@@ -8,27 +8,26 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE, cache = TRUE, message = FALSE)
 ```
 # Porównanie szybkości generowania wykresów przez biblioteki lattice, ggplot2 i graphics
-Do porównywania użyte zostaną dane USMortality opisujące statystki śmiertelności obywaletli USA, dane Crimes(package Ecdat), które opisują przestępstwa w stanie Północna Karolina oraz mapa USA(USAboundaries)
+Do porównywania użyte zostaną dane USMortality opisujące statystki śmiertelności obywaletli USA, dane Crimes(package Ecdat), które opisują przestępstwa w stanie Północna Karolina.
 ```{r, echo=FALSE, message=FALSE, cache=TRUE}
 library(lattice)
 library(ggplot2)
 library(microbenchmark)
 library(dplyr)
-library(sf)
-library(USAboundaries)
 data("USMortality")
 ```
 ## Barplot
 ```{r, cache = TRUE}
 data(USMortality)
 
+CausedDeath <- USMortality %>% group_by(Cause, Sex) %>% summarise(Rate = sum(Rate))
+d1 <- CausedDeath[CausedDeath$Sex == 'Male',c("Cause", "Rate")]
+d2 <- CausedDeath[CausedDeath$Sex == 'Female',"Rate"]
+CD <- data.frame(CausedDeath[CausedDeath$Sex == 'Male',"Rate"], CausedDeath[CausedDeath$Sex == 'Female',"Rate"])
+colnames(CD) <- c("MaleRate", "FemaleRate")
+rownames(CD) <- unique(CausedDeath$Cause)
+
 bar_1 <- function(){
-  CausedDeath <- USMortality %>% group_by(Cause, Sex) %>% summarise(Rate = sum(Rate))
-  d1 <- CausedDeath[CausedDeath$Sex == 'Male',c("Cause", "Rate")]
-  d2 <- CausedDeath[CausedDeath$Sex == 'Female',"Rate"]
-  CD <- data.frame(CausedDeath[CausedDeath$Sex == 'Male',"Rate"], CausedDeath[CausedDeath$Sex == 'Female',"Rate"])
-  colnames(CD) <- c("MaleRate", "FemaleRate")
-  rownames(CD) <- unique(CausedDeath$Cause)
   par(oma=c(0,7,0,0))
   barplot(as.matrix(t(CD)), beside = TRUE, las = 1, col = CausedDeath$Sex, legend.text = c("Male", "Female"), horiz = TRUE, xlab="Rate")
 }
@@ -45,7 +44,7 @@ bar_3 <- function(){
 bar_3()
 ```
 ```{r, echo = FALSE, fig.show = 'hide'}
-library(ggplot2)
+
 pomiar1 <- microbenchmark::microbenchmark(
   graphics = bar_1(),
   ggplot = bar_3(),
@@ -118,9 +117,10 @@ b_1 <- function(){
 }
 b_1()
 
+n <- lapply(unique(USMortality$Cause), toString)
+names <- lapply(n, function(x){c(x,"")})
+
 b_2 <- function(){
-  n <- lapply(unique(USMortality$Cause), toString)
-  names <- lapply(n, function(x){c(x,"")})
   par(mar=c(10,2,1,1))
   graphics::boxplot(log(USMortality$Rate) ~ USMortality$Sex*factor(USMortality$Cause),ylab = "log(Rate)", 
                      col=c("blue" , "red"), las = 2, names = unlist(names), xlab = "")
@@ -136,34 +136,35 @@ b_3()
 
 ```{r, fig.show = "hide"}
 pomiar4 <- microbenchmark::microbenchmark(
-  graphics =b_1(),
-  ggplot = b_2(),
+  graphics =b_2(),
+  ggplot = b_1(),
   lattice = b_3()
 )
 pomiar4
 ```
 ## Lineplot
 ```{r}
+c <- crimes %>% group_by(year) %>% summarise(CrimePerPerson = mean(crmrte))
+
 l_1 <- function(){
-  c <- crimes %>% group_by(year) %>% summarise(CrimePerPerson = mean(crmrte))
   plot(c$year, c$CrimePerPerson, type = "l", col = "darkblue")
 }
 l_1()
 
+c <- crimes %>% group_by(year,region) %>% summarise(CrimePerPerson = mean(crmrte))
+
 l_2 <- function(){
-  c <- crimes %>% group_by(year,region) %>% summarise(CrimePerPerson = mean(crmrte))
   ggplot(c, aes(year, CrimePerPerson, group = region, col = region)) + geom_line()
 }
 l_2()
 
 l_3 <- function(){
-  c <- crimes %>% group_by(year,region) %>% summarise(CrimePerPerson = mean(crmrte))
   xyplot( CrimePerPerson ~ year, c, groups = region, t = "l", auto.key = TRUE)
 }
 l_3()
 ```
 
-```{r}
+```{r fig.show="hide"}
 pomiar5 <- microbenchmark::microbenchmark(
   graphics =l_1(),
   ggplot = l_2(),

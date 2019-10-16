@@ -3,5 +3,3 @@ lattice
 ggplot2
 microbenchmark
 dplyr
-sf
-USAboundaries
