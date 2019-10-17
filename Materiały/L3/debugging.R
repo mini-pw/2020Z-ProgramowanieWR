@@ -21,9 +21,10 @@ iris %>%
 iris %>% 
   group_by(Species) %>% {
     browser()
+    .
   } %>% 
   summarise(mean(Petal.Length))
 
 # 1. Dodaj do funkcji do_stuff takie dodatkowe komendy, zeby debugger wlaczal sie tylko
-# dla liczb pierwszych.
+# dla parzystych i.
 # 2. Napisz funkcje, ktora wyszukuje wszystkie debugowane aktualnie funkcje.
