@@ -46,7 +46,6 @@ union
 ## Attach i load
 
 ```{r,eval=FALSE}
-detach("package:dplyr", unload = TRUE)
 sessionInfo()
 ```
 
@@ -56,6 +55,7 @@ _Rcpp(v.1.0.2)_, _rstudioapi(v.0.10)_, _knitr(v.1.23)_, _magrittr(v.1.5)_, _tidy
 ## Attach i load
 
 ```{r,eval=FALSE}
+detach("package:dplyr", unload = TRUE)
 sessionInfo()
 ```
 
@@ -93,8 +93,11 @@ Ważne pola:
 ## Depends/Imports/Suggests/LinkingTo
 
 Depends: Importowanie funkcji z innych pakietów (attach do namespace).
+
 Imports: Importowanie funkcji z innych pakietów (load do namespace).
+
 Sugggets: Pakiety wykorzystywanie w examples, vignette i aplikacji Shiny.
+
 LinkingTo: używanie headers z innych pakietów (np. Rcpp).
 
 ## Roxygen
