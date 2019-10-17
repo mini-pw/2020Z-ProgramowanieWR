@@ -1,0 +1,232 @@
+---
+title: "PD1"
+author: "Andrzej Nowikowski"
+date: "October 17, 2019"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(microbenchmark)
+library(lattice)
+library(dplyr)
+```
+
+## Opis zadania
+
+Prezentacja czasów wykonywania się wykresów w R w zależności od użytej biblioteki oraz typu wykresu. Autor skupił się głównie na zaprezentowanie poszczególnych typów wykresów dla dużej ilości danych, użyto głównie domyślnych wartości poszczególnych pakietów.
+
+
+## Scatters
+
+Narysowanie położenia 1000 losowo wygenerowanych punktów przynależnych do jednej z 5 klas.
+
+```{r}
+
+n <- 1000
+x <- runif(n)
+y <- runif(n)
+color <- as.factor(sample(1:5, n, replace = TRUE))
+
+df <- data.frame(x,y,color)
+ggplot(data=df,aes(x=x,y=y,color=color)) + geom_point() + ggtitle('Scatter plot in ggplot')
+plot(x,y,col=color, main='Scatter plot in Graphics')
+lattice::xyplot(y ~ x, data=df, col=color, main='Scatter plot in lattice')
+
+graphics_benchmark <- microbenchmark(plot(x,y,col=color))
+lattice_benchmark <- microbenchmark(lattice::xyplot(y ~ x, data=df, col=color))
+ggplot_benchmark <- microbenchmark(ggplot(data=df,aes(x=x,y=y,color=color)) + geom_point(), unit='s')
+
+scatters_df <- rbind(
+data.frame(time=ggplot_benchmark$time /1e6,lib=rep('ggplot', 100)),
+data.frame(time=graphics_benchmark$time /1e6,lib=rep('graphics', 100)),
+data.frame(time=lattice_benchmark$time /1e6,lib=rep('lattice', 100))
+)
+
+
+
+
+ggplot(data=scatters_df, aes(y=time, x=lib)) + 
+  geom_boxplot() +
+  ggtitle("Benchmark scatter plotów") + 
+  ylab('Czas [ms]') +
+  xlab('Biblioteka')
+
+
+```
+
+
+## Line Plots
+
+Narysowanie położenia losowo wygenerowanych punktów przynależnych do jednej z 5 klas.
+
+```{r}
+
+x <- seq(0, 6, 0.001)
+y <- sin(x) + 0.1 * runif(length(x))
+
+df <- rbind(
+  data.frame(x,y=sin(x) + 0.1 * runif(length(x)),color=rep('1', length(x))),
+  data.frame(x,y=cos(x) + 0.1 * runif(length(x)),color=rep('2', length(x))),
+  data.frame(x,y=sin(x/2) + 0.2 * runif(length(x)),color=rep('3', length(x))),
+  data.frame(x,y=cos(x/2) + 0.2 * runif(length(x)),color=rep('4', length(x))),
+  data.frame(x,y=cos(x - 0.42) + 0.1 * runif(length(x)),color=rep('5', length(x)))
+)
+
+draw_line_plot_in_graphics <- function (df) {
+  subset <- (df %>% filter(color == '1'))
+  plot(subset$x, subset$y, main="Line plot in Graphics")
+  for (col in c('2','3','4','5')) {
+    subset <- (df %>% filter(color == col))
+    lines(subset$x, subset$y, type="l", main="Line plot in Graphics", col=col)
+  }
+}
+
+ggplot(data=df,aes(x=x,y=y,color=color)) + geom_line() + ggtitle('Line plot in ggplot')
+draw_line_plot_in_graphics(df)
+lattice::xyplot(y ~ x,type="l", data=df, col=color, main='Line plot in lattice')
+
+graphics_benchmark <- microbenchmark(function() {draw_line_plot_in_graphics(df)})
+lattice_benchmark <- microbenchmark(lattice::xyplot(y ~ x,type="l", data=df, col=color, main='Line plot in lattice'))
+ggplot_benchmark <- microbenchmark(ggplot(data=df,aes(x=x,y=y,color=color)) + geom_line() + ggtitle('Line plot in ggplot'))
+
+line_plots_df <- rbind(
+data.frame(time=ggplot_benchmark$time /1e6,lib=rep('ggplot', 100)),
+data.frame(time=graphics_benchmark$time /1e6,lib=rep('graphics', 100)),
+data.frame(time=lattice_benchmark$time /1e6,lib=rep('lattice', 100))
+)
+
+
+
+
+ggplot(data=line_plots_df, aes(y=time, x=lib)) + 
+  geom_boxplot() +
+  ggtitle("Benchmark line plotów") + 
+  ylab('Czas [ms]') +
+  xlab('Biblioteka')
+
+
+```
+
+
+
+## Bar charts
+
+Narysowanie położenia losowo wygenerowanych punktów przynależnych do jednej z 5 klas.
+
+```{r}
+
+x <- as.factor(seq(1, 1000))
+y <- 1000 * runif(length(x))
+
+df <- data.frame(x, y)
+
+ggplot(data=df,aes(x=x,y=y)) + geom_bar(stat='identity') + ggtitle('Bar plot in ggplot')
+barplot(y, main='Bar plot in Graphics')
+lattice::barchart(y ~ x, data=df, main='Bar plot in lattice')
+
+graphics_benchmark <- microbenchmark(function() {barplot(y, main='Bar plot in Graphics')})
+lattice_benchmark <- microbenchmark(lattice::barchart(y ~ x, data=df, main='Bar plot in lattice'))
+ggplot_benchmark <- microbenchmark(ggplot(data=df,aes(x=x,y=y)) + geom_bar(stat='identity') + ggtitle('Bar plot in ggplot'))
+
+bar_plots_df <- rbind(
+data.frame(time=ggplot_benchmark$time /1e6,lib=rep('ggplot', 100)),
+data.frame(time=graphics_benchmark$time /1e6,lib=rep('graphics', 100)),
+data.frame(time=lattice_benchmark$time /1e6,lib=rep('lattice', 100))
+)
+
+
+
+
+ggplot(data=bar_plots_df, aes(y=time, x=lib)) + 
+  geom_boxplot() +
+  ggtitle("Benchmark barplotów") + 
+  ylab('Czas [ms]') +
+  xlab('Biblioteka')
+
+
+```
+
+## Histograms
+
+Narysowanie histogramów losowo wygenerowanej próbki o rozkładzie normalnym.
+
+```{r}
+
+n <- 10000
+bins <- 100
+x <- rnorm(n, mean=100, sd=15)
+
+df <- data.frame(x)
+
+ggplot(data=df,aes(x=x)) + geom_histogram(bins=bins) + ggtitle('Histogram plot in ggplot')
+histogram(x, breaks=bins, main='Histogram plot in Graphics')
+lattice::histogram(y ~ x, nint=bins, data=df, main='Histogram plot in lattice')
+
+graphics_benchmark <- microbenchmark(histogram(x, breaks=bins, main='Histogram plot in Graphics'))
+lattice_benchmark <- microbenchmark(lattice::histogram(y ~ x, nint=bins, data=df, main='Histogram plot in lattice'))
+ggplot_benchmark <- microbenchmark(ggplot(data=df,aes(x=x)) + geom_histogram(bins=bins) + ggtitle('Histogram plot in ggplot'))
+
+histogram_plots_df <- rbind(
+data.frame(time=ggplot_benchmark$time /1e6,lib=rep('ggplot', 100)),
+data.frame(time=graphics_benchmark$time /1e6,lib=rep('graphics', 100)),
+data.frame(time=lattice_benchmark$time /1e6,lib=rep('lattice', 100))
+)
+
+
+
+
+ggplot(data=histogram_plots_df, aes(y=time, x=lib)) + 
+  geom_boxplot() +
+  ggtitle("Benchmark histogramów") + 
+  ylab('Czas [ms]') +
+  xlab('Biblioteka')
+
+
+```
+
+## Box plots
+
+Narysowanie boxplotów z losowo wygenerowanych próbek o rozkładach normalnych.
+
+```{r}
+
+n <- 10000
+
+df <- rbind(
+  data.frame(x=rnorm(n, mean=100, sd=15),color='1'),
+  data.frame(x=rnorm(n, mean=113, sd=05),color='2'),
+  data.frame(x=rnorm(n, mean=56, sd=40),color='3'),
+  data.frame(x=rnorm(n, mean=113, sd=10),color='4')
+)
+
+ggplot(data=df,aes(x=color,y=x)) + geom_boxplot() + ggtitle('Boxplot in ggplot')
+boxplot(x ~color, data=df, main='Boxplot in Graphics')
+lattice::bwplot(x ~ color, data=df, main='Boxplot in lattice')
+
+graphics_benchmark <- microbenchmark(boxplot(x ~color, data=df, main='Boxplot in Graphics'))
+lattice_benchmark <- microbenchmark(lattice::bwplot(x ~ color, data=df, main='Boxplot in lattice'))
+ggplot_benchmark <- microbenchmark(ggplot(data=df,aes(x=color,y=x)) + geom_boxplot() + ggtitle('Boxplot in ggplot'))
+
+boxplots_df <- rbind(
+data.frame(time=ggplot_benchmark$time /1e6,lib=rep('ggplot', 100)),
+data.frame(time=graphics_benchmark$time /1e6,lib=rep('graphics', 100)),
+data.frame(time=lattice_benchmark$time /1e6,lib=rep('lattice', 100))
+)
+
+
+ggplot(data=boxplots_df, aes(y=time, x=lib)) + 
+  geom_boxplot() +
+  ggtitle("Benchmark boxplotów") + 
+  ylab('Czas [ms]') +
+  xlab('Biblioteka')
+
+
+```
+
+## Podsumowanie
+
+W subiektywnym odczuciu autora ggplot nie jest znacząco wolny, a ma dobre domyślne wartości, co przykładowo widać w przypadku rysowania dużego barplota. Graphics jest tragiczny w użyciu i przy rysowaniu dobrze wyglądających wykresów jest wolny. Lattice wydaje się być w porządku.
