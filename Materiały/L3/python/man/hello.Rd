@@ -15,6 +15,10 @@ Hello function
 \details{
 More informations.
 }
+\examples{
+# random comment
+hello("Michal")
+}
 \seealso{
 \code{\link[base]{cat}}
 }
