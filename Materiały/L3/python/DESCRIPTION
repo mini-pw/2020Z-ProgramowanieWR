@@ -10,3 +10,4 @@ Description: More details about what the package does. See
           for details on how to write this part.
 License: GPL (>= 2)
 RoxygenNote: 6.1.1
+Encoding: UTF-8
