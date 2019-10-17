@@ -2,9 +2,12 @@
 % Please edit documentation in R/hello.R
 \name{hallo}
 \alias{hallo}
+\alias{halloechen}
 \title{Hallo function}
 \usage{
 hallo(txt = "world")
+
+halloechen(txt = "world")
 }
 \arguments{
 \item{txt}{\code{character} vector}

@@ -22,3 +22,9 @@ hello <- function(txt = "world") {
 hallo <- function(txt = "world") {
   cat("Hallo, ", txt, "\n")
 }
+
+#' @rdname hallo
+#' @export
+halloechen <- function(txt = "world") {
+  cat("Hallo, ", txt, "\n")
+}
