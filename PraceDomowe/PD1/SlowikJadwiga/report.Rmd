@@ -53,7 +53,7 @@ Otrzymałam następujące wykresy:
 
 ![](plots/box_graphics.png)
 
-### Porównanie szybkości generowania wykresów [ns]
+### Porównanie szybkości generowania wykresów [ms]
 
 ```{r, dependson=show_table, echo=FALSE}
 show_table("benchmark_results/box_plot.csv")
@@ -73,7 +73,7 @@ show_table("benchmark_results/box_plot.csv")
 
 ![](plots/bar_graphics.png)
 
-### Porównanie szybkości generowania wykresów [ns]
+### Porównanie szybkości generowania wykresów [ms]
 
 ```{r, dependson=show_table, echo=FALSE}
 show_table("benchmark_results/bar_plot.csv")
@@ -95,7 +95,7 @@ generowania wykresu przez trzy różne biblioteki.
 
 ![](plots/point_graphics.png)
 
-### Porównanie szybkości generowania wykresów [ns]
+### Porównanie szybkości generowania wykresów [ms]
 
 ```{r, dependson=show_table, echo=FALSE}
 show_table("benchmark_results/point_plot.csv")
@@ -115,7 +115,7 @@ show_table("benchmark_results/point_plot.csv")
 
 ![](plots/histogram_graphics.png)
 
-### Porównanie szybkości generowania wykresów [ns]
+### Porównanie szybkości generowania wykresów [ms]
 
 ```{r, dependson=show_table, echo=FALSE}
 show_table("benchmark_results/histogram.csv")
@@ -135,7 +135,7 @@ show_table("benchmark_results/histogram.csv")
 
 ![](plots/density_graphics.png)
 
-### Porównanie szybkości generowania wykresów [ns]
+### Porównanie szybkości generowania wykresów [ms]
 
 ```{r, dependson=show_table, echo=FALSE}
 show_table("benchmark_results/density_plot.csv")
@@ -175,7 +175,7 @@ show_summary_bar_chart <- function(data) {
   data %>% 
     ggplot(aes(x=plot, y=mean, group=package, fill=package, label=round(mean,2))) + 
     geom_bar(stat='identity', position=position_dodge(1)) +
-    ylab("mean [ns]") +
+    ylab("mean [ms]") +
     theme_classic()
 }
 ```
@@ -187,19 +187,18 @@ plot_final_data <- Reduce(
     plot_names,
     function(r) get_package_benchmark(r) %>% cbind(data.frame(package=as.factor(package_names), plot=r))))
 
+plot_type_for_another_graph <- "point_plot"
 first_plot_final_data <- plot_final_data %>% 
-  filter(plot != "point_plot" & plot != "bar_plot")
+  filter(plot != plot_type_for_another_graph)
 
 show_summary_bar_chart(first_plot_final_data)
 ```
 
-Na powyższym wykresie można zauważyć, że we wszystkich trzech przypadkach (generowanie wykresu pudełkowego, histogramu oraz wykresu gęstości) najszybszy był pakiet `ggplot`. Jednakże, na następnym wykresie wyraźnie widać, że istnieje przypadek, gdy biblioteka `ggplot` nie jest najlepsza (pod względem szybkości).
-
 ```{r, echo=FALSE, out.width="700px", out.align="center"}
 second_plot_final_data <- plot_final_data %>% 
-  filter(plot == "point_plot" | plot == "bar_plot")
+  filter(plot == plot_type_for_another_graph)
 
 show_summary_bar_chart(second_plot_final_data)
 ```
 
-Dzieje się tak w przypadku generowania wykresu słupkowego. Warto również zwrócić uwagę na znaczącą różnicę pomiędzy pakietem `ggplot` a pozostałymi w szybkości generowania wykresu punktowego.
+Podsumowując, stwierdzam, że w znaczącej liczbie przypadków pakiet `graphics` jest najszybszy.
