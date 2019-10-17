@@ -21,3 +21,6 @@ Here explain what function is doing and why.
 \examples{
 hello("Michal")
 }
+\seealso{
+\code{\link[base]debug}
+}

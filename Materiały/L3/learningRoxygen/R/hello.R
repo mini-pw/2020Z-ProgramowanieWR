@@ -5,6 +5,7 @@
 #' @export
 #' @details Here explain what function is doing and why.
 #' @return \code{NULL} (invisible)
+#' @seealso \code{\link[base]{debug}}
 #' @examples
 #' hello("Michal")
 hello <- function(txt = "world") {
