@@ -3,6 +3,7 @@
 #' @param txt an object of \code{character} class
 #' @importFrom dplyr %>%
 #' @export
+#' @details Here explain what function is doing and why.
 #' @return \code{NULL} (invisible)
 #' @examples
 #' hello("Michal")

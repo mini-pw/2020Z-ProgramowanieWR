@@ -15,6 +15,9 @@ hello(txt = "world")
 \description{
 Hello  function
 }
+\details{
+Here explain what function is doing and why.
+}
 \examples{
 hello("Michal")
 }
