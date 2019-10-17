@@ -187,15 +187,16 @@ plot_final_data <- Reduce(
     plot_names,
     function(r) get_package_benchmark(r) %>% cbind(data.frame(package=as.factor(package_names), plot=r))))
 
+plot_type_for_another_graph <- "point_plot"
 first_plot_final_data <- plot_final_data %>% 
-  filter(plot != "point_plot")
+  filter(plot != plot_type_for_another_graph)
 
 show_summary_bar_chart(first_plot_final_data)
 ```
 
 ```{r, echo=FALSE, out.width="700px", out.align="center"}
 second_plot_final_data <- plot_final_data %>% 
-  filter(plot == "point_plot")
+  filter(plot == plot_type_for_another_graph)
 
 show_summary_bar_chart(second_plot_final_data)
 ```
