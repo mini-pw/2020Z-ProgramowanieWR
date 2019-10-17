@@ -188,14 +188,14 @@ plot_final_data <- Reduce(
     function(r) get_package_benchmark(r) %>% cbind(data.frame(package=as.factor(package_names), plot=r))))
 
 first_plot_final_data <- plot_final_data %>% 
-  filter(plot != "histogram" & plot != "bar_plot" & plot != "density_plot")
+  filter(plot != "point_plot")
 
 show_summary_bar_chart(first_plot_final_data)
 ```
 
 ```{r, echo=FALSE, out.width="700px", out.align="center"}
 second_plot_final_data <- plot_final_data %>% 
-  filter(plot == "histogram" | plot == "bar_plot" | plot == "density_plot")
+  filter(plot == "point_plot")
 
 show_summary_bar_chart(second_plot_final_data)
 ```
