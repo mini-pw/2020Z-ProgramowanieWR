@@ -3,11 +3,13 @@
 #' @param txt an object of \code{character} class
 #' @importFrom dplyr %>%
 #' @export
+#' @return \code{NULL} (invisible)
 #' @examples
 #' hello("Michal")
 hello <- function(txt = "world") {
   paste0("Hello, ", txt) %>% 
     cat("\n")
+  invisible(NULL)
 }
 
 

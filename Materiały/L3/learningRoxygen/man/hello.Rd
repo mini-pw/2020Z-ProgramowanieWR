@@ -9,6 +9,9 @@ hello(txt = "world")
 \arguments{
 \item{txt}{an object of \code{character} class}
 }
+\value{
+\code{NULL} (invisible)
+}
 \description{
 Hello  function
 }
