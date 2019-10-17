@@ -3118,7 +3118,77 @@ slide:not(.current) .plotly.html-widget{
           </hgroup>
   </slide>
 
-<slide class=""><hgroup><h2>Informacje o pakietach</h2></hgroup><article  id="informacje-o-pakietach">
+<slide class=""><hgroup><h2>Attach i load</h2></hgroup><article  id="attach-i-load">
+
+</article></slide><slide class=""><hgroup><h2>Attach i load</h2></hgroup><article  id="attach-i-load-1">
+
+<p>Attach: zawartość namespace trafia do global environment i search</p>
+
+<p>Load: zawartość namespace jest dostępna, ale nie trafia do global environment i search</p>
+
+</article></slide><slide class=""><hgroup><h2>Attach i load</h2></hgroup><article  id="attach-i-load-2">
+
+<pre class = 'prettyprint lang-r'>search()</pre>
+
+<pre >## [1] &quot;.GlobalEnv&quot;        &quot;package:stats&quot;     &quot;package:graphics&quot; 
+## [4] &quot;package:grDevices&quot; &quot;package:utils&quot;     &quot;package:datasets&quot; 
+## [7] &quot;package:methods&quot;   &quot;Autoloads&quot;         &quot;package:base&quot;</pre>
+
+</article></slide><slide class=""><hgroup><h2>Attach i load</h2></hgroup><article  id="attach-i-load-3">
+
+<pre class = 'prettyprint lang-r'>library(dplyr)</pre>
+
+<pre >## 
+## Attaching package: &#39;dplyr&#39;</pre>
+
+<pre >## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     filter, lag</pre>
+
+<pre >## The following objects are masked from &#39;package:base&#39;:
+## 
+##     intersect, setdiff, setequal, union</pre>
+
+<pre class = 'prettyprint lang-r'>search()</pre>
+
+<pre >##  [1] &quot;.GlobalEnv&quot;        &quot;package:dplyr&quot;     &quot;package:stats&quot;    
+##  [4] &quot;package:graphics&quot;  &quot;package:grDevices&quot; &quot;package:utils&quot;    
+##  [7] &quot;package:datasets&quot;  &quot;package:methods&quot;   &quot;Autoloads&quot;        
+## [10] &quot;package:base&quot;</pre>
+
+</article></slide><slide class=""><hgroup><h2>Attach i load</h2></hgroup><article  id="attach-i-load-4">
+
+<pre class = 'prettyprint lang-r'>union</pre>
+
+<pre >## function (x, y, ...) 
+## UseMethod(&quot;union&quot;)
+## &lt;bytecode: 0x55f28f78b428&gt;
+## &lt;environment: namespace:dplyr&gt;</pre>
+
+</article></slide><slide class=""><hgroup><h2>Attach i load</h2></hgroup><article  id="attach-i-load-5">
+
+<pre class = 'prettyprint lang-r'>detach(&quot;package:dplyr&quot;, unload = FALSE)
+union</pre>
+
+<pre >## function (x, y) 
+## unique(c(as.vector(x), as.vector(y)))
+## &lt;bytecode: 0x55f28fc20900&gt;
+## &lt;environment: namespace:base&gt;</pre>
+
+</article></slide><slide class=""><hgroup><h2>Attach i load</h2></hgroup><article  id="attach-i-load-6">
+
+<pre class = 'prettyprint lang-r'>detach(&quot;package:dplyr&quot;, unload = TRUE)
+sessionInfo()</pre>
+
+<p><strong>loaded via a namespace (and not attached):</strong> <em>Rcpp(v.1.0.2)</em>, <em>rstudioapi(v.0.10)</em>, <em>knitr(v.1.23)</em>, <em>magrittr(v.1.5)</em>, <em>tidyselect(v.0.2.5)</em>, <em>munsell(v.0.5.0)</em>, <em>colorspace(v.1.4-1)</em>, <em>R6(v.2.4.0)</em>, <em>rlang(v.0.4.0)</em>, <em><em>dplyr(v.0.8.3)</em></em>, <em>tools(v.3.6.1)</em>, <em>grid(v.3.6.1)</em>, <em>packrat(v.0.5.0)</em>, <em>gtable(v.0.3.0)</em>, <em>xfun(v.0.8)</em>, <em>withr(v.2.1.2)</em>, <em>htmltools(v.0.3.6)</em>, <em>yaml(v.2.2.0)</em>, <em>lazyeval(v.0.2.2)</em>, <em>digest(v.0.6.20)</em>, <em>assertthat(v.0.2.1)</em>, <em>tibble(v.2.1.3)</em>, <em>crayon(v.1.3.4)</em>, <em>purrr(v.0.3.2)</em>, <em>glue(v.1.3.1)</em>, <em>evaluate(v.0.14)</em>, <em>rmarkdown(v.1.13)</em>, <em>compiler(v.3.6.1)</em>, <em>pillar(v.1.4.2)</em>, <em>scales(v.1.0.0)</em> and <em>pkgconfig(v.2.0.2)</em></p>
+
+</article></slide><slide class=""><hgroup><h2>Attach i load</h2></hgroup><article  id="attach-i-load-7">
+
+<pre class = 'prettyprint lang-r'>sessionInfo()</pre>
+
+<p><strong>loaded via a namespace (and not attached):</strong> <em>Rcpp(v.1.0.2)</em>, <em>rstudioapi(v.0.10)</em>, <em>knitr(v.1.23)</em>, <em>magrittr(v.1.5)</em>, <em>tidyselect(v.0.2.5)</em>, <em>munsell(v.0.5.0)</em>, <em>colorspace(v.1.4-1)</em>, <em>R6(v.2.4.0)</em>, <em>rlang(v.0.4.0)</em>, <em>tools(v.3.6.1)</em>, <em>grid(v.3.6.1)</em>, <em>packrat(v.0.5.0)</em>, <em>gtable(v.0.3.0)</em>, <em>xfun(v.0.8)</em>, <em>withr(v.2.1.2)</em>, <em>htmltools(v.0.3.6)</em>, <em>yaml(v.2.2.0)</em>, <em>lazyeval(v.0.2.2)</em>, <em>digest(v.0.6.20)</em>, <em>assertthat(v.0.2.1)</em>, <em>tibble(v.2.1.3)</em>, <em>crayon(v.1.3.4)</em>, <em>purrr(v.0.3.2)</em>, <em>glue(v.1.3.1)</em>, <em>evaluate(v.0.14)</em>, <em>rmarkdown(v.1.13)</em>, <em>compiler(v.3.6.1)</em>, <em>pillar(v.1.4.2)</em>, <em>scales(v.1.0.0)</em> and <em>pkgconfig(v.2.0.2)</em></p>
+
+</article></slide><slide class=""><hgroup><h2>Informacje o pakietach</h2></hgroup><article  id="informacje-o-pakietach">
 
 <ul>
 <li><a href='http://r-pkgs.had.co.nz/' title=''>R packages, Hadley Wickham</a>.</li>
@@ -3141,6 +3211,20 @@ slide:not(.current) .plotly.html-widget{
 <p><img src="http://r-pkgs.had.co.nz/diagrams/package-files.png" width="500px"></p>
 
 </article></slide><slide class=""><hgroup><h2>DESCRIPTION</h2></hgroup><article  id="description">
+
+<p>Podstawowa informacja o pakiecie.</p>
+
+<p>Ważne pola:</p>
+
+<ul>
+<li><a href='mailto:Authors@R' title=''>Authors@R</a>,</li>
+<li>Description</li>
+<li>Depends/Imports/Suggests/LinkingTo</li>
+</ul>
+
+</article></slide><slide class=""><hgroup><h2>Depends/Imports/Suggests/LinkingTo</h2></hgroup><article  id="dependsimportssuggestslinkingto">
+
+<p>Depends: Importowanie funkcji z innych pakietów (attach do namespace). Imports: Importowanie funkcji z innych pakietów (load do namespace). Sugggets: Pakiety wykorzystywanie w examples, vignette i aplikacji Shiny. LinkingTo: używanie headers z innych pakietów (np. Rcpp).</p>
 
 </article></slide><slide class=""><hgroup><h2>Roxygen</h2></hgroup><article  id="roxygen">
 
