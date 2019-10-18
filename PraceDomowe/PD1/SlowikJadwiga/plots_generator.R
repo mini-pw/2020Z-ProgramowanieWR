@@ -48,8 +48,6 @@ get_bar_plot_graphics <- function() {
   plot(data_maths_mean$rok, data_maths_mean$mean_points, main=bar_title, type="h", ylim=ylim_bar_plot)
 }
 
-get_bar_plot_graphics()
-
 # POINT
 get_point_plot_ggplot <- function() {
   data_maths %>% 
