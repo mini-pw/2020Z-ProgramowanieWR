@@ -12,7 +12,7 @@ min_NSE(x, a)
 
 Przygotuj kilka rozwiązań tego zadania i porównaj ich szybkość działania przy różnych funkcjach i różnych rozmiarach zbioru danych. Przy ocenie zadania bardzo będę doceniane rozwiązania szybkie, przyjazne dla zużycia pamięci i eleganckie.
 
-Funkcje, które należy uwzględnić w benchmarku:
+Funkcje, które należy uwzględnić w benchmarku (można uwzględnić więcej):
 
  - min,
  - mean,
