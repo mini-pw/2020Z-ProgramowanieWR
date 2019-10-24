@@ -15,9 +15,9 @@ Strona przedmiotu Zaawansowane programowanie w R na wydziale MiNI PW.
 | 03.10 | Dobre praktyki tworzenia kodu w R.                                      | Efektywne programowanie w R.                                       |         | 1  |            |
 | 10.10 | Znajomość pakietów z rodziny tidyverse.                                 | Lexical scoping. Elementy programowania obiektowego.               |         |    | 1          |
 | 17.10 | Tworzenie pakietów R (część 1).                                         | Dokumentacja (roxygen2, pkgdown) i testowanie kodu (testthat).     | 1*      | 2  |            |
-| 24.10 | Tworzenie pakietów R (część 2).                                         | Tworzenie aplikacji Shiny.                                         | 1*      |    |            |
+| 24.10 | Tworzenie pakietów R (część 2).                                         | Dobre praktyki tworzenia pakietów.                                 | 1*      |    |            |
 | 31.10 |                                                                         |                                                                    |         |    |            |
-| 07.11 | ShinyProxy i Kubernetes.                                                | Zaawansowane aplikacje Shiny. ShinyJS. Shiny i Electron.           | 1       |    | 2          |
+| 07.11 | ShinyProxy i Kubernetes.                                                | Tworzenie aplikacji Shiny. ShinyJS. Shiny i Electron.              | 1       |    | 2          |
 | 14.11 | Prezentacje wyników projektu 1.                                         |                                                                    |         |    |            |
 | 21.11 | Prezentacje studentów.                                                  | Tworzenie aplikacji REST z użyciem plumber lub OpenCPU.            |         | 3  |            |
 | 28.11 | Prezentacje studentów.                                                  | Programowanie równoległe w R.                                      | 2       |    | 3          |

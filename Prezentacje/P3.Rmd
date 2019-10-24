@@ -1,5 +1,5 @@
 ---
-title: "Tworzenie pakietów R"
+title: "Tworzenie pakietów R I"
 author: "Michał Burdukiewicz"
 output: ioslides_presentation
 ---
@@ -79,6 +79,8 @@ Subiektywny ranking pakietów do tworzenia pakietów:
 ## Zawartość pakietu
 
 <img src="http://r-pkgs.had.co.nz/diagrams/package-files.png" width="500px">
+
+Źródło: R packages, Hadley Wickham. 
 
 ## DESCRIPTION
 

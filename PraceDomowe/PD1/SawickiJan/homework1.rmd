@@ -40,7 +40,7 @@ measurements = microbenchmark(
   lattice_pointchart = xyplot(y ~ x, data),
   lattice_linechart = xyplot(y ~ x, data, type = c("smooth")),
   lattice_barchart = barchart(y ~ x, data),
-  lattice_boxchart = bwplot(y ~ x, data),
+  lattice_boxchart = bwplot(data$x, data),
   lattice_densitychart = histogram(data$x),
   lattice_nochart = xyplot(0 ~ 0, data = data),
   graphics_pointchart = plot(data$x, data$y, type = "p"),

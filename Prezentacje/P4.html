@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Tworzenie pakietów R I</title>
+  <title>Tworzenie pakietów R II</title>
 
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="chrome=1">
@@ -19,7 +19,7 @@
     var SLIDE_CONFIG = {
       // Slide settings
       settings: {
-                title: 'Tworzenie pakietów R I',
+                title: 'Tworzenie pakietów R II',
                         useBuilds: true,
         usePrettify: true,
         enableSlideAreas: true,
@@ -3118,125 +3118,77 @@ slide:not(.current) .plotly.html-widget{
           </hgroup>
   </slide>
 
-<slide class=""><hgroup><h2>Attach i load</h2></hgroup><article  id="attach-i-load">
+<slide class=""><hgroup><h2>UT</h2></hgroup><article  id="ut">
 
-</article></slide><slide class=""><hgroup><h2>Attach i load</h2></hgroup><article  id="attach-i-load-1">
+<p>Unit testing (testowanie jednostkowe)</p>
 
-<p>Attach: zawartość namespace trafia do global environment i search</p>
-
-<p>Load: zawartość namespace jest dostępna, ale nie trafia do global environment i search</p>
-
-</article></slide><slide class=""><hgroup><h2>Attach i load</h2></hgroup><article  id="attach-i-load-2">
-
-<pre class = 'prettyprint lang-r'>search()</pre>
-
-<pre >## [1] &quot;.GlobalEnv&quot;        &quot;package:stats&quot;     &quot;package:graphics&quot; 
-## [4] &quot;package:grDevices&quot; &quot;package:utils&quot;     &quot;package:datasets&quot; 
-## [7] &quot;package:methods&quot;   &quot;Autoloads&quot;         &quot;package:base&quot;</pre>
-
-</article></slide><slide class=""><hgroup><h2>Attach i load</h2></hgroup><article  id="attach-i-load-3">
-
-<pre class = 'prettyprint lang-r'>library(dplyr)</pre>
-
-<pre >## 
-## Attaching package: &#39;dplyr&#39;</pre>
-
-<pre >## The following objects are masked from &#39;package:stats&#39;:
-## 
-##     filter, lag</pre>
-
-<pre >## The following objects are masked from &#39;package:base&#39;:
-## 
-##     intersect, setdiff, setequal, union</pre>
-
-<pre class = 'prettyprint lang-r'>search()</pre>
-
-<pre >##  [1] &quot;.GlobalEnv&quot;        &quot;package:dplyr&quot;     &quot;package:stats&quot;    
-##  [4] &quot;package:graphics&quot;  &quot;package:grDevices&quot; &quot;package:utils&quot;    
-##  [7] &quot;package:datasets&quot;  &quot;package:methods&quot;   &quot;Autoloads&quot;        
-## [10] &quot;package:base&quot;</pre>
-
-</article></slide><slide class=""><hgroup><h2>Attach i load</h2></hgroup><article  id="attach-i-load-4">
-
-<pre class = 'prettyprint lang-r'>union</pre>
-
-<pre >## function (x, y, ...) 
-## UseMethod(&quot;union&quot;)
-## &lt;bytecode: 0x5625a7cd7c58&gt;
-## &lt;environment: namespace:dplyr&gt;</pre>
-
-</article></slide><slide class=""><hgroup><h2>Attach i load</h2></hgroup><article  id="attach-i-load-5">
-
-<pre class = 'prettyprint lang-r'>detach(&quot;package:dplyr&quot;, unload = FALSE)
-union</pre>
-
-<pre >## function (x, y) 
-## unique(c(as.vector(x), as.vector(y)))
-## &lt;bytecode: 0x5625a81ac350&gt;
-## &lt;environment: namespace:base&gt;</pre>
-
-</article></slide><slide class=""><hgroup><h2>Attach i load</h2></hgroup><article  id="attach-i-load-6">
-
-<pre class = 'prettyprint lang-r'>sessionInfo()</pre>
-
-<p><strong>loaded via a namespace (and not attached):</strong> <em>Rcpp(v.1.0.2)</em>, <em>rstudioapi(v.0.10)</em>, <em>knitr(v.1.23)</em>, <em>magrittr(v.1.5)</em>, <em>tidyselect(v.0.2.5)</em>, <em>munsell(v.0.5.0)</em>, <em>colorspace(v.1.4-1)</em>, <em>R6(v.2.4.0)</em>, <em>rlang(v.0.4.0)</em>, <em><em>dplyr(v.0.8.3)</em></em>, <em>tools(v.3.6.1)</em>, <em>grid(v.3.6.1)</em>, <em>packrat(v.0.5.0)</em>, <em>gtable(v.0.3.0)</em>, <em>xfun(v.0.8)</em>, <em>withr(v.2.1.2)</em>, <em>htmltools(v.0.3.6)</em>, <em>yaml(v.2.2.0)</em>, <em>lazyeval(v.0.2.2)</em>, <em>digest(v.0.6.20)</em>, <em>assertthat(v.0.2.1)</em>, <em>tibble(v.2.1.3)</em>, <em>crayon(v.1.3.4)</em>, <em>purrr(v.0.3.2)</em>, <em>glue(v.1.3.1)</em>, <em>evaluate(v.0.14)</em>, <em>rmarkdown(v.1.13)</em>, <em>compiler(v.3.6.1)</em>, <em>pillar(v.1.4.2)</em>, <em>scales(v.1.0.0)</em> and <em>pkgconfig(v.2.0.2)</em></p>
-
-</article></slide><slide class=""><hgroup><h2>Attach i load</h2></hgroup><article  id="attach-i-load-7">
-
-<pre class = 'prettyprint lang-r'>detach(&quot;package:dplyr&quot;, unload = TRUE)
-sessionInfo()</pre>
-
-<p><strong>loaded via a namespace (and not attached):</strong> <em>Rcpp(v.1.0.2)</em>, <em>rstudioapi(v.0.10)</em>, <em>knitr(v.1.23)</em>, <em>magrittr(v.1.5)</em>, <em>tidyselect(v.0.2.5)</em>, <em>munsell(v.0.5.0)</em>, <em>colorspace(v.1.4-1)</em>, <em>R6(v.2.4.0)</em>, <em>rlang(v.0.4.0)</em>, <em>tools(v.3.6.1)</em>, <em>grid(v.3.6.1)</em>, <em>packrat(v.0.5.0)</em>, <em>gtable(v.0.3.0)</em>, <em>xfun(v.0.8)</em>, <em>withr(v.2.1.2)</em>, <em>htmltools(v.0.3.6)</em>, <em>yaml(v.2.2.0)</em>, <em>lazyeval(v.0.2.2)</em>, <em>digest(v.0.6.20)</em>, <em>assertthat(v.0.2.1)</em>, <em>tibble(v.2.1.3)</em>, <em>crayon(v.1.3.4)</em>, <em>purrr(v.0.3.2)</em>, <em>glue(v.1.3.1)</em>, <em>evaluate(v.0.14)</em>, <em>rmarkdown(v.1.13)</em>, <em>compiler(v.3.6.1)</em>, <em>pillar(v.1.4.2)</em>, <em>scales(v.1.0.0)</em> and <em>pkgconfig(v.2.0.2)</em></p>
-
-</article></slide><slide class=""><hgroup><h2>Informacje o pakietach</h2></hgroup><article  id="informacje-o-pakietach">
+<p>Źródła:</p>
 
 <ul>
-<li><a href='http://r-pkgs.had.co.nz/' title=''>R packages, Hadley Wickham</a>.</li>
-<li><a href='https://cran.r-project.org/doc/manuals/r-release/R-exts.html' title=''>Writing R Extensions</a>.</li>
+<li>The Art of Unit Testing: with examples in C#, Roy Osherove</li>
+<li><a href='https://martinfowler.com/bliki/UnitTest.html' title=''>https://martinfowler.com/bliki/UnitTest.html</a></li>
 </ul>
 
-</article></slide><slide class=""><hgroup><h2>Struktura pakietu</h2></hgroup><article  id="struktura-pakietu">
+</article></slide><slide class=""><hgroup><h2>UT</h2></hgroup><article  id="ut-1">
 
-<p>Subiektywny ranking pakietów do tworzenia pakietów:</p>
+<p>Cele testów:</p>
 
 <ul>
-<li><a href='https://github.com/eddelbuettel/pkgkitten' title=''>pkgkitten::kitten</a>: szkielet pakietu przyjazny dla CHECK.</li>
-<li><a href='https://github.com/r-lib/devtools' title=''>devtools::create</a>: bardzo (czasami przesadnie) kompletny szkielet pakietu.</li>
-<li><a href='https://stat.ethz.ch/R-manual/R-devel/library/utils/html/package.skeleton.html' title=''>utils::package.skeleton</a>.</li>
-<li><a href='https://github.com/nealrichardson/skeletor' title=''>skeletor::skeletor</a>: unikalne tworzenie pakietów poprzez makefile.</li>
+<li>projektowanie funkcji,</li>
+<li>znajdowanie błędów na poziomie budowania funkcji,</li>
+<li>znajdowanie błędów na poziomie modyfikowania funkcji.</li>
 </ul>
 
-</article></slide><slide class=""><hgroup><h2>Zawartość pakietu</h2></hgroup><article  id="zawartosc-pakietu">
-
-<p><img src="http://r-pkgs.had.co.nz/diagrams/package-files.png" width="500px"></p>
-
-<p>Źródło: R packages, Hadley Wickham.</p>
-
-</article></slide><slide class=""><hgroup><h2>DESCRIPTION</h2></hgroup><article  id="description">
-
-<p>Podstawowa informacja o pakiecie.</p>
-
-<p>Ważne pola:</p>
+</article></slide><slide class=""><hgroup><h2>Dobra architektura</h2></hgroup><article  id="dobra-architektura">
 
 <ul>
-<li><a href='mailto:Authors@R' title=''>Authors@R</a>,</li>
-<li>Description</li>
-<li>Depends/Imports/Suggests/LinkingTo</li>
+<li>modułowa struktura funkcji: ściśle zdefiniowane małe funkcje (prywatne i publicze),</li>
+<li>sztuczne dane, gdy jest to koniecznie (mockery, httptest, webmockr).</li>
 </ul>
 
-</article></slide><slide class=""><hgroup><h2>Depends/Imports/Suggests/LinkingTo</h2></hgroup><article  id="dependsimportssuggestslinkingto">
+</article></slide><slide class=""><hgroup><h2>Dobre UT</h2></hgroup><article  id="dobre-ut">
 
-<p>Depends: Importowanie funkcji z innych pakietów (attach do namespace).</p>
+<ul>
+<li>testy jednostkowe są niezależne od siebie - każdy test sprawdza inne zachowanie funkcji.</li>
+<li>testy sprawdzające ten sam rodzaj zachowania grupowane są w jeden context.</li>
+</ul>
 
-<p>Imports: Importowanie funkcji z innych pakietów (load do namespace).</p>
+</article></slide><slide class=""><hgroup><h2>Usługi CI</h2></hgroup><article  id="usugi-ci">
 
-<p>Sugggets: Pakiety wykorzystywanie w examples, vignette i aplikacji Shiny.</p>
+<ul>
+<li>travis.org lub travis.com (Linux + MAC)</li>
+<li>AppVeyor (Windows)</li>
+</ul>
 
-<p>LinkingTo: używanie headers z innych pakietów (np. Rcpp).</p>
+<p>Oprócz AppVeyor zawsze przed submission na CRAN warto użyć <a href='https://win-builder.r-project.org/' title=''>Win Builder</a>.</p>
 
-</article></slide><slide class=""><hgroup><h2>Roxygen</h2></hgroup><article  id="roxygen">
+</article></slide><slide class=""><hgroup><h2>Testy</h2></hgroup><article  id="testy">
 
-<p>Dokumentacja w markdownie <a href='https://cran.r-project.org/web/packages/roxygen2/vignettes/markdown.html' title=''>https://cran.r-project.org/web/packages/roxygen2/vignettes/markdown.html</a></p></article></slide>
+<ul>
+<li><a href='https://github.com/mllg/checkmate' title=''>checkmate</a>: szybkie i całościowe testy</li>
+<li><a href='https://github.com/hadley/assertthat' title=''>assertthat</a>: testy.</li>
+</ul>
+
+</article></slide><slide class=""><hgroup><h2>checkmate</h2></hgroup><article  id="checkmate">
+
+<ul>
+<li>assertDouble/assert_double zwraca input (invisible()) lub error.</li>
+<li>checkDouble/check_double zwraca TRUE lub string z tekstem błędu.</li>
+<li>testDouble/test_double zwraca TRUE lub FALSE.</li>
+<li>expect_double zwraca expectation.</li>
+</ul>
+
+</article></slide><slide class=""><hgroup><h2>assertthat</h2></hgroup><article  id="assertthat">
+
+<ul>
+<li>assert_that zwraca błąd.</li>
+<li>see_if zwraca TRUE lub FALSE z treścią błędu jako attribute.</li>
+<li>validate_that zwraca TRUE lub string z tekstem błędu.</li>
+</ul>
+
+</article></slide><slide class=""><hgroup><h2>Wysyłanie na CRAN</h2></hgroup><article  id="wysyanie-na-cran">
+
+<p>devtools::release()</p></article></slide>
 
 
   <slide class="backdrop"></slide>
