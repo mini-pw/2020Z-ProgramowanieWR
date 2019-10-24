@@ -7,6 +7,7 @@
 # 5. Używając testthat (np. poprzez usethis::use_testthat()) 
 # napisz testy jednostkowe do swojej funkcji.
 # 6. Dodaj do swojego pakietu CI za pomocą usethis::use_travis().
+# Pamiętaj, że travis wymaga utworzenia konta i nadania pewnych uprawnień.
 # 7. Dodaj do readme badge za pomocą usethis::use_travis_badge()
 # Ta funkcja jest w developerskiej wersji pakietu usethis. Można też badge dodać ręcznie.
 # 8. Dodaj do swojego pakietu badanie pokrycia kodu testami za pomocą usethis::use_coverage
