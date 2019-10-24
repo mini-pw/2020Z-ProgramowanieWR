@@ -1,0 +1,382 @@
+---
+title: "Advanced R"
+author: "Tymoteusz Makowski"
+date: '2019-10-10'
+subtitle: Home assignment (PD1)
+---
+
+
+# Data
+
+Data represents information about departs from Świnoujście port in Poland ([Source](https://dane.gov.pl/)). 
+```{r, include = FALSE}
+n_rep <- 50
+
+knitr::opts_chunk$set(comment = NA, echo = FALSE, message = FALSE,
+                      warning = FALSE, error = FALSE)
+
+library("ggplot2")
+library("graphics")
+library("data.table")
+
+df <- setNames(
+    fread("~/dane.csv", encoding = "Latin-1"),
+    c("DepartCode", "Date", "Hour", "DestCode", "ShipName", "Flag", "id",
+      "Signal", "Volume", "Length", "Agent", "DockingPlace")
+)
+
+df_agg_month <- df[,
+    .(
+       Flag,
+       DateAgg = strftime(as.Date(Date), "%Y-%m")
+    )
+][
+, .(nDeparts = .N), by = .(Flag, DateAgg)
+][
+   , .(
+       Flag = ifelse(nDeparts >= 10, Flag, "Other"),
+       DateAgg,
+       nDeparts
+   ) 
+][
+   , .(nDeparts = sum(nDeparts)), by = .(Flag, DateAgg)
+]
+```
+
+
+# Plot 1. - Line plot
+
+## Plots
+
+### `ggplot2`
+```{r}
+plot1_ggplot2 <- function() {
+    ggplot(df_agg_month, aes(x = DateAgg, y = nDeparts, color = Flag,
+                             group = Flag)) +
+        geom_line() +
+        theme_classic() +
+        labs(x = "Date", y = "Number of departs",
+             title = "Departs from Świnoujście port") +
+        scale_x_discrete(breaks = paste0(2008:2019, "-01")) +
+        theme(
+            axis.text.x = element_text(angle = 45, hjust = 1)
+        )
+}
+
+plot1_ggplot2()
+```
+
+
+### `graphics`
+```{r, fig.width = 7.3}
+flags <- sort(unique(df_agg_month[["Flag"]]))
+flag_cols <- setNames(
+    scales::hue_pal()(length(flags)),
+    flags
+)
+
+date_new <- as.Date(paste0(df_agg_month$DateAgg, "-01"))
+x_lim <- c(min(date_new), max(date_new))
+y_lim <- c(min(df_agg_month$nDeparts), max(df_agg_month$nDeparts))
+
+plot_single <- function(flag, plot_func = lines, df = df_agg_month,
+                        flags_colors = flag_cols, ...) {
+    df_filtered <- df[Flag == flag]
+    y_vals <- df_filtered$nDeparts
+    x_vals <- as.Date(paste0(df_filtered$DateAgg, "-01"))
+    
+    plot_func(y_vals ~ x_vals, xlim = x_lim, ylim = y_lim,
+              col = flags_colors[[flag]], ...)
+}
+
+plot1_graphics <- function() {
+    par(mar =  c(5, 4, 4, 13) + 0.1)
+    plot_single(flags[1], plot, type = "l", xlab = "Date",
+                main = "Departs from Świnoujście port",
+                ylab = "Number of departs")
+    for (f in flags[-1]) {
+        plot_single(f)
+    }
+    legend(x = "topright", legend = names(flag_cols), col = flag_cols, lty = 1,
+           inset = c(-0.65, 0), title = "Flag", xpd = TRUE)
+}
+
+plot1_graphics()
+```
+
+### `lattice`
+```{r}
+plot1_lattice <- function() {
+    lattice::xyplot(nDeparts ~ as.Date(paste0(DateAgg, "-01")), df_agg_month,
+                    groups = Flag, type = "l",
+                    xlab = "Date", ylab = "Number of departs",
+                    auto.key = TRUE
+    )
+}
+
+plot1_lattice()
+```
+
+## Comparison
+
+```{r, fig.show = 'hide'}
+plot1_mb <- microbenchmark::microbenchmark(
+    ggplot2 = plot1_ggplot2(),
+    graphics = plot1_graphics(),
+    lattice = plot1_lattice(),
+    times = n_rep
+)
+```
+
+```{r}
+autoplot(plot1_mb) + theme_classic()
+```
+
+
+
+# Plot 2. - Colored point plot
+
+## Plots
+
+### `ggplot2`
+```{r}
+plot2_ggplot2 <- function() {
+    ggplot(df_agg_month, aes(x = DateAgg, y = nDeparts, color = Flag)) +
+        geom_point() +
+        theme_classic() +
+            labs(x = "Date", y = "Number of departs",
+                 title = "Departs from Świnoujście port") +
+        scale_x_discrete(breaks = paste0(2008:2019, "-01")) +
+            theme(
+                axis.text.x = element_text(angle = 45, hjust = 1)
+            )
+}
+
+plot2_ggplot2()
+```
+
+### `graphics`
+
+```{r}
+plot2_graphics <- function() {
+    par(mar =  c(5, 4, 4, 13) + 0.1)
+    plot_single(flags[1], plot, type = "p", xlab = "Date",
+                main = "Departs from Świnoujście port",
+                ylab = "Number of departs")
+    for (f in flags[-1]) {
+        plot_single(f, points, pch = 16)
+    }
+    legend(x = "topright", legend = names(flag_cols), col = flag_cols, lty = 1,
+           inset = c(-0.65, 0), title = "Flag", xpd = TRUE)
+}
+
+plot2_graphics()
+```
+
+### `lattice`
+```{r}
+plot2_lattice <- function() {
+    lattice::dotplot(nDeparts ~ DateAgg, df_agg_month, col = flag_cols,
+                     main = "Departs from Świnoujście port",
+                     xlab = "Date", ylab = "Number of departs",
+                     key = list(
+                       space = "right",
+                       lines = list(col = flag_cols),
+                       text = list(names(flag_cols))
+                     ),
+                     scales = list(
+                       x = list(
+                         labels = sapply(2008:2019, function(x) c(x, rep("", 11)))
+                       )
+                     )
+    )
+}
+
+plot2_lattice()
+```
+
+## Comparison
+```{r, fig.show = 'hide'}
+plot2_mb <- microbenchmark::microbenchmark(
+    ggplot2 = plot2_ggplot2(),
+    graphics = plot2_graphics(),
+    lattice = plot2_lattice(),
+    times = n_rep
+)
+```
+
+```{r}
+autoplot(plot2_mb) + theme_classic()
+```
+
+
+# Plot 3. - Bar plot
+
+## Plots
+```{r}
+agents <- unlist(df[, .(n = .N), by = .(Agent)][order(-n)][n > 500, .(Agent)])
+```
+
+### `ggplot2`
+```{r}
+plot3_ggplot2 <- function() {
+    ggplot(df[Agent %in% agents], aes(x = Agent)) +
+        geom_bar() +
+        scale_x_discrete(limits = agents) +
+        theme_classic() +
+            labs(x = "Agent", y = "Number of departs",
+                 title = "Top agents (with >500 departs)") +
+        
+            theme(
+                axis.text.x = element_text(angle = 45, hjust = 1)
+            )
+}
+
+plot3_ggplot2()
+```
+
+### `graphics`
+```{r}
+plot3_graphics <- function() {
+    par(mar = c(19.5, 3, 0.5, 3) + 0.1)
+    barplot(sort(df[Agent %in% agents, .(n = .N), by = .(Agent)]$n,
+                 decreasing = TRUE), names.arg = agents, las = 2)
+}
+
+plot3_graphics()
+```
+
+### `lattice`
+```{r}
+plot3_lattice <- function() {
+    lattice::barchart(Count ~ reorder(Agent, -Count),
+                      df[Agent %in% agents][, .(Count = .N), by = .(Agent)])
+}
+
+plot3_lattice()
+```
+
+
+## Comparison
+```{r, fig.show = 'hide'}
+plot3_mb <- microbenchmark::microbenchmark(
+    ggplot2 = plot3_ggplot2(),
+    graphics = plot3_graphics(),
+    lattice = plot3_lattice(),
+    times = n_rep
+)
+```
+
+```{r}
+autoplot(plot3_mb) + theme_classic()
+```
+
+# Plot 4. - Point plot (many points)
+## Plots
+### `ggplot2`
+
+```{r, fig.height = 15}
+plot4_ggplot2 <- function() {
+    ggplot(df, aes(x = Volume, y = Agent)) +
+        geom_point() +
+        theme_classic() +
+        ggtitle("Ship volume by agent")
+}
+
+plot4_ggplot2()
+```
+
+### `graphics`
+```{r, fig.height = 30}
+plot4_graphics <- function() {
+    par(mar = c(4, 10, 1, 1))
+    plot(df$Volume, 1:nrow(df), type = "p")
+    axis(2, at = 1:nrow(df), labels = df$Agent, las = 1, lwd = 0.1)
+}
+
+plot4_graphics()
+```
+
+### `lattice`
+```{r, fig.height = 30}
+plot4_lattice <- function() {
+    lattice::dotplot(1:nrow(df) ~ Volume, df)
+}
+
+plot4_lattice()
+```
+
+## Comparison
+```{r, fig.show = 'hide'}
+plot4_mb <- microbenchmark::microbenchmark(
+    ggplot2 = plot4_ggplot2(),
+    graphics = plot4_graphics(),
+    lattice = plot4_lattice(),
+    times = n_rep
+)
+```
+
+```{r}
+autoplot(plot4_mb) + theme_classic()
+```
+
+# Plot 5. - Histogram
+## Plots
+### `ggplot2`
+
+```{r}
+plot5_ggplot2 <- function () {
+    ggplot(df, aes(x = Volume)) +
+        geom_histogram() +
+        theme_classic() +
+        ggtitle("Ship volume histogram")
+}
+
+plot5_ggplot2()
+```
+
+### `graphics`
+
+```{r}
+plot5_graphics <- function() {
+    hist(df$Volume, main = "Ship volume histogram")
+}
+
+plot5_graphics()
+```
+
+### `lattice`
+```{r}
+plot5_lattice <- function() {
+    lattice::histogram( ~ Volume, data = df, main = "Ship volume histogram")
+}
+
+plot5_lattice()
+```
+
+
+## Comparison
+```{r, fig.show = 'hide'}
+plot5_mb <- microbenchmark::microbenchmark(
+    ggplot2 = plot5_ggplot2(),
+    graphics = plot5_graphics(),
+    lattice = plot5_lattice(),
+    times = n_rep
+)
+```
+
+```{r}
+autoplot(plot5_mb) + theme_classic()
+```
+
+# Conclusion
+`lattice` package is a fastest when it comes to plotting unless there is
+a large dataset involved where it is the slowest package.
+`ggplot2` excels at plotting large datasets where it is way more faster than the
+other two.
+`graphics` package generally is the slowest one overall.
+
+If I were to choose a package for plotting it would come down to choice between
+`lattice` and `ggplot2`. However I would pick `ggplot2` over `lattice` due to
+more intuitive interface (simple things with `lattice` get tedious at times)
+and the speed of plotting being comparable (or faster with huge datasets).

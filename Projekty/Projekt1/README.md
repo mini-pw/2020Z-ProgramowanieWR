@@ -16,22 +16,22 @@ Każdy zespół musi realizować inny temat projektu.
 
 **Przetwarzanie danych**
 
-1. Szybkie zliczanie k-merów występujących w stringach. Należy umożliwić użytkownikowi zdefiniowanie alfabetu w jakim zapisane są stringi, aby pakiet mógł uwzględniać również k-mery zawierające takie kombinacje liter, które nie występują w źródłowych sekwencjach.
+1. Szybkie zliczanie k-merów występujących w stringach. Należy umożliwić użytkownikowi zdefiniowanie alfabetu w jakim zapisane są stringi, aby pakiet mógł uwzględniać również k-mery zawierające takie kombinacje liter, które nie występują w źródłowych sekwencjach. (grupa: Piotr Olesiejuk, Jadwiga Słowik)
 2. Pakiet do refactoringu kodu.
 
 **Grafika**
 
-1. Diagrammy Venna jako geom_venn
+1. Diagrammy Venna jako geom_venn lepsze niż https://github.com/gaospecial/ggVennDiagram
 2. Diagram Gantta (harmonogram Adamieckiego) z wykorzystaniem ggplot2.
-3. [Wydzialowy beamer template](https://www.promocja.pw.edu.pl/content/download/706/4011/file/Wydzial%20Matematyki%20i%20Nauk%20Informacyjnych.zip) jak Rmd template.
+3. [Wydzialowy beamer template](https://www.promocja.pw.edu.pl/content/download/706/4011/file/Wydzial%20Matematyki%20i%20Nauk%20Informacyjnych.zip) jak Rmd template (Witold Merkel, Michał Stawikowski, Mateusz Polakowski, Adam Rydelek, Bartek Granat) ++.
 4. Wydziałowy szablon dla prac dyplomowych jako bookdown template.
-5. Pakiet do rysunowania zależności między pakietami estetyczniejszych niż istniejące (miniCRAN, DependenciesGraph) (Dominik Rafacz, Mateusz Bąkała).
+5. Pakiet do rysunowania zależności między pakietami estetyczniejszych niż istniejące (miniCRAN, DependenciesGraph) (Dominik Rafacz, Mateusz Bąkała, Szymon Maksymiuk, Hubert  Baniecki) ++.
 
 **API**
 
-1. Interfejs do API [quickchart.io](https://quickchart.io/) oparty na Grammar of Graphics.
-2. Komunikacja z oficjalnym API Hacker News (grupa Ryszarda Szymańskiego).
-3. API do systemów kolejkowych Otwartych Danych Warszawskich.
+1. Interfejs do API [quickchart.io](https://quickchart.io/) oparty na Grammar of Graphics (Jacek Myna, Aleksandra Łuczak, Agata Pałdyna, Tomasz Radzikowski, Jan Sawicki) ++.
+2. Komunikacja z oficjalnym API Hacker News (Ryszarda Szymańskiego, Andrzej Nowikowski, Zuzanna Magierska, Rafał Muszyński, Piotr Janus): https://github.com/szymanskir/hackeRnews ++
+3. API do systemów kolejkowych Otwartych Danych Warszawskich (Paweł Morgen, Hanna Zdulska, Jakub Pingielski) ++.
 4. API do Wikidata.
-5. Wysyłanie informacji o zakończeniu obliczeń w R poprzez gmail itp. (Tymoteusz Makowski, Tomasz Klonecki).
+5. Wysyłanie informacji o zakończeniu obliczeń w R poprzez gmail itp. (Tomasz Klonecki, Tymoteusz Makowski).
 
