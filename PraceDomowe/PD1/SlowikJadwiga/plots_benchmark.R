@@ -2,11 +2,15 @@ library(dplyr)
 source("plots_generator.R")
 
 get_benchmark_result <- function(ggplot_fun, lattice_fun, graphics_fun) {
-  box_benchmark_result <- microbenchmark::microbenchmark(
-    ggplot=ggplot_fun(),
-    lattice=lattice_fun(),
-    graphics=graphics_fun()
-  ) %>%
+  benchmark_res <- microbenchmark::microbenchmark(
+    ggplot=print(ggplot_fun()),
+    lattice=print(lattice_fun()),
+    graphics=print(graphics_fun()),
+    unit="ms",
+    times=10
+  )
+  print(benchmark_res)
+  benchmark_res %>%
     summary() %>% 
     select("expr", "mean", "median")
 }

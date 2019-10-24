@@ -5,87 +5,103 @@ output: html_document
 Graphs generated with different libraries. 
 
 ggplot_pointchart
-
 ```{r}
 library(ggplot2)
 library(lattice)
 
 data = data.frame(x = runif(100), y = runif(100))
 
-ggplot(data = data, aes(x = data$x, y = data$y)) +
+ggplot(data = data, aes(x = x, y = y)) +
     geom_point()
 ```
+
 ggplot_linechart
 ```{r}
-  ggplot(data = data, aes(x = data$x, y = data$y)) +
+  ggplot(data = data, aes(x = x, y = y)) +
     geom_line()
 ```
+
 ggplot_barchart
 ```{r}
   ggplot(data = data, aes(
-    x = data$x, y = data$y, col = data$x
+    x = x, y = y, col = x
   )) +
     geom_bar(stat = "identity")
 ```
+
 ggplot_boxchart
 ```{r}
   ggplot(data = data, aes(
-    x = data$x, y = data$y, col = data$x
+    x = x, y = y, col = x
   )) + geom_boxplot()
 ```
+
 ggplot_densitychart
 ```{r}
-  ggplot(data = data, aes(x = data$x)) +
+  ggplot(data = data, aes(x = x)) +
     geom_histogram(binwidth = 1)
 ```
+
 ggplot_nochart
 ```{r}
   ggplot()
 ```
+
 lattice_pointchart
 ```{r}
   xyplot(y ~ x, data)
 ```
+
 lattice_linechart
 ```{r}
   xyplot(y ~ x, data, type = c("smooth"))
 ```
+
 lattice_barchart
 ```{r}
   barchart(y ~ x, data)
 ```
+
 lattice_boxchart
 ```{r}
-  bwplot(y ~ x, data)
+  bwplot(data$x, data)
 ```
+
 lattice_densitychart
 ```{r}
   histogram(data$x)
 ```
+
 lattice_nochart
 ```{r}
   xyplot(0 ~ 0, data = data)
 ```
+
 graphics_pointchart
 ```{r}
   plot(data$x, data$y, type = "p")
 ```
+
 graphics_linechart
 ```{r}
   plot(data$x, data$y, type = "l")
 ```
+
 graphics_barchart
 ```{r}
   plot(data$x, data$y, type = "h")
 ```
+
 graphics_boxchart
 ```{r}
   boxplot(data$x, data$y)
 ```
+
 graphics_densitychart
 ```{r}
   hist(data$x)
 ```
+
 graphics_nochart
 ```{r}
   plot(data$x, data$y, type = "n")
