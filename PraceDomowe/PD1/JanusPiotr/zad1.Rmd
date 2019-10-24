@@ -1,0 +1,340 @@
+---
+title: "Praca domowa I"
+author: "Piotr Janus"
+date: "4/10/2019"
+output: 
+  html_document:
+    df_print: paged
+    toc: true
+    toc_float: true
+    code_folding: hide
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+library(lattice)
+library(microbenchmark)
+options(microbenchmark.unit = "ms")
+if(!require(PogromcyDanych))
+  stop("you need to install PogromcyDanych")
+```
+
+
+
+# Dane 
+Dane pochodzą z pakietu PogromcyDanych i opisują jak często w danym roku, zpodziałem na miesiące, zostawały przydzielane poszczególne imione męskie i żeńskie w Warszawie.
+Dane dotyczą lat 2004-2014, jednak ze względu na niepełność danych w latach 2004 i 2014 nie zostały one uwzględnione podczas analizy.
+
+
+## Wykres słupkowy
+
+### ggplot
+
+```{r,  echo=FALSE, warning=FALSE}
+dane <- PogromcyDanych::imiona_warszawa
+## Usun dane z roku 2004 i 2014 (bo niepełne)
+dane <- dane %>% filter(!(rok %in% c(2004, 2014)))
+wiz1 <- dane %>% group_by(imie, plec) %>% summarise(liczba = sum(liczba)) %>% arrange(desc(liczba)) %>% head(10)
+wiz1$imie <- factor(wiz1$imie, levels = wiz1$imie)
+
+
+ggplot(wiz1, aes(x=imie, y = liczba, fill = plec))+
+  geom_col()+
+  theme_minimal()+
+  theme(plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 45, hjust = 1))+
+  ggtitle('Najpopularniejsze imiona w latach 2005-2013')+
+  ylab('Liczba nadanych imion')+
+  xlab('')
+
+```
+
+### Lattice
+
+
+```{r, echo=FALSE, warning=FALSE}
+barchart(liczba ~ imie,  data = wiz1,
+         xlab = "",
+         ylim = c(0,3100),
+         main = 'Najpopularniejsze imiona w latach 2005-2013',
+         col = c('red', 'lightblue')[wiz1$plec],
+         scales = list(x = list(rot = 45)),
+         ylab = "Liczba nadanych imion")
+
+```
+
+### Graphics
+
+```{r, echo=FALSE, warning=FALSE}
+barplot(wiz1$liczba, names.arg = wiz1$imie, 
+        col=c('red', 'lightblue')[wiz1$plec],
+        main = 'Najpopularniejsze imiona w latach 2005-2013',
+        ylab = "Liczba nadanych imion",
+        las=2)
+
+```
+
+## Wykres liniowy
+
+### ggplot
+
+```{r, echo=FALSE, warning=FALSE}
+wiz2 <- dane %>% group_by(plec, rok) %>% summarise(liczba = sum(liczba))
+
+ggplot(wiz2, aes(x=rok, y= liczba, color=plec))+
+  geom_line()+
+  theme_minimal()+
+  theme(plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 45, hjust = 1))+
+  ggtitle('Stosunek urodzonych kobiet i meżczyzn na przestrzeni lat')+
+  ylab('Liczba urodzonych dzieci')+
+  xlab('')
+
+```
+
+### Lattice
+
+```{r, echo=FALSE, warning=FALSE}
+xyplot(liczba ~ rok, wiz2, type ='l', 
+       groups = plec,  
+       main = 'Stosunek urodzonych kobiet i meżczyzn na przestrzeni lat',
+       col = c('blue','red')[wiz1$plec],
+       ylab = 'Liczba urodzonych dzieci',
+       xlab ='')
+```
+
+### Graphics
+
+```{r, echo=FALSE, warning=FALSE}
+data1 <- wiz2 %>% filter(plec =='K')
+data2 <- wiz2 %>% filter(plec =='M')
+plot(data1$rok, y = data1$liczba, type='l',
+     col ='red',
+     xlab='',
+     ylab='Liczba urodzonych dzieci', 
+     ylim=c(3700,7000),
+     main="Stosunek urodzonych kobiet i meżczyznna przestrzeni lat")
+lines(data2$rok, y = data2$liczba, col='blue')
+
+```
+
+## Boxplot
+
+### ggplot
+
+```{r, echo=FALSE, warning=FALSE}
+
+wiz3 <- dane %>% group_by(rok,miesiac) %>% summarize(liczba= sum(liczba)) 
+wiz3$miesiac <- factor(wiz3$miesiac, levels = unique(wiz3$miesiac))
+
+ggplot(wiz3, aes(x=miesiac, y = liczba, group = miesiac))+
+  geom_boxplot()+
+  theme_minimal()+
+  theme(plot.title = element_text(hjust = 0.5))+
+  ggtitle('Rozkład liczby urodzeń w poszczególnych miesiącach')+
+  ylab('Liczba urodzonych dzieci')+
+  xlab('')
+
+
+```
+
+### Lattice
+
+```{r, echo=FALSE, warning=FALSE}
+
+bwplot(liczba~miesiac, data = wiz3, 
+       horizontal = FALSE,
+       main = 'Rozkład liczby urodzeń w poszczególnych miesiącach',
+       ylab = 'Liczba urodzonych dzieci',
+       xlab = '')
+
+```
+
+### Graphics
+
+```{r, echo=FALSE, warning=FALSE}
+boxplot(liczba~miesiac, data = wiz3,
+        main = 'Rozkład liczby urodzeń w poszczególnych miesiącach',
+       ylab = 'Liczba urodzonych dzieci',
+       xlab = '')
+
+```
+
+## Wykres gęstości
+
+### ggplot
+
+```{r, echo=FALSE, warning=FALSE}
+
+wiz4 <- dane %>% group_by(rok,miesiac) %>% summarize(liczba= sum(liczba)) 
+wiz4$miesiac <- factor(wiz4$miesiac, levels = unique(wiz3$miesiac))
+
+ggplot(wiz4, aes(x=liczba))+
+  geom_density()+
+  facet_wrap(~miesiac, ncol=4)+
+  theme_minimal()+
+  theme(plot.title = element_text(hjust = 0.5))+
+  ggtitle('Rozkład liczby urodzeń w poszczególnych miesiącach')+
+  ylab('Gęstość')+
+  xlab('')
+
+```
+
+Alternatywna wizualizacja
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(ggridges)
+ggplot(wiz4, aes(x=liczba, y= miesiac))+
+  geom_density_ridges(fill='lightblue')+
+  theme_minimal()+
+  theme(plot.title = element_text(hjust = 0.5))+
+  ggtitle('Rozkład liczby urodzeń w poszczególnych miesiącach')+
+  xlab('Liczba urodzeń')+
+  ylab('Miesiące')
+```
+
+
+### Lattice
+
+```{r, echo=FALSE, warning=FALSE}
+densityplot(~liczba|miesiac, data = wiz4,
+            main = 'Rozkład liczby urodzeń w poszczególnych miesiącach')
+
+```
+
+### Graphics
+
+```{r, echo=FALSE, warning=FALSE}
+
+par(mfrow=c(4,3), mai = c(0.4, rep(0.3,3)))
+for(i in 1:12)
+{
+  den <- wiz4 %>% filter(miesiac == i)  
+  den <- density(den$liczba)
+  plot(den, main = '', xlab = '')
+}
+mtext('Rozkład liczby urodzeń w poszczególnych miesiącach', side = 3, line = -1.5, outer = TRUE)
+
+```
+
+## Histogram
+
+### ggplot
+
+```{r, echo=FALSE, warning=FALSE}
+wiz5 <- dane %>% group_by(rok, miesiac) %>% summarize(liczba = sum(liczba))
+
+ggplot(wiz5, aes(x=liczba))+
+  geom_histogram(bins = 10, col='black')+
+  theme_minimal()+
+  theme(plot.title = element_text(hjust = 0.5))+
+  ggtitle('Liczba dzieci urodzonych w okresie miesiąca')+
+  xlab('Liczba urodzeń')+
+  ylab('Częstość')
+
+```
+
+### Lattice
+
+```{r, echo=FALSE, warning=FALSE}
+
+lattice::histogram(wiz5$liczba, 
+                   nint=10,
+                   col = 'darkgray',
+                   main = 'Liczba dzieci urodzonych w okresie miesiąca',
+                   xlab ='Liczba urodzeń',
+                   ylab ='Częstość')
+
+```
+
+### Graphics
+
+```{r, echo=FALSE, warning=FALSE}
+hist(wiz5$liczba, breaks=10,
+     col = 'darkgray',
+     main = 'Liczba dzieci urodzonych w okresie miesiąca',
+     xlab ='Liczba urodzeń',
+     ylab ='Częstość')
+
+```
+
+
+```{r dane, echo=FALSE, warning=FALSE, include=FALSE}
+
+times <- microbenchmark(
+ggplot_bar = ggplot(wiz1, aes(x=imie, y = liczba, fill = plec))+
+  geom_col(),
+lattice_bar = barchart(liczba ~ imie,  data = wiz1,
+         xlab = "imie",
+         horiz = FALSE,
+         groups = plec,
+         scales = list(x = list(rot = 45)),
+         ylab = "liczba"),
+graphics_bar = barplot(wiz1$liczba, names.arg = wiz1$imie, col=wiz1$plec),
+
+ggplot_line = ggplot(wiz2, aes(x=rok, y= liczba, color=plec))+
+  geom_line(),
+
+lattice_line = xyplot(liczba ~ rok, wiz2, type ='l', groups = plec),
+
+graphics_line = {data1 <- wiz2 %>% filter(plec =='K')
+  data2 <- wiz2 %>% filter(plec =='M')
+  plot(data1$rok, y = data1$liczba, type='l',xlab='rok',ylab='liczba urodzen',ylim=c(4000,7000),
+       main="Stosunek urodzonych kobiet i meżczyzn")
+  lines(data2$rok, y = data2$liczba, col='blue') },
+
+ggplot_box = ggplot(wiz3, aes(x=miesiac, y = liczba, group = miesiac))+
+  geom_boxplot(),
+
+lattice_box = bwplot(liczba~miesiac, data = wiz3, horizontal = FALSE),
+graphics_box = boxplot(liczba~miesiac, data = wiz3),
+
+ggplot_density = ggplot(wiz4, aes(x=liczba))+
+  geom_density()+
+  facet_wrap(~miesiac, ncol=4),
+
+lattice_density = densityplot(~liczba|miesiac, data = wiz4,
+  xlab="liczba urodzen w miesiacach"),
+
+graphics_density = {par(mfrow=c(4,3), mai = rep(0.2,4))
+  for(i in 1:12)
+  {
+    den <- wiz4 %>% filter(miesiac == i)
+    den <- density(den$liczba)
+    plot(den, main = '', xlab = '')
+  }},
+
+ggplot_hist = ggplot(wiz5, aes(x=liczba))+
+  geom_histogram(bins = 10),
+
+lattice_hist = lattice::histogram(wiz5$liczba, nint=10),
+
+graphics_hist = graphics::hist(wiz5$liczba, breaks=10)
+
+)
+
+```
+
+
+## Wyniki porównania
+
+```{r plot, echo=FALSE, warning=FALSE}
+times <- as.data.frame(summary(times))
+times$pakiet <- as.character(lapply(strsplit(as.character(times$expr), split="_"),
+                        head, n=1))
+times$type <- as.character(lapply(strsplit(as.character(times$expr), split="_"),
+                        tail, n=1))
+
+
+ggplot(times, aes(fill=pakiet, y=mean, x=type)) +
+  geom_bar(position="dodge", stat="identity") +
+  theme_bw()+
+  ylab('Czas wykonania [ms]')+
+  xlab('Typ wykresu')+
+  ggtitle('Średni czas towrzenia wykresów dla 100 powtórzeń')+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+

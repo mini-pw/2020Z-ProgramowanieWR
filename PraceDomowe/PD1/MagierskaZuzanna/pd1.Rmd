@@ -1,0 +1,193 @@
+---
+title: "Praca domowa 1"
+author: "Zuzanna Magierska"
+date: "17/10/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, error = FALSE, message = FALSE, results = 'hide')
+
+library(ggplot2)
+library(lattice)
+library(graphics)
+library(dplyr)
+```
+
+##First plot
+```{r}
+title <- "Temperature to Solar radiation by Month"
+legend_title <- "Month"
+xlab <- "Solar radiation"
+ylab <- "Temperature"
+
+plot_1_1 <- function() {
+  ggplot(airquality, aes(x = Solar.R, y = Temp, col = as.factor(Month))) + 
+    geom_point() + 
+    ggtitle(title) +
+    labs(col = legend_title, x = xlab, y = ylab)
+}
+plot_1_1()
+
+plot_1_2 <- function() {
+  xyplot(Temp ~ Solar.R, data = airquality, group = as.factor(Month), main=title, xlab=xlab, ylab=ylab,
+         auto.key=list(space="right", columns=1, 
+                       title=legend_title, cex.title=1))
+}
+plot_1_2()
+
+a <- airquality
+a$color[a$Month==5] <- "red"
+a$color[a$Month==6] <- "blue"
+a$color[a$Month==7] <- "yellow"
+a$color[a$Month==8] <- "green"
+a$color[a$Month==9] <- "pink"
+plot_1_3 <- function() {
+  plot(airquality$Solar.R, airquality$Temp, col=a$color, main = title, xlab=xlab, ylab=ylab)
+  legend(x=0,y=98,c(5,6,7,8,9),cex=.8,col=c("red", "blue", "yellow", "green", "pink"),pch=c(1,2), title=legend_title)
+}
+plot_1_3()
+
+plot_1 <- c(plot_1_1, plot_1_2, plot_1_3)
+```
+
+##Second plot
+```{r}
+title <- "Mean diamond price based on clarity"
+xlab <- "Clarity"
+ylab <- "Mean price"
+
+d <- diamonds %>% group_by(clarity) %>% summarize(mean_price = mean(price, na.rm=TRUE))
+
+plot_2_1 <- function() {
+  ggplot(d, aes(x = clarity, y = mean_price)) + 
+    geom_bar(stat = "identity") + 
+    ggtitle(title) +
+    labs(x = xlab, y = ylab)
+}
+plot_2_1()
+
+plot_2_2 <- function() {
+  barchart(mean_price ~ clarity, data = d, horizontal = FALSE, main=title, xlab=xlab, ylab=ylab)
+}
+plot_2_2()
+
+plot_2_3 <- function() {
+  barplot(d$mean_price, names.arg = d$clarity, main = title, xlab=xlab, ylab=ylab)
+}
+plot_2_3()
+
+plot_2 <- c(plot_2_1, plot_2_2, plot_2_3)
+```
+
+##Third plot
+```{r}
+title <- "Diamond price based on cut"
+xlab <- "Cut"
+ylab <- "Price"
+
+plot_3_1 <- function() {
+  ggplot(diamonds, aes(x = cut, y = price)) + 
+    geom_boxplot() + 
+    ggtitle(title) +
+    labs(x = xlab, y = ylab)
+}
+plot_3_1()
+
+plot_3_2 <- function() {
+  bwplot(price ~ cut, data = diamonds, main = title, xlab=xlab, ylab=ylab)
+}
+plot_3_2()
+
+plot_3_3 <- function() {
+  boxplot(price ~ cut, data = diamonds, main = title, xlab=xlab, ylab=ylab)
+}
+plot_3_3()
+
+plot_3 <- c(plot_3_1, plot_3_2, plot_3_3)
+```
+
+##Fourth plot
+```{r}
+title <- "Unemployment through years"
+xlab <- "Date"
+ylab <- "Unemployed"
+
+plot_4_1 <- function() {
+  ggplot(economics, aes(x = date, y = unemploy)) + 
+    geom_line() + 
+    ggtitle(title) +
+    labs(x = xlab, y = ylab)
+}
+plot_4_1()
+
+plot_4_2 <- function() {
+  xyplot(unemploy ~ date, data = economics, type = "l", main = title, xlab=xlab, ylab=ylab)
+}
+plot_4_2()
+
+plot_4_3 <- function() {
+  plot(unemploy ~ date, data = economics, type = "l", main = title, xlab=xlab, ylab=ylab)
+}
+plot_4_3()
+
+plot_4 <- c(plot_4_1, plot_4_2, plot_4_3)
+```
+
+##Fifth plot
+```{r}
+title <- "Days count with Ozone bigger than 20"
+xlab <- "Month"
+ylab <- "Count"
+
+a <- airquality %>% filter(Ozone > 20)
+
+plot_5_1 <- function() {
+  ggplot(a, aes(x = Month)) + 
+    geom_histogram(stat = "count") + 
+    ggtitle(title) +
+    labs(x = xlab, y = ylab)
+}
+plot_5_1()
+
+plot_5_2 <- function() {
+  histogram(~ Month, data = a, main = title, xlab=xlab, ylab=ylab)
+}
+plot_5_2()
+
+plot_5_3 <- function() {
+  hist(a$Month, main = title, xlab=xlab, ylab=ylab)
+}
+plot_5_3()
+
+plot_5 <- c(plot_5_1, plot_5_2, plot_5_3)
+```
+
+```{r}
+timeCounter <- function(number, package, plotFunc) {
+  time <- system.time(lapply(1:10, function(x) plotFunc()))
+  times <- list(time=time[[3]], number=number, package=package)
+  return(times)
+}
+
+timeCounterForPlotType <- function(plots, i) {
+  packages <- c('ggplot2', 'lattice', 'graphics')
+  times <- sapply(1L:length(packages), function(j) timeCounter(i, packages[j], plots[[i]][[j]]))
+  return(as.data.frame(t(times)))
+}
+```
+
+```{r fig.show='hide'}
+plots <- list(plot_1, plot_2, plot_3, plot_4, plot_5)
+
+times_list <- lapply(1L:length(plots), function(i) timeCounterForPlotType(plots, i))
+times_list <- lapply(times_list, function(x) { as.data.frame(lapply(x, unlist)) })
+times <- as.data.frame(do.call(rbind, times_list))
+```
+
+##Timing plot
+```{r}
+ggplot(times, aes(fill=as.factor(package), y=time, x=as.factor(number))) + 
+  geom_bar(position="dodge", stat="identity") + 
+    labs(x = "Plot number", y = "Execution time", fill = "Package")
+```
