@@ -87,6 +87,7 @@ Student:
 
 - [Przemysław Biecek; Przewodnik po pakiecie R](http://pbiecek.github.io/Przewodnik/).
 - Marek Gągolewski; Programowanie w języku R.
+- [Jakub Nowosad, Elementarz programisty](https://nowosad.github.io/elp/).
 - [Hadley Wickham; Advanced R](https://adv-r.hadley.nz/).
 - [Patrick Burns; The R Inferno](https://www.burns-stat.com/documents/books/the-r-inferno/).
 - Michael J. Crawley; R Book.
