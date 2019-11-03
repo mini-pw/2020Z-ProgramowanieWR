@@ -10,7 +10,7 @@
 # Pamiętaj, że travis wymaga utworzenia konta i nadania pewnych uprawnień.
 # 7. Dodaj do readme badge za pomocą usethis::use_travis_badge()
 # Ta funkcja jest w developerskiej wersji pakietu usethis. Można też badge dodać ręcznie.
-# 8. Dodaj do swojego pakietu badanie pokrycia kodu testami za pomocą usethis::use_coverage
+# 8. Dodaj do swojego pakietu badanie pokrycia kodu testami za pomocą usethis::use_coverage()
 # 9. Za pomocą usethis::use_pkgdown stworz strone z dokumentacją swojego pakietu.
 # Czym to się różni od pkgdown::build_site()?
 # 10. Dodaj sprawdzanie pisowni za pomocą usethis::use_spell_check() (pamiętaj o instalacji
