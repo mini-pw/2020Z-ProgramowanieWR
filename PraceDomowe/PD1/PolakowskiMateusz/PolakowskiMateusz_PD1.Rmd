@@ -1,0 +1,167 @@
+---
+title: "Praca domowa nr 1"
+author: "Mateusz Polakowski"
+date: "October 15, 2019"
+output: 
+  html_document:
+    df_print: paged
+    toc: true
+    toc_float: true
+    code_folding: hide
+    number_sections: true
+---
+
+```{r include=FALSE}
+library(ggplot2)
+library(lattice)
+library(microbenchmark)
+library(dplyr)
+
+data <- read.csv('tree_data_2015.csv')
+data$created_at <- as.numeric(data$created_at)
+```
+
+# Wstęp
+
+W poniższej pracy domowej prześledzimy prędkość tworzenia się $5$ rodzajów wykresów przy użyciu $3$ pakietów do wizualizacji danych: *graphics*, *ggplot2* oraz *lattice*. Zbiór danych, na którym będziemy się opierać to [Tree Census in New York City](https://www.kaggle.com/nycparks/tree-census) (475MB), a w zasadzie jego część - jedna tabela zawierająca dane z $2015$ roku (174MB).
+
+Do porównania czasów wykonywania wykresów skorzystamy z pakietu *microbenchmark*.
+
+# Wykresy
+
+## *Scatterplot*
+
+### graphics
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+scatterplot_data <- data[1:10000, ]
+
+plot(scatterplot_data$latitude, scatterplot_data$longitude, type='p', col='black', cex=0.3)
+```
+
+### ggplot2
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(scatterplot_data, aes(x = latitude, y = longitude)) +
+  geom_point(size=0.1)
+```
+
+### lattice
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+xyplot(longitude ~ latitude, data = scatterplot_data, cex=0.5, col='black')
+```
+
+## *Histogram*
+
+### graphics
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+graphics::hist(as.integer(factor(data$boroname)))
+```
+
+### ggplot2
+```{r, echo=FALSE, messages=FALSE, warning=FALSE}
+ggplot(data, aes(x = factor(data$boroname))) + geom_histogram(stat='count')
+```
+
+### lattice
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+lattice::histogram(data$boroname)
+```
+
+## *Boxplot*
+
+### graphics
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+boxplot(tree_dbh ~ health, data = data)
+```
+
+### ggplot2
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data, aes(x = factor(health), y = tree_dbh)) + geom_boxplot()
+```
+
+### lattice
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+lattice::bwplot(tree_dbh ~ health, data = data)
+```
+
+## *Barplot*
+
+### graphics
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+zip_city = table(data$zip_city)
+barplot(zip_city)
+```
+
+### ggplot2
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data, aes(x = zip_city)) + geom_bar(stat = 'count')
+```
+
+### lattice
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+barchart(zip_city)
+```
+
+## *Timeplot*
+
+### graphics
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+temp <- density(data$created_at)
+plot(temp)
+```
+
+### ggplot2
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(data, aes(x = created_at)) + geom_density() + scale_y_continuous(breaks=NULL)
+```
+
+### lattice
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+densityplot(~ created_at, data = data, plot.points=FALSE)
+```
+
+# Podsumowanie czasów
+```{r message=FALSE, warning=FALSE, echo=FALSE, results="hide", fig.show='hide', fig.keep='none'}
+results <- microbenchmark::microbenchmark(times=3,
+    scatterplot_graphics = plot(scatterplot_data$latitude, scatterplot_data$longitude, type='p', col='black', cex=0.3),
+    scatterplot_ggplot2 = {ggplot(scatterplot_data, aes(x = latitude, y = longitude)) + geom_point(size=0.1)},
+    scatterplot_lattice = xyplot(longitude ~ latitude, data = scatterplot_data, cex=0.5, col='black'),
+    histogram_graphics = graphics::hist(as.integer(factor(data$boroname))),
+    histogram_ggplot2 = {ggplot(data, aes(x = factor(data$boroname))) + geom_histogram(stat='count')},
+    histogram_lattice = lattice::histogram(data$boroname),
+    boxplot_graphics = boxplot(tree_dbh ~ health, data = data),
+    boxplot_ggplot2 = {ggplot(data, aes(x = factor(health), y = tree_dbh)) + geom_boxplot()},
+    boxplot_lattice = lattice::bwplot(tree_dbh ~ health, data = data),
+    barplot_graphics = barplot(zip_city),
+    barplot_ggplot2 = {ggplot(data, aes(x = zip_city)) + geom_bar(stat = 'count')},
+    barplot_lattice = barchart(zip_city),
+    timeplot_graphics = {temp <- density(data$created_at); plot(temp)},
+    timeplot_ggplot2 = {ggplot(data, aes(x = created_at)) + geom_density() + scale_y_continuous(breaks=NULL)},
+    timeplot_lattice = densityplot(~ created_at, data = data, plot.points=FALSE)
+)
+
+df_order <- order(results$expr)
+results_df <- as.data.frame(results)
+results_df <- results_df[df_order, ]
+results_df <- results_df %>%
+  group_by(expr) %>%
+  summarise(mean(time))
+names(results_df) <- c('expr', 'time')
+results_df$time <- round(results_df$time / 1000000, 2)
+results_df$library <- rep(c('graphics', 'ggplot2', 'lattice'), 5)
+results_df$plot <- rep(c('Scatterplot', 'Histogram', 'Boxplot', 'Barplot', 'Timeplot'), each=3)
+
+gg <- ggplot(results_df, aes(x = library, y = time)) +
+  geom_col() +
+  facet_wrap(~ plot, scales = 'free') +
+  labs(title = 'Plotting libraries speed', subtitle = 'graphics vs. ggplot2 vs. lattice comparison',
+       caption = 'Dataset: NY tree census') +
+  xlab('Library') + ylab('Speed (in ms)')
+  theme_bw()
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+gg
+```
+
+Oprócz wykresu typu *timeplot* (taka różnica spowodowana pewnie wyliczeniami gęstości, a nie samym kreśleniem) *ggplot2* jest niewiele lepszy (szybszy) niż *lattice*, czego moglibyśmy się spodziewać. Bardziej zauważalnie (w negatywny sposób) odstają wyniki pakietu *graphics*. Mimo, że są prezentowane w milisekundach (zatem różnice między poszczególnymi są naprawde niewielkie), to warto się nimi sugerować, ponieważ zostały one wyliczone dla najbardziej podstawowych wykresów. Chcąc tworzyć bardziej skomplikowane grafiki, spowodowalibyśmy, że różnice te by się jeszcze bardziej powiększyły. 

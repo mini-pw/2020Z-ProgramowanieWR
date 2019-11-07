@@ -1,5 +1,5 @@
 ---
-title: "Shiny i programowanie reaktywne"
+title: "Tworzenie pakietów R II"
 author: "Michał Burdukiewicz"
 output: ioslides_presentation
 ---
@@ -8,8 +8,58 @@ output: ioslides_presentation
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-## golem
+## UT
 
-https://github.com/ThinkR-open/golem
+Unit testing (testowanie jednostkowe)
 
-Upraszcza development i deployment aplikacji Shiny (np. do shinyapps, shinyproxy)
+Źródła:
+
+ - The Art of Unit Testing: with examples in C#, Roy Osherove
+ - https://martinfowler.com/bliki/UnitTest.html
+ 
+## UT
+
+Cele testów:
+
+ - projektowanie funkcji,
+ - znajdowanie błędów na poziomie budowania funkcji,
+ - znajdowanie błędów na poziomie modyfikowania funkcji.
+
+## Dobra architektura
+
+ - modułowa struktura funkcji: ściśle zdefiniowane małe funkcje (prywatne i publicze),
+ - sztuczne dane, gdy jest to koniecznie (mockery, httptest, webmockr).
+
+## Dobre UT
+
+ - testy jednostkowe są niezależne od siebie - każdy test sprawdza inne zachowanie funkcji.
+ - testy sprawdzające ten sam rodzaj zachowania grupowane są w jeden context.
+
+## Usługi CI
+
+ - travis.org lub travis.com (Linux + MAC)
+ - AppVeyor (Windows)
+ 
+Oprócz AppVeyor zawsze przed submission na CRAN warto użyć [Win Builder](https://win-builder.r-project.org/).
+
+## Testy 
+
+- [checkmate](https://github.com/mllg/checkmate): szybkie i całościowe testy
+- [assertthat](https://github.com/hadley/assertthat): testy.
+
+## checkmate 
+
+ - assertDouble/assert_double zwraca input (invisible()) lub error.
+ - checkDouble/check_double zwraca TRUE lub string z tekstem błędu.
+ - testDouble/test_double zwraca TRUE lub FALSE.
+ - expect_double zwraca expectation.
+
+## assertthat
+
+ - assert_that zwraca błąd.
+ - see_if zwraca TRUE lub FALSE z treścią błędu jako attribute.
+ - validate_that zwraca TRUE lub string z tekstem błędu.
+
+## Wysyłanie na CRAN
+
+devtools::release()
