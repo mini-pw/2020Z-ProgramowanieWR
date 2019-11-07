@@ -19,7 +19,7 @@ Pakiety do omówienia:
 1. [mlr3pipelines](https://github.com/mlr-org/mlr3pipelines).
 1. [modelStudio](https://github.com/ModelOriented/modelStudio) (Hubert Baniecki). 
 1. [pipeR](https://github.com/renkun-ken/pipeR).
-1. [promises](https://github.com/rstudio/promises).
+1. [promises](https://github.com/rstudio/promises). (Jan Sawicki) 
 1. [rayshader](https://github.com/tylermorganwall/rayshader).
 1. [RcppArmadillo](https://github.com/RcppCore/RcppArmadillo).
 1. [rex](https://github.com/kevinushey/rex).
