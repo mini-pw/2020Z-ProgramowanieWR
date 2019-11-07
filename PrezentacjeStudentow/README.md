@@ -17,7 +17,7 @@ Pakiety do omówienia:
 1. [golem](https://github.com/ThinkR-open/golem).
 1. [modelDown](https://github.com/ModelOriented/modelDown).
 1. [mlr3pipelines](https://github.com/mlr-org/mlr3pipelines).
-1. [modelStudio](https://github.com/ModelOriented/modelStudio). 
+1. [modelStudio](https://github.com/ModelOriented/modelStudio) (Hubert Baniecki). 
 1. [pipeR](https://github.com/renkun-ken/pipeR).
 1. [promises](https://github.com/rstudio/promises).
 1. [rayshader](https://github.com/tylermorganwall/rayshader).
