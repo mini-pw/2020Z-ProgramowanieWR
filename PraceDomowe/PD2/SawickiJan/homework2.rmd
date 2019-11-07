@@ -1,0 +1,444 @@
+---
+title: "Homework 2"
+author: "Jan Sawicki"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Hi! Today we will cover NSE and its veeeery weird nature. 
+Are you ready? 
+Me neither. SO LET'S DO IT
+<center>
+![](https://media.giphy.com/media/zaezT79s3Ng7C/giphy.gif)
+</center>
+## Our boys
+Let's meet our today's villains. 
+The three NSEketeers. 
+<center>
+![](https://media.giphy.com/media/74Fmz0WmYtocw/giphy.gif)
+</center>
+Scroll down to see el explanationi. 
+```{r functions}
+makeNseFunction1 <- function(fun) {
+  function(data, elementOrFormula, ...) {
+    functionEnvironment = environment()
+    
+    if (as.character(substitute(elementOrFormula)) %in% names(data)) {
+      argument = data[[deparse(substitute(elementOrFormula))]]
+    } else {
+      allVariables = all.vars(elementOrFormula)
+      for (variable in allVariables) {
+        assign(variable, eval(as.name(variable), data), envir = functionEnvironment)
+      }
+      argument = elementOrFormula
+      environment(argument) = functionEnvironment
+    }
+    fun(argument, ...)
+  }
+} 
+
+makeNseFunction2 <- function(fun) {
+  function(data, elementOrFormula, ...) {
+    library(rlang)
+    
+    functionEnvironment = environment()
+
+    if (as.character(substitute(elementOrFormula)) %in% names(data)) {
+      elementOrFormula = substitute(elementOrFormula)
+      argument = eval(enexpr(elementOrFormula), data)
+    } else {
+      allVariables = all.vars(elementOrFormula)
+      for (variable in allVariables) {
+        assign(variable, eval(as.name(variable), data))
+      }
+      argument = elementOrFormula
+      environment(argument) = functionEnvironment
+    }
+    fun(argument, ...)
+  }
+}
+
+makeNseFunction3 <- function(fun) {
+  function(data, elementOrFormula, ...) {
+    functionEnvironment = environment()
+    
+    if (as.character(substitute(elementOrFormula)) %in% names(data)) {
+      argument = eval(substitute(elementOrFormula), data)
+    } else {
+      allVariables = all.vars(elementOrFormula)
+      for (variable in allVariables) {
+        assign(variable, eval(as.name(variable), data))
+      }
+      argument = elementOrFormula
+      environment(argument) = functionEnvironment
+    }
+    fun(argument, ...)
+  }
+} 
+```
+Each of the functions implements a different way to do a simple thing. 
+
+CREATING AN NSE VERSION OF A GIVEN FUNCTION WHICH RETRIVES A FIELD USING NON-STANDARD EVALUATION WITH BUILT-IN R MECHNISMS OR EXTERNAL METHODS
+<center>
+![](https://media.giphy.com/media/8npItkk8kgsMM/giphy.gif)
+</center>
+
+Sounds evil? 
+
+Well it is. But it is quite easy to understand. 
+
+The thing is that in R you can get an element from a e.g. list like so:
+
+```{r}
+myList = list(a = 1, b = 2, c = 3)
+myList$a
+```
+
+BUT. Have you ever wondered what actually is "a" here? The one in the second line. 
+
+Let's check it:
+```{}
+a
+```
+...
+Actually I cannot check it, because my markdown wouldn't compile.
+
+I would get an error saying that "a" is not found. Well, it was not defined, so it should NOT be found. 
+
+How does it work in the first example then? Let's call it R magic for now. 
+
+<center>
+![](https://media.giphy.com/media/12NUbkX6p4xOO4/giphy.gif)
+</center>
+
+Another question:
+
+What if I wanter to pass "a" as a parameter to a function and use the $ operator inside my function like so:
+
+```{r}
+myList = list(a = 1, b = 2, c = 3)
+myFunction = function(a, myList){
+  myList$a
+}
+
+myFunction(a, myList)
+```
+
+WOW, it works with no problems.
+
+<center>
+![](http://giphygifs.s3.amazonaws.com/media/RddAJiGxTPQFa/giphy.gif)
+</center>
+
+It's R - it only looks like it works.  
+
+Let's see the example where I want to get "b":
+```{r}
+myList = list(a = 1, b = 2, c = 3)
+myFunction = function(a, myList){
+  myList$a
+}
+
+myFunction(b, myList)
+```
+Oops. 
+
+I am not going to go into detail, but the problem is related to passing the argument at it changing it's metaparameters (or at least that's how I understand it).
+
+# FIX IT
+Long story short, to fix this error we got to do something like this:
+
+
+```{r}
+myList = list(a = 1, b = 2, c = 3)
+myFunction = function(a, myList){
+  eval(substitute(a), myList)
+}
+
+myFunction(b, myList)
+```
+
+What what what. What happend here? 
+
+In very very basic words we can say that:
+
+"Function eval evaluates an expression using the given object (here myList)"
+
+What about "substitute"?
+
+It simple "retrives" the original variable name and uses it in the same way as in:
+```{r}
+myList$a
+```
+
+If you want a proper explanation I recommend checking those example:
+[Examples](https://github.com/mini-pw/2020Z-ProgramowanieWR/blob/2a13fd91b7524c4e66a5c72881cfbe9dcbd10f80/Prezentacje/P2.Rmd#L49)
+
+Or these explanations:
+
+[Explanation](http://adv-r.had.co.nz/Computing-on-the-language.html)
+[Explanation](https://edwinth.github.io/blog/nse/)
+
+I also recommend listening to Hadley Wickham's 5 (*actually 6*) minute talk about "Tidy evaluation". It really helped me NOT to kill myself in this process. Hope it helps you too. 
+
+[Tidy evaluation in 5 mins](https://www.youtube.com/watch?v=nERXS3ssntw)
+
+Getting back to our NSEketeers. 
+
+What you saw at the beginning is a few implementations which should create a NSE (NonStandard Evaluation) function from a non-NSE function. 
+
+We want this call:
+```{}
+min(myList$a)
+```
+
+to be equal to this call
+```{}
+min_NSE(myList, a)
+```
+
+They also take into account formulas but that would be too much to explain at once, so we'll skip it. 
+
+We are here to check their time efficiency. 
+
+I also wanted to check their memory usage but... let's see [this](https://stackoverflow.com/questions/48917705/r-equivalent-of-microbenchmark-that-includes-memory-as-well-as-runtime) Stack Overflow answer. Welp.
+
+So onto the testing we go!
+
+<center>
+![](http://giphygifs.s3.amazonaws.com/media/pYCZPDymIVjeo/giphy.gif)
+</center>
+## Efficiency testing
+```{r}
+testedFunction = min
+datasetSize = 100
+dataset = list(a = sample(x = 1:100, size = datasetSize, replace = TRUE))
+```
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+library(microbenchmark)
+library(ggplot2)
+
+results = data.frame()
+functionNse <- makeNseFunction1(testedFunction)
+results = rbind(results, microbenchmark(
+  function1 = functionNse(data = dataset, a)
+))
+functionNse <- makeNseFunction2(testedFunction)
+results = rbind(results, microbenchmark(
+  function2 = functionNse(data = dataset, a)
+))
+functionNse <- makeNseFunction3(testedFunction)
+results = rbind(results, microbenchmark(
+  function3 = functionNse(data = dataset, a)
+))
+
+ggplot(data = summary(results), aes(x = expr, y = mean, fill = expr))+
+  geom_bar(stat = "identity") + 
+  geom_text(aes(x=expr,y=mean,label=mean),vjust=-.5) +
+  xlab("Function") + 
+  ylab("Mean execution time [ms]") +
+  scale_fill_manual(values = c("#1D3461", "#BC9EC1", "#D282A6")) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+```{r}
+testedFunction = min
+datasetSize = 10000
+dataset = list(a = sample(x = 1:100, size = datasetSize, replace = TRUE))
+```
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+library(microbenchmark)
+library(ggplot2)
+
+results = data.frame()
+functionNse <- makeNseFunction1(testedFunction)
+results = rbind(results, microbenchmark(
+  function1 = functionNse(data = dataset, a)
+))
+functionNse <- makeNseFunction2(testedFunction)
+results = rbind(results, microbenchmark(
+  function2 = functionNse(data = dataset, a)
+))
+functionNse <- makeNseFunction3(testedFunction)
+results = rbind(results, microbenchmark(
+  function3 = functionNse(data = dataset, a)
+))
+
+ggplot(data = summary(results), aes(x = expr, y = mean, fill = expr))+
+  geom_bar(stat = "identity") + 
+  geom_text(aes(x=expr,y=mean,label=mean),vjust=-.5) +
+  xlab("Function") + 
+  ylab("Mean execution time [ms]") +
+  scale_fill_manual(values = c("#1D3461", "#BC9EC1", "#D282A6")) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+```{r}
+testedFunction = max
+datasetSize = 10000
+dataset = list(a = sample(x = 1:100, size = datasetSize, replace = TRUE))
+```
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+library(microbenchmark)
+library(ggplot2)
+
+results = data.frame()
+functionNse <- makeNseFunction1(testedFunction)
+results = rbind(results, microbenchmark(
+  function1 = functionNse(data = dataset, a)
+))
+functionNse <- makeNseFunction2(testedFunction)
+results = rbind(results, microbenchmark(
+  function2 = functionNse(data = dataset, a)
+))
+functionNse <- makeNseFunction3(testedFunction)
+results = rbind(results, microbenchmark(
+  function3 = functionNse(data = dataset, a)
+))
+
+ggplot(data = summary(results), aes(x = expr, y = mean, fill = expr))+
+  geom_bar(stat = "identity") + 
+  geom_text(aes(x=expr,y=mean,label=mean),vjust=-.5) +
+  xlab("Function") + 
+  ylab("Mean execution time [ms]") +
+  scale_fill_manual(values = c("#1D3461", "#BC9EC1", "#D282A6")) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+```{r}
+testedFunction = mean
+datasetSize = 10000
+dataset = list(a = sample(x = 1:100, size = datasetSize, replace = TRUE))
+```
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+library(microbenchmark)
+library(ggplot2)
+
+results = data.frame()
+functionNse <- makeNseFunction1(testedFunction)
+results = rbind(results, microbenchmark(
+  function1 = functionNse(data = dataset, a)
+))
+functionNse <- makeNseFunction2(testedFunction)
+results = rbind(results, microbenchmark(
+  function2 = functionNse(data = dataset, a)
+))
+functionNse <- makeNseFunction3(testedFunction)
+results = rbind(results, microbenchmark(
+  function3 = functionNse(data = dataset, a)
+))
+
+ggplot(data = summary(results), aes(x = expr, y = mean, fill = expr))+
+  geom_bar(stat = "identity") + 
+  geom_text(aes(x=expr,y=mean,label=mean),vjust=-.5) +
+  xlab("Function") + 
+  ylab("Mean execution time [ms]") +
+  scale_fill_manual(values = c("#1D3461", "#BC9EC1", "#D282A6")) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+```{r}
+testedFunction = mean
+datasetSize = 1000000
+dataset = list(a = sample(x = 1:100, size = datasetSize, replace = TRUE))
+```
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+library(microbenchmark)
+library(ggplot2)
+
+results = data.frame()
+functionNse <- makeNseFunction1(testedFunction)
+results = rbind(results, microbenchmark(
+  function1 = functionNse(data = dataset, a)
+))
+functionNse <- makeNseFunction2(testedFunction)
+results = rbind(results, microbenchmark(
+  function2 = functionNse(data = dataset, a)
+))
+functionNse <- makeNseFunction3(testedFunction)
+results = rbind(results, microbenchmark(
+  function3 = functionNse(data = dataset, a)
+))
+
+ggplot(data = summary(results), aes(x = expr, y = mean, fill = expr))+
+  geom_bar(stat = "identity") + 
+  geom_text(aes(x=expr,y=mean,label=mean),vjust=-.5) +
+  xlab("Function") + 
+  ylab("Mean execution time [ms]") +
+  scale_fill_manual(values = c("#1D3461", "#BC9EC1", "#D282A6")) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+```{r}
+testedFunction = mean
+datasetSize = 1000000
+dataset = list(a = sample(x = 1:100, size = datasetSize, replace = TRUE))
+```
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+library(microbenchmark)
+library(ggplot2)
+
+results = data.frame()
+functionNse <- makeNseFunction1(testedFunction)
+results = rbind(results, microbenchmark(
+  function1 = functionNse(data = dataset, a)
+))
+functionNse <- makeNseFunction2(testedFunction)
+results = rbind(results, microbenchmark(
+  function2 = functionNse(data = dataset, a)
+))
+functionNse <- makeNseFunction3(testedFunction)
+results = rbind(results, microbenchmark(
+  function3 = functionNse(data = dataset, a)
+))
+
+ggplot(data = summary(results), aes(x = expr, y = mean, fill = expr))+
+  geom_bar(stat = "identity") + 
+  geom_text(aes(x=expr,y=mean,label=mean),vjust=-.5) +
+  xlab("Function") + 
+  ylab("Mean execution time [ms]") +
+  scale_fill_manual(values = c("#1D3461", "#BC9EC1", "#D282A6")) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+```{r}
+testedFunction = lm
+datasetSize = 100
+dataset = list(x = sample(x = 1:100, size = datasetSize, replace = TRUE), y = sample(x = 1:100, size = datasetSize, replace = TRUE))
+formula = x ~ y
+```
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+library(microbenchmark)
+library(ggplot2)
+
+results = data.frame()
+functionNse <- makeNseFunction1(testedFunction)
+results = rbind(results, microbenchmark(
+  function1 = functionNse(data = dataset, formula)
+))
+functionNse <- makeNseFunction2(testedFunction)
+results = rbind(results, microbenchmark(
+  function2 = functionNse(data = dataset, formula)
+))
+functionNse <- makeNseFunction3(testedFunction)
+results = rbind(results, microbenchmark(
+  function3 = functionNse(data = dataset, formula)
+))
+
+ggplot(data = summary(results), aes(x = expr, y = mean, fill = expr))+
+  geom_bar(stat = "identity") + 
+  geom_text(aes(x=expr,y=mean,label=mean),vjust=-.5) +
+  xlab("Function") + 
+  ylab("Mean execution time [ms]") +
+  scale_fill_manual(values = c("#1D3461", "#BC9EC1", "#D282A6")) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
