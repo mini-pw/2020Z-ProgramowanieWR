@@ -1,6 +1,6 @@
 Termin prezentacji: 28.11 i 05.12.
 
-Prezentację na zadany temat przygotowuje i wygłasza w grupach do 3 osób. Nie wolno przygotować prezentacji z osobami, z którymi wykonywało się projekt na tym przedmiocie. Prezentację można przygotować z osobami z innej grupy ćwiczeniowej. Każda prezentacja powinna być również uzupełniona cheatsheetem z omawianego pakietu. Część z omawianych pakietów ma już cheatsheets, ale celem zadania jest zaprojektowanie lepszej ściągawki. Za prezentację można otrzymać do 15 punktów z czego:
+Prezentację na zadany temat przygotowuje i wygłasza w grupach do 3 osób. Prezentacja trwa do 7 minut. Nie wolno przygotować prezentacji z osobami, z którymi wykonywało się projekt na tym przedmiocie. Prezentację można przygotować z osobami z innej grupy ćwiczeniowej. Każda prezentacja powinna być również uzupełniona cheatsheetem z omawianego pakietu. Część z omawianych pakietów ma już cheatsheets, ale celem zadania jest zaprojektowanie lepszej ściągawki. Za prezentację można otrzymać do 15 punktów z czego:
 
  - od 0 do 5 punktów za informatywny cheatsheet.
  - od 0 do 5 punktów za prawidłowo przygotowaną prezentację.
