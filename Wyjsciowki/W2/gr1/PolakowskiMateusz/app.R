@@ -1,17 +1,5 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
-
 library(shiny)
 library(DT)
-
-## Only run examples in interactive R sessions
-
 
 ui <- fluidPage(
   sidebarLayout(
@@ -32,19 +20,12 @@ ui <- fluidPage(
         tabPanel("Table", DT::DTOutput("contents")),
         tabPanel("Session info", htmlOutput("sessionInfo"))
       )
-
     )
-
   )
 )
 
 server <- function(input, output) {
   output$contents <- DT::renderDT({
-    # input$file1 will be NULL initially. After the user selects
-    # and uploads a file, it will be a data frame with 'name',
-    # 'size', 'type', and 'datapath' columns. The 'datapath'
-    # column will contain the local filenames where the data can
-    # be found.
     inFile <- input$file1
 
     if (is.null(inFile))
