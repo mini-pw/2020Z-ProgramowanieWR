@@ -2,3 +2,5 @@ Stwórz aplikację Shiny, która po wczytaniu danych w pliku csv wyświetla na o
  - podsumowanie wczytanych danych (np. poprzez funkcje summary),
  - wczytane dane w postaci edytowalnej tabeli,
  - informacje o aktualnej sesji R.
+
+Rozwiązanie zadania dodajemy w folderze o nazwie NazwiskoImie.
