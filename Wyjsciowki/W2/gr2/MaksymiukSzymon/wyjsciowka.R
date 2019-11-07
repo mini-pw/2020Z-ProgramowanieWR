@@ -1,4 +1,5 @@
 library(shiny)
+library(ggplot2)
 
 plot_dat <- data.frame(x = 1L:10, y = 10L:1)
 
