@@ -1,0 +1,224 @@
+---
+title: "Praca domowa pierwsza - z fragmentami w formie wiersza"
+author: "Dominik Rafacz"
+date: "Października dzień 14, roku Pańskiego 2019"
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+---
+
+```{r setup, include=FALSE, cache=FALSE}
+knitr::opts_chunk$set(fig.align = "center",
+                      fig.width = 7,
+                      fig.width = 10,
+                      cache = TRUE)
+
+require(OpenML)
+dset <- OpenML::getOMLDataSet(1486)
+dset <- dset$data
+
+library(ggplot2)
+library(lattice)
+library(dplyr)
+library(microbenchmark)
+```
+
+# Na wykresów tworzenia czasów spojrzenia
+
+Diagramy, wykresy i "charty" - w eRze to nie są żarty!
+
+Skoro ich tyle już generujemy, niechże może chociaż wiemy
+
+ile to czasu zajmuje i jak na naszą wieczność wpływuje!
+
+Porównamy trzy metody - w subiektywnej kolejności użycia wygody
+
+będą to pakiet `ggplot2` (swego rodzaju celebryta),
+
+do tego `lattice`, nieco leciwy, trącący myszką, na czubku siwy
+
+i prawdziwe średniowiecze - `graphics`, ówczesny szczyt myśli człowieczej.
+
+Testować będziemy poniższe wizualizacje
+
+Na zbiorze z OpenML, losowym, macie rację
+
+Wierszy: trzydzieści cztery tysiące czterysta sześćdziesiąt pięć
+
+(coraz gorsze moje rymy, ale właśnie wpadł z wizytą zięć),
+
+kolumn - o jedenaście mniej niż sto trzydzieści
+
+i sam nie wiem, co się w tym datasecie mieści.
+
+
+## Wykresy rozproszenia podstawą grafiką się bawienia
+```{r}
+ggplot(data = dset, aes(x = V4, y = V3, color = V15)) +
+  geom_point()
+
+xyplot(V3~V4, dset, groups = V15)
+
+plot(dset$V4, dset$V3, col = dset$V15)
+```
+
+## Histogramy (z podziałem na klasy) do wizualizacji gęstości i masy
+
+```{r}
+ggplot(data = dset, aes(x = V111 + V115 + V106)) +
+  geom_histogram() +
+  facet_grid(V80~., scales = "free")
+
+histogram(~(V111 + V115 + V106) | V80, data = dset, layout = c(1,3))
+
+par(mfrow = c(3, 1))
+for (lvl in as.numeric(levels(dset$V80))) {
+  hist(dset$V11[dset$V80 == lvl] + 
+         dset$V115[dset$V80 == lvl] + 
+         dset$V106[dset$V80 == lvl])
+}
+rm(lvl)
+par(mfrow = c(1, 1))
+```
+
+## Wykresy pudełkowe - szast prast i gotowe!
+
+```{r}
+ggplot(data = dset, aes(x = V15, y = V61)) +
+  geom_boxplot()
+
+bwplot(V61~V15, data = dset)
+
+boxplot(V61~V15, data = dset)
+```
+
+## Zależność cechy rozkładu gęstości od zmiennej niezależnej wartości
+
+```{r}
+ggplot(data = dset, aes(x = V1)) +
+  geom_density()
+
+densityplot(~V1, data = dset)
+
+plot(density(dset$V1))
+```
+
+## Banalny i mdły mapy ciepła przykład szybki (choć zły)
+
+```{r}
+heatmap(matrix(pull(
+  summarise(
+    group_by(dset, V116, Class), n = n()), n), 2))
+
+ggplot(dset, aes(x = V116, y = Class)) +
+  geom_bin2d()
+
+levelplot(t(matrix(pull(
+  summarise(
+    group_by(dset, V116, Class), n = n()), n), 2)), aspect = "iso")
+```
+
+
+# Wyniki benchmarku (o Święty Marku!)
+```{r, include=FALSE}
+dset_p <- matrix(pull(
+  summarise(
+    group_by(dset, V116, Class), n = n()), n), 2)
+
+
+dset_q <- t(matrix(pull(
+  summarise(
+    group_by(dset, V116, Class), n = n()), n), 2))
+
+mb <- microbenchmark(
+  scatterplot_ggplot2 = ggplot(data = dset, aes(x = V4, y = V3, color = V15)) +
+    geom_point(),
+  histogram_ggplot2 = ggplot(data = dset, aes(x = V111 + V115 + V106)) +
+    geom_histogram() + facet_grid(V80~., scales = "free"),
+  boxplot_ggplot2 = ggplot(data = dset, aes(x = V15, y = V61)) +
+    geom_boxplot(),
+  densityplot_ggplot2 = ggplot(data = dset, aes(x = V1)) +
+    geom_density(),
+  heatmap_ggplot2 = ggplot(dset, aes(x = V116, y = Class)) +
+    geom_bin2d(),
+  scatterplot_lattice = xyplot(V3~V4, dset, groups = V15),
+  histogram_lattice = histogram(~(V111 + V115 + V106) | V80, data = dset, layout = c(1,3)),
+  boxplot_lattice = bwplot(V61~V15, data = dset),
+  densityplot_lattice = densityplot(~V1, data = dset), 
+  heatmap_lattice = levelplot(dset_q, aspect = "iso"),
+  scatterplot_base = plot(dset$V4, dset$V3, col = dset$V15),
+  histogram_base = {
+    par(mfrow = c(3, 1))
+    for (lvl in as.numeric(levels(dset$V80))) {
+      hist(dset$V11[dset$V80 == lvl] + 
+             dset$V115[dset$V80 == lvl] + 
+             dset$V106[dset$V80 == lvl])
+      }
+  rm(lvl)
+  par(mfrow = c(1, 1))},
+  boxplot_base = boxplot(V61~V15, data = dset),
+  densityplot_base = plot(density(dset$V1)),
+  heatmap_base = heatmap(dset_p),
+  times = 20
+) 
+```
+
+Każdy z wykresów generujemy dwadzieścia razy.
+
+Z wyniku bierzemy medianę by gładzić garbage collectingu zmazy.
+
+(używamy do tego 
+
+`microbenchmarku`, kolego)
+
+Co nam wyszło - popatrzeć proszę
+
+Na - a jakże - wykresach informacje te nanoszę:
+
+```{r echo=FALSE}
+mb %>%
+  summary %>%
+  mutate(plot = sapply(strsplit(as.character(expr), "_"), function(r) r[1]),
+         pkg  = sapply(strsplit(as.character(expr), "_"), function(r) r[2])) %>%
+  select(pkg, plot, med_time = median) -> res
+
+res%>%
+  ggplot(aes(x = plot, y = med_time, fill = pkg)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  scale_fill_discrete(name = "Pakiet") +
+  xlab("Rodzaj wykresu") +
+  ylab("Mediana czasu wykonywania (ms)") +
+  ggtitle("Mediana czasu generowania wykresu w zależności od typu i pakietu")
+
+res%>%
+  ggplot(aes(x = plot, y = med_time, fill = pkg)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~pkg, scales = "free_y") +
+  scale_fill_discrete(name = "Pakiet") +
+  xlab("Rodzaj wykresu") +
+  ylab("Mediana czasu wykonywania (ms)") +
+  ggtitle("Mediana czasu generowania wykresu", subtitle = "z podziałem na pakiety") +
+  theme(axis.text.x = element_text(angle = 90))
+
+res%>%
+  ggplot(aes(x = "", y = med_time, fill = pkg)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  facet_wrap(~plot, scales = "free_y") +
+  scale_fill_discrete(name = "Pakiet") +
+  xlab("") +
+  ylab("Mediana czasu wykonywania (ms)") +
+  ggtitle("Mediana czasu generowania wykresu", subtitle = "z podziałem na typ wykresu") +
+  theme(axis.text.x = element_text(angle = 90))
+
+```
+
+Wnioski są proste - `ggplot2` rządzi! 
+
+Kto używa czego innego, ten błądzi!
+
+Dodatkowe uwagi, niekoniecznie wierszem:
+
+* Preprocessing danych konieczny do uzyskania heatmapy w przypadku bazowego wykresu oraz wersji z pakietu `lattice` dla heatmapy nie jest uwzględniony w czasie wykonywania wykresu.
+
+* Wykresy są renderowane bez dodatkowych ustawień typu: tytuły, legendy, opisy i zakresy osi. Parametry tego typu są ustawione domyślnie.
