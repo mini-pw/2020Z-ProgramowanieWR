@@ -15,11 +15,17 @@ server <- function(input, output, session) {
     )
 
     observeEvent(input[["plot_click"]], {
-        selected_points[["indices"]] <- c(selected_points[["indices"]],
-                                          nearPoints(plot_dat, input[["plot_click"]], maxpoints = 1)[["ind"]])
+        nearest_point <- nearPoints(plot_dat, input[["plot_click"]], maxpoints = 1)[["ind"]]
 
-        if(length(selected_points[["indices"]])) {
-            selected_points[["indices"]] <- unique(selected_points[["indices"]])
+        print(nearest_point)
+
+        if(length(nearest_point) == 1) {
+            if(nearest_point %in% selected_points[["indices"]]) {
+                selected_points[["indices"]] <- selected_points[["indices"]][!selected_points[["indices"]] %in% nearest_point]
+            }
+            else {
+                selected_points[["indices"]] <- unique(c(selected_points[["indices"]], nearest_point))
+            }
         }
     })
 
