@@ -1,0 +1,200 @@
+---
+title: "Zaawansowany R - PD1"
+author: "Bartłomiej Granat"
+date: "`r format(Sys.time(), '%d - %m - %Y')`"
+output:
+  html_document:
+    dane_print: paged
+    toc: true
+    toc_float: true
+    code_folding: hide
+    number_sections: true
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, cache = TRUE, warning = FALSE)
+
+library(dplyr)
+library("OpenML")
+library(ggplot2)
+library(lattice)
+library(dplyr)
+library(gridExtra)
+task <- getOMLDataSet(data.id =151)
+df <- task$data
+
+line_dat <- as.data.frame(df %>% group_by(df$period) %>% summarise(demand = mean(nswdemand)))
+colnames(line_dat) <- c('period','demand')
+```
+
+# Wstęp 
+
+W poniższym raporcie przedstawione zostaje porównanie czasów działania 3 metod tworzenia wykresów w $R$. Poprzez $graphics$, $lattice$ oraz $ggplot$.
+
+Zbiorem, który jest wizualizowany są dane o elektryczności z lat 1996-1998. Zawiera on ponad 45tys. rekordów zatem spodziewamy się istotnych różnic w działaniu pakietów.
+
+Wszystkie wykresy powstają  bez żadnych dodatkowych atrybutów, aby pomiar czasu był wiarygodny.
+
+Czasy na wykresach to 'elapsed time' z wyniku funkcji system.time
+
+# Wykresy liniowe
+
+Przy wykresach liniowych korzystam z danych pogrupowanych, zatem o znacznie mniejszym rozmiarze, aby sprawdzić czy dla małych danych też różnica jest zauważalna.
+
+## Base
+
+```{r}
+plot(line_dat$period, line_dat$demand, type ='l')
+time1 <- system.time(plot(line_dat$period, line_dat$demand, type ='l'))
+```
+
+## Lattice
+
+```{r}
+xyplot(demand~period, line_dat, type ='l')
+```
+
+## Ggplot
+
+```{r}
+ggplot(line_dat, aes(period, demand)) + geom_line()
+```
+
+## Porównanie
+
+```{r}
+times1<-c(time1[3],system.time(xyplot(demand~period, line_dat, type ='l'))[3],system.time(ggplot(line_dat, aes(period, demand)) + geom_line())[3])
+names(times1) <- c('base','latt','gg')
+barplot(times1, col='cadetblue1')
+```
+
+*Zwycięzca*: lattice
+
+# Wykresy rozproszenia
+
+## Base
+
+```{r}
+plot(df$nswdemand,df$nswprice)
+time2 <- system.time(plot(df$nswdemand,df$nswprice))
+```
+
+## Lattice
+
+```{r}
+xyplot(nswprice~nswdemand, df)
+```
+
+## Ggplot
+
+```{r}
+ggplot(df, aes(y=nswprice,x=nswdemand))+geom_point()
+```
+
+## Porównanie
+
+```{r}
+times2 <- c(time2[3],system.time(xyplot(nswprice~nswdemand, df))[3],system.time(ggplot(df, aes(y=nswprice,x=nswdemand))+geom_point())[3])
+names(times2) <- c('base','latt','gg')
+barplot(times2, col='cadetblue1')
+```
+
+*Zwycięzca*: lattice
+
+# Histogramy
+
+## Base
+
+```{r}
+hist(df$transfer)
+time3 <- system.time(hist(df$transfer))
+```
+
+## Lattice
+
+```{r}
+histogram(df$transfer)
+```
+
+## Ggplot
+
+```{r warning=FALSE}
+ggplot(df, aes(transfer)) + geom_histogram()
+```
+
+## Porównanie
+
+```{r}
+times3<-c(time3[3],system.time(histogram(df$transfer))[3],system.time(ggplot(df, aes(transfer)) + geom_histogram())[3])
+names(times3) <- c('base','latt','gg')
+barplot(times3, col='cadetblue1')
+```
+
+*Zwycięzca*: lattice/ggplot
+
+# Wykresy słupkowe
+
+## Base
+
+```{r}
+day_tab <- as.data.frame(table(df$day))
+barplot(day_tab$Freq)
+time4 <- system.time(barplot(day_tab$Freq))
+```
+
+## Lattice
+
+```{r}
+barchart(df$day)
+```
+
+## Ggplot
+
+```{r warning=FALSE}
+ggplot(data = df, aes(df$day)) + geom_bar()
+```
+
+## Porównanie
+
+```{r}
+times4<-c(time4[3],system.time(barchart(x = df$day))[3],system.time(ggplot(data = df, aes(df$day)) + geom_bar())[3])
+names(times4) <- c('base','latt','gg')
+barplot(times4, col='cadetblue1')
+```
+
+*Zwycięzca*: lattice
+
+# Wykresy skrzynkowe
+
+## Base
+
+```{r}
+boxplot(df$nswprice)
+time5 <- system.time(boxplot(df$nswprice))
+```
+
+## Lattice
+
+```{r}
+bwplot(~nswprice,df)
+```
+
+## Ggplot
+
+```{r warning=FALSE}
+ggplot(df, aes(y=nswprice)) + geom_boxplot()
+```
+
+## Porównanie
+
+```{r}
+times5 <- c(time5[3],system.time(bwplot(~nswprice,df))[3],system.time(ggplot(df, aes(y=nswprice)) + geom_boxplot())[3])
+names(times5) <- c('base','latt','gg')
+barplot(times5, col='cadetblue1')
+```
+
+*Zwycięzca*: lattice
+
+# Podsumowanie
+
+Widzimy, że $lattice$ uzyskiwał najlepszy czas dla każdego z $5$ typów wykresów. Bazowy $graphics$ był natomiast najwolniejszy w każdym przypadku.

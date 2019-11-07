@@ -1,0 +1,305 @@
+---
+title: "Praca domowa 1"
+author: "Sebastian Sowik"
+date: "October 17, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+library(wesanderson)
+library(tidyr)
+library(lattice)
+library(latticeExtra)
+library(microbenchmark)
+
+data(msleep, package="ggplot2")
+
+orderedNames <- msleep %>% arrange(sleep_total) %>% mutate(name=factor(name,name)) %>% filter(conservation=="domesticated") %>% pull(name) %>% as.factor()
+barplotData <- msleep %>% filter(conservation=="domesticated") %>% 
+  gather("state", "time", sleep_total, awake)  %>% mutate(
+    state=factor(ifelse(state=="sleep_total", "asleep", "awake"),c("awake","asleep")),
+    name=factor(name,orderedNames)
+  ) 
+
+ggplot_boxplot <- function () {
+  ggplot(data=na.omit(msleep), aes(x=vore, y=sleep_total)) +
+    geom_boxplot(colour="black") +
+    geom_point(color="blue") +
+    theme_bw() +
+    labs(x="Vore", y="Hours of sleep per day", title="Distribution of time of sleep per vore")
+}
+
+lattice_boxplot <- function () {
+  bwplot(
+    sleep_total~vore,
+    msleep,
+    xlab="Vore",
+    ylab="Hours of sleep per day",
+    main="Distribution of time of sleep per vore",
+    par.settings=list(
+      box.umbrella = list(col = "black"), 
+      box.rectangle=list(col= rep(c("black", "black"),2)))
+    ) +
+  dotplot(sleep_total~vore, msleep, col="blue")
+}
+
+graphics_boxplot <- function () {
+  boxplot(sleep_total~vore,
+          msleep,
+          xlab="Vore",
+          ylab="Hours of sleep per day",
+          main="Distribution of time of sleep per vore"
+          )
+  stripchart(sleep_total~vore, vertical = TRUE, data = msleep, 
+             method = "jitter", add = TRUE, pch = 20, col = 'blue')
+}
+
+
+ggplot_barplot <- function () {
+  barplotData %>% 
+    select(name, time, state) %>% 
+    ggplot(aes(x=name, y=time, fill=state)) +
+    geom_bar(stat="identity") +
+    labs(x="Specie",
+         y="Duration of state",
+         title="Sleep awake ratio for domesticated animals") +
+    theme_minimal()
+}
+
+
+lattice_barplot <- function () {
+barchart(time ~ name,
+         groups=factor(barplotData[["state"]], c("asleep", "awake")),
+         data=barplotData,
+         stack=TRUE,
+         xlab="Specie",
+         ylab="Duration of state",
+         auto.key=list(space="right", title="State"),
+         main="Sleep awake ratio for domesticated animals")
+}
+graphicsData <- barplotData %>% select(name, state, time) %>% spread(name, time) %>% select(-state) %>% arrange(Horse) %>%as.matrix.data.frame()
+rownames(graphicsData) <- c("awake", "asleep")
+
+graphics_barplot <- function() {
+  barplot(graphicsData,
+        legend=c("awake", "asleep"),
+         xlab="Specie",
+         ylab="Duration of state",
+         main="Sleep awake ratio for domesticated animals")
+}
+
+sizeData = read.csv("./MemoryForNestedLists.csv")
+
+grid_heatmaps_ggplot <- function() {
+  sizeData %>% ggplot(aes(x=Outermost, y=Innermost, fill=Size)) +
+    geom_raster() +
+    facet_grid(Nested~Nestings, labeller = label_both) +
+    scale_fill_gradientn(colours=wes_palette("Zissou1", 100, type = "continuous")) +
+    labs(title="Memory usage in nested list structure",
+         fill="Size in bytes")
+}
+
+grid_heatmaps_lattice <- function() {
+  levelplot(Size~Innermost*Outermost|Nestings*Nested,
+          sizeData,
+          auto.key=list(space="right",title="Size in bytes"))
+}
+
+contourDataList = list()
+for(i in 1:5) {
+  for(j in 1:5) {
+    data <- sizeData %>% filter(Nested==i & Nestings==j) %>% 
+            select(-Nested, -Nestings, -X) %>% spread(Outermost, Size) %>% data.matrix()
+    contourDataList <- append(contourDataList, list(data))
+  }
+}
+
+source("./Filled.contour3.R")
+grid_heatmaps_graphics <- function() {
+  par(mfrow=c(5,5), mar=rep(1,4)) 
+  for(i in 1:25) {
+    filled.contour3(z=contourDataList[[i]] )
+  }
+}
+sizeData %>% mutate(Elements=Outermost*Innermost*Nested, SizeByElems=(Size/(Elements))) -> processedData
+
+scattered_facet_ggplot <- function() {
+  processedData %>% ggplot(aes(x=Elements, y=Size, col=factor(Innermost))) +
+    geom_point() +
+    facet_wrap(~Nestings, labeller = label_both) +
+    labs(y="Size in bytes",
+         col="Nr of elements\nin the most nested lists",
+         title="Size of nested lists"
+         )
+}
+
+
+palette <- rainbow(50)
+scattered_facet_lattice <- function() {
+  xyplot(
+    Size~Elements|Nestings,
+    processedData,
+    groups=Innermost,
+    col=palette,
+    pch=19,
+    key = list(space="right",
+               columns=3,
+               title="Nr of elements \nin the most nested lists",
+               points=list(col=palette, lty=c(3,2), lwd=3),
+               text=list(as.character(1:50))
+              ),
+    ylab="Size in bytes"
+    )
+}
+
+
+xygraphicsdata <- processedData %>% filter(Nestings==1) %>% select(Size, Elements)
+graphicsScatterData <- list()
+for(i in 1:5) {
+  graphicsdata <- processedData %>% filter(Nestings==i) %>% select(Size, Elements)
+  graphicsScatterData <- append(graphicsScatterData, list(graphicsdata))
+}
+
+scattered_facet_graphics <- function() {
+  par(mfrow=c(2,3))
+  for (i in 1:5){
+    plot(Size~Elements, graphicsScatterData[[i]], col=palette)
+  }
+}
+
+
+
+groupedSizeData <- processedData %>% group_by(Nested, Nestings) %>%
+  summarise(mSizeByElems=mean(SizeByElems))
+
+heatmap_ggplot <- function() {
+  groupedSizeData %>% 
+    ggplot(aes(x=Nestings, y=Nested, fill=mSizeByElems)) +
+    geom_tile() +
+    scale_fill_gradientn(colours=wes_palette("Zissou1", 100, type = "continuous")) +
+    labs(fill="Mean size\nper element\n[bytes/elem]",
+         title="Memory eficiency for lists with different levels of nesting")
+}
+
+heatmap_lattice <- function() {
+  levelplot(mSizeByElems~Nestings*Nested, groupedSizeData,
+            main="Memory eficiency for lists with different levels of nesting",
+            legend=list(top=list(fun=grid::textGrob("Mean size\nper element\n[bytes/elem]", y=0, x=1.06)))
+            )
+}
+graphicsHeatmapData <- groupedSizeData %>% spread(Nested, mSizeByElems) %>% select(-Nestings) %>% 
+  data.matrix()
+heatmap_graphics <- function() {
+  filled.contour(graphicsHeatmapData,
+                 plot.title=title(main="Memory eficiency for lists with different levels of nesting"),
+                 key.title=title(main=list("Mean size\nper element\n[bytes/elem]", cex=0.8))
+  )
+}
+```
+
+## Tested plots
+
+```{r ggplot_boxplot}
+ggplot_boxplot()
+```
+
+```{r lattice_boxplot}
+lattice_boxplot()
+```
+
+```{r graphics_boxplot}
+graphics_boxplot()
+```
+
+```{r ggplot_barplot}
+ggplot_barplot()
+```
+
+```{r lattice_barplot}
+lattice_barplot()
+```
+
+```{r graphics_barplot}
+graphics_barplot()
+```
+
+```{r grid_heatmaps_ggplot}
+grid_heatmaps_ggplot()
+```
+
+```{r grid_heatmaps_lattice}
+grid_heatmaps_lattice()
+```
+
+```{r grid_heatmaps_graphics}
+grid_heatmaps_graphics()
+```
+
+```{r scattered_facet_ggplot}
+scattered_facet_ggplot()
+```
+
+```{r scattered_facet_lattice}
+scattered_facet_lattice()
+```
+
+```{r scattered_facet_graphics}
+scattered_facet_graphics()
+```
+
+```{r heatmap_ggplot}
+heatmap_ggplot()
+```
+
+```{r heatmap_lattice}
+heatmap_lattice()
+```
+
+```{r heatmap_graphics}
+heatmap_graphics()
+```
+
+## Benchmark results
+
+
+```{r, fig.show = 'hide'}
+
+microbenchmark(
+  ggplot_boxplot=ggplot_boxplot,
+  lattice_boxplot=lattice_boxplot,
+  graphics_boxplot=graphics_boxplot
+)
+microbenchmark(
+  ggplot_barplot=ggplot_barplot,
+  lattice_barplot=lattice_barplot,
+  graphics_barplot=graphics_barplot
+)
+microbenchmark(
+  grid_heatmaps_ggplot=grid_heatmaps_ggplot,
+  grid_heatmaps_lattice=grid_heatmaps_lattice,
+  grid_heatmaps_graphics=grid_heatmaps_graphics
+)
+microbenchmark(
+  scattered_facet_ggplot=scattered_facet_ggplot,
+  scattered_facet_lattice=scattered_facet_lattice,
+  scattered_facet_graphics=scattered_facet_graphics
+)
+
+microbenchmark(
+  heatmap_ggplot=heatmap_ggplot,
+  heatmap_lattice=heatmap_lattice,
+  heatmap_graphics=heatmap_graphics
+)
+
+
+```
+
+## Conclusions
+
+Execution time of tested plots is generaly similar, there is no clear winner. 
+Graphics requires more preprocessing of data, contour plots does not support facets. 
+Lattice is more convenient thanks to formulas but plot customization is cumbersome.
+ggplot2 is the most convenient library with intuitive layer system and flexible customization.
