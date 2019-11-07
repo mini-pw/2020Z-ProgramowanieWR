@@ -1,0 +1,304 @@
+---
+title: "PD2"
+author: "Adam Rydelek"
+date: "`r format(Sys.time(), '%d - %m - %Y')`"
+output:
+  html_document:
+    df_print: paged
+    toc: true
+    toc_float: true
+    code_folding: hide
+    number_sections: true
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(dplyr)
+library(lattice)
+library(OpenML)
+library(gridExtra)
+set.seed(1)
+```
+
+# Wprowadzenie
+
+Przeanalizuję czasy wykonania 5 rodzajów wykresów:`barplot`,`histogram`,`boxplot`,`scatterplot` oraz `heatmap` za pomocą pakietów **ggplot2**, **lattice** oraz bazowych funkcji R.
+
+# Porównanie wykresów
+
+Do wykonania pierwszych trzech wykresów wykorzystam zbiór danych z OpenML'a (id 37) o nazwie *pendigits*. 
+
+## Barplot
+
+### ggplot2
+```{r message=FALSE, warning=FALSE}
+
+#ggplot
+
+data1 <- getOMLDataSet(32)$data
+start1 <- Sys.time()
+gg1 <- ggplot(data = data1, aes(x = class)) + geom_bar(fill="lightblue") + coord_flip()
+end1 <- Sys.time()
+time1 <- end1-start1
+gg1
+```
+
+### lattice
+
+```{r}
+#lattice
+start2 <- Sys.time()
+la1 <- barchart(data1$class)
+end2 <- Sys.time()
+la1
+time2 <- end2-start2
+```
+
+### base
+
+```{r}
+#base
+dt <- table(data1$class)
+start3 <- Sys.time()
+ba1 <- barplot(dt)
+end3 <- Sys.time()
+```
+### Porównanie czasu wykonywania
+```{r message=FALSE, warning=FALSE}
+time3 <- end3-start3
+times1 <- data.frame(times=c(time1,time2,time3), packages=c("ggplot","lattice","base"))
+por1 <- ggplot(times1, aes(x=packages, y=times, fill=packages)) + geom_col()
+por1 
+```
+
+## Histogram
+
+### ggplot2
+```{r message=FALSE, warning=FALSE}
+# histogram
+#ggplot
+start1a <- Sys.time()
+gg2 <- ggplot(data = data1, aes(input1)) + geom_histogram()
+end1a <- Sys.time()
+gg2
+
+```
+
+### lattice
+
+```{r}
+#lattice
+start2a <- Sys.time()
+la2 <- histogram(~input1, data = data1,type = 'count')
+end2a <- Sys.time()
+la2
+```
+
+### base
+
+```{r}
+#base
+start3a <- Sys.time()
+ba1 <- hist(data1$input1)
+end3a <- Sys.time()
+```
+
+### Porównanie czasu wykonywania
+
+```{r message=FALSE, warning=FALSE}
+#times
+
+time1a <- end1a-start1a
+time2a <- end2a-start2a
+time3a <- end3a-start3a
+times2 <- data.frame(times=c(time1a,time2a,time3a), packages=c("ggplot","lattice","base"))
+por2 <- ggplot(times2, aes(x=packages, y=times, fill=packages)) + geom_col()
+por2
+```
+
+## Boxplot
+
+### ggplot2
+
+```{r message=FALSE, warning=FALSE}
+#boxplot
+#ggplot
+start1b <- Sys.time()
+gg3 <- ggplot(data = data1, aes(y=input3)) + geom_boxplot() + coord_flip()
+end1b <- Sys.time()
+gg3
+```
+
+### lattice
+
+```{r}
+#lattice
+start2b <- Sys.time()
+la3 <- bwplot(~input3, data=data1)
+end2b <- Sys.time()
+la3
+```
+
+### base
+
+```{r}
+#base
+start3b <- Sys.time()
+ba3 <- boxplot(data1$input3)
+end3b <- Sys.time()
+```
+
+### Porównanie czasu wykonywania
+
+```{r message=FALSE, warning=FALSE}
+#times
+
+time1b <- end1b-start1b
+time2b <- end2b-start2b
+time3b <- end3b-start3b
+times3 <- data.frame(times=c(time1b,time2b,time3b), packages=c("ggplot","lattice","base"))
+por3 <- ggplot(times3, aes(x=packages, y=times, fill=packages)) + geom_col()
+por3
+
+```
+
+
+## Scatterplot
+
+Do wykonania tych wykresów rozproszenia wykorzystam powszechnie znany zbiór danych: `iris`.
+
+### ggplot2
+```{r message=FALSE, warning=FALSE}
+#scatterplot
+
+#ggplot
+start1c <- Sys.time()
+gg4 <- ggplot(data = iris, aes(y=iris$Petal.Length, x=iris$Sepal.Length, color=iris$Species)) + geom_point()
+end1c <- Sys.time()
+gg4
+```
+
+### lattice
+
+```{r}
+#lattice
+start2c <- Sys.time()
+la4 <- xyplot(iris$Sepal.Length ~ iris$Petal.Length , data = iris,scales = list(x = list(log = 10, equispaced.log = FALSE)),
+              group = Species, auto.key = TRUE)
+end2c <- Sys.time()
+la4
+
+```
+
+### base
+
+```{r}
+
+#base
+start3c <- Sys.time()
+ba4 <- plot(iris$Sepal.Length, iris$Petal.Length, col = iris$Species)
+legend(x = 5,y=7, legend = levels(iris$Species), col = c(1:3), pch = 15)
+end3c <- Sys.time()
+```
+
+### Porównanie czasu wykonywania
+
+```{r message=FALSE, warning=FALSE}
+
+#times
+
+time1c <- end1c-start1c
+time2c <- end2c-start2c
+time3c <- end3c-start3c
+times4 <- data.frame(times=c(time1c,time2c,time3c), packages=c("ggplot","lattice","base"))
+por4<-ggplot(times4, aes(x=packages, y=times, fill=packages)) + geom_col()
+por4
+
+```
+
+## Heatmap
+
+Do wykonania map ciepła wykorzystałem również dobrze znany dataset `mtcars`.
+
+### ggplot2
+
+```{r message=FALSE, warning=FALSE}
+
+#heatmap
+
+data <- as.matrix(mtcars)
+datab <- mtcars
+
+
+x <- colnames(mtcars)
+y <- rownames(mtcars)
+
+datab <- expand.grid(X=x, Y=y)
+datab$Z <- runif(352, 0, 5)
+
+# ggplot
+start1d <- Sys.time()
+gg5<-ggplot(datab, aes(X, Y, fill= Z)) + geom_tile()
+end1d <- Sys.time()
+gg5
+
+```
+
+### lattice
+
+```{r}
+#lattice
+start2d <- Sys.time()
+la5 <- levelplot(Z ~ X*Y, data=datab)
+end2d <- Sys.time()
+la5
+```
+
+### base
+
+```{r}
+# base
+
+start3d <- Sys.time()
+heatmap(data, scale="column", Colv = NA, Rowv = NA)
+end3d <- Sys.time()
+```
+
+### Porównanie czasu wykonywania
+
+```{r message=FALSE, warning=FALSE}
+time1d <- end1d-start1d
+time2d <- end2d-start2d
+time3d <- end3d-start3d
+times5 <- data.frame(times=c(time1d,time2d,time3d), packages=c("ggplot","lattice","base"))
+por5 <- ggplot(times5, aes(x=packages, y=times, fill=packages)) + geom_col()
+por5
+
+```
+
+
+# Podsumowanie
+
+Można zauważyć, że wybór najszybszego narzędzia do konstrukcji wykresów nie jest trywialny na podstawie przedstawionych wyników. Spójrzmy więc na 5 wykresów porównań długości wykonywania obok siebie.
+
+```{r warning=FALSE, message=FALSE}
+por1 <- por1 + theme(legend.position = "none", axis.title=element_blank()) + ggtitle("Barplot")
+por2 <- por2 + theme(legend.position = "none", axis.title=element_blank()) + ggtitle("Histogram")
+por3 <- por3 + theme(legend.position = "none", axis.title=element_blank()) + ggtitle("Boxplot")
+por4 <- por4 + theme(legend.position = "none", axis.title=element_blank()) + ggtitle("Scatterplot")
+por5 <- por5 + theme(legend.position = "none", axis.title=element_blank()) + ggtitle("Heatmap")
+
+grid.arrange(por1, por2, por3, por4,por5, ncol=2)
+```
+
+Jako, że na podstawie powyższych wykresów ciężko jest określić ogólnie najszybsze narzędzie, więc spójrzmy na wykres sumy czasów wykonywania wszystkich 5 wykresów.
+
+```{r}
+times <- rbind(times1,times2,times3,times4,times5)
+times$times <- unclass(times$times)
+times <- times %>% group_by(packages) %>% summarise(times = sum(times))
+por <- ggplot(times, aes(x=packages, y=times, fill=packages)) + geom_col() + scale_fill_hue(l=40, c=35)
+por
+```
+
+Podsumowując najgorszy okazał się graphics, a ggplot oraz lattice są zbliżone do siebie pod względem czasu wykonywania wykresów z lekką przewagą **lattice**.

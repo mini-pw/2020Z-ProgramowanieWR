@@ -13,7 +13,6 @@ library(ggplot2)
 library(graphics)
 library(lattice)
 library(magrittr)
-library(patchwork)
 ```
 
 
@@ -154,7 +153,6 @@ hist_functions <- list(
 ```
 
 
-## Benchmark results
 ```{r, include = FALSE}
 n <- 100
 benchmark_configs <- list(
@@ -170,7 +168,96 @@ benchmark_results <- lapply(benchmark_configs, function(config) {
 }) %>% rbindlist()
 ```
 
+# Scatter plots
 
+## ggplot2
+```{r, echo=FALSE}
+create_ggplot_scatter()
+```
+
+## lattice
+```{r, echo=FALSE}
+create_lattice_scatter()
+```
+
+## graphics
+```{r, echo=FALSE}
+create_graphics_scatter()
+```
+
+
+# Bar plots
+
+## ggplot2
+```{r, echo=FALSE}
+create_ggplot_barplot()
+```
+
+## lattice
+```{r, echo=FALSE}
+create_lattice_barplot()
+```
+
+## graphics
+```{r, echo=FALSE}
+create_graphics_barplot()
+```
+
+
+# Line plots
+
+## ggplot2
+```{r, echo=FALSE}
+create_ggplot_line()
+```
+
+## lattice
+```{r, echo=FALSE}
+create_lattice_line()
+```
+
+## graphics
+```{r, echo=FALSE}
+create_graphics_line()
+```
+
+
+# Box plots
+
+## ggplot2
+```{r, echo=FALSE}
+create_ggplot_boxplot()
+```
+
+## lattice
+```{r, echo=FALSE}
+create_lattice_boxplot()
+```
+
+## graphics
+```{r, echo=FALSE}
+create_graphics_boxplot()
+```
+
+
+# Histograms
+
+## ggplot2
+```{r, echo=FALSE}
+create_ggplot_hist()
+```
+
+## lattice
+```{r, echo=FALSE}
+create_lattice_hist()
+```
+
+## graphics
+```{r, echo=FALSE}
+create_graphics_hist()
+```
+
+# Benchmark results
 ```{r echo = FALSE}
 plot_benchmark_results(benchmark_results)
 ```
