@@ -1,0 +1,177 @@
+---
+title: "PD1"
+author: "Tomek Radzikowski"
+date: "17 października 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(lattice)
+library(microbenchmark)
+dane<-read.csv("wyniki_gl_na_kand_po_obwodach_sejm_okr_19.csv",sep=';', encoding="UTF-8")
+aaa<-c(7:10,12,13)
+dane_small<-dane[,-c(1:6,9,10,14:26,28:113,155:ncol(dane))]
+
+eee<-head(dane_small)
+which(colnames(dane)=="Lista.nr.3...KOMITET.WYBORCZY.SOJUSZ.LEWICY.DEMOKRATYCZNEJ...ZPOW.601.1.19")
+which(colnames(dane)=="Liczba.kart.ważnych")
+
+dane_biejat<-dane_small[,c(1,2,4,6,11)]
+dane_biejat[465,]
+sum(dane_biejat[,5])
+
+
+dane_small[,'Gmina']<-as.factor(dane_small[,'Gmina'])
+poziomy<-levels(dane_small[,'Gmina'])
+#xxxx<-head(dane_small[which(levels(dane_small$Gmina)==2),])
+#levels(dane_small$Gmina)[2]
+
+dane_small[which(dane_small$Gmina==levels(dane_small$Gmina)[3]),]
+
+# dane histogram
+dane_biejat<-dane_small[,c(1,2,4,6,11)]
+dane_biejat_hist<-dane_biejat[,c(4,5)]
+dane_biejat_hist$Procent<-dane_biejat_hist$Magdalena.Agnieszka.BIEJAT...nr.na.liście.4/dane_biejat_hist$Liczba.kart.ważnych*100
+gg1<-ggplot(dane_biejat_hist, aes(x=Procent)) + geom_histogram(binwidth=0.20,colour="black", fill="white")+
+  labs(title="Histogram procentowego wyniku Magdy Biejat w wyborach \n do Sejmu 2019",x="procent głosów w komisji", y = "Liczba komisji")#+geom_density(alpha=.2, fill="#FF6666") 
+g1<-hist(dane_biejat_hist$Procent,
+     main="Histogram procentowego wyniku Magdy Biejat w wyborach \n do Sejmu 2019",
+     xlab="procent głosów w komisji", ylab='Liczba komisji',breaks=45)
+l1<-histogram( ~ Procent, 
+            data = dane_biejat_hist,main = 'Histogram procentowego wyniku Magdy Biejat w wyborach \n do Sejmu 2019',xlab = 'procent głosów w komisji',ylab = 'Liczba komisji',breaks=seq(from=0,to=9,by=0.2))
+autoplot(microbenchmark(gg1,g1,l1,times=50))
+##dane scatter
+dane_biejat_bis<-dane_biejat[order(dane_biejat$Liczba.wyborców.uprawnionych.do.głosowania),]
+dane_biejat_hist_bis<-dane_biejat_bis[,c(4,5)]
+dane_biejat_hist_bis$Procent<-dane_biejat_hist_bis$Magdalena.Agnieszka.BIEJAT...nr.na.liście.4/dane_biejat_hist_bis$Liczba.kart.ważnych*100
+gg2<-ggplot(dane_biejat_hist_bis, aes(x=dane_biejat_hist_bis$Liczba.kart.ważnych, y=Procent))+geom_point()+
+  labs(title="Poparcie Magdy Biejat w zależności od \n wielkości komisji",x="liczba oddanych kart do głosowanie", y = "procent glosow Magdy Biejat")#+geom_density(alpha=.2, fill="#FF6666") 
+
+
+
+g2<-plot( Procent~Liczba.kart.ważnych , 
+     data = dane_biejat_hist_bis,main = 'Poparcie Magdy Biejat w zależności od \n wielkości komisji',xlab = 'liczba oddanych kart do głosowanie',ylab = 'procent glosow Magdy Biejat')
+
+l2<-xyplot(Procent~Liczba.kart.ważnych , 
+       data = dane_biejat_hist_bis,main = 'Poparcie Magdy Biejat w zależności od \n wielkości komisji',xlab = 'liczba oddanych kart do głosowanie',ylab = 'procent glosow Magdy Biejat')
+
+#dane Violin
+dane_zukowska<-dane_small[,c(1,2,4,6,9)]
+names(dane_zukowska)[names(dane_zukowska)=="Anna.Maria.ŻUKOWSKA...nr.na.liście.2"]<-"glosy"
+#dane_biejat$Magdalena.Agnieszka.BIEJAT...nr.na.liście.4
+names(dane_biejat)[names(dane_biejat)=="Magdalena.Agnieszka.BIEJAT...nr.na.liście.4"]<-"glosy"
+dane_biejat<-cbind(dane_biejat,rep("Biejat",1100))
+dane_zukowska<-cbind(dane_zukowska,rep("Żukowska",1100))
+names(dane_biejat)[6]<-"kandydatka"
+names(dane_zukowska)[6]<-"kandydatka"
+biejat_zukowska<-rbind(dane_biejat, dane_zukowska)
+biejat_zukowska$kandydatka<-as.factor(biejat_zukowska$kandydatka)
+gg3<-ggplot(biejat_zukowska, aes(x=kandydatka, y=glosy))+geom_violin()+
+  labs(title="Wykres skrzypcowy poparcia Magdy Biejat i\n Anny Żukowskiej",x="liczba komisji", y = "Liczba glosow")#+geom_density(alpha=.2, fill="#FF6666") 
+
+
+l3<-bwplot(glosy~kandydatka, data=biejat_zukowska,panel=panel.violin,main = 'Wykres skrzypcowy poparcia Magdy Biejat i\n Anny Żukowskiej',xlab = 'liczba komisji',ylab = 'Liczba glosow')
+
+#dane boxplot
+biejat_zukowska$Procent<-biejat_zukowska$glosy/biejat_zukowska$Liczba.kart.ważnych*100
+gg4<-ggplot(biejat_zukowska, aes(x=kandydatka, y=Procent)) + geom_boxplot() +
+  labs(title="Wykres pudełkowy poparcia Magdy Biejat i\n Anny Żukowskiej",x="liczba komisji", y = "Liczba glosow")#+geom_density(alpha=.2, fill="#FF6666") 
+
+
+g4<-boxplot(glosy~kandydatka, data=biejat_zukowska,main = 'Wykres pudełkowy poparcia Magdy Biejat i\n Anny Żukowskiej',xlab = 'liczba komisji',ylab = 'Liczba glosow')
+
+
+l4<-bwplot(glosy~kandydatka, data=biejat_zukowska,main = 'Wykres pudełkowy poparcia Magdy Biejat i\n Anny Żukowskiej',xlab = 'liczba komisji',ylab = 'Liczba glosow')
+
+#dane barplot
+dane_small[,'Gmina']<-as.factor(dane_small[,'Gmina'])
+poziomy<-levels(dane_small[,'Gmina'])
+dane_biejat_bar<-dane_small[,c(2,4,6,11)]
+dzielnice<-vector(mode="character", length=20)
+glosy_b<-vector(mode="numeric", length=20)
+for (i in 1:20) {
+
+  dzielnica_suma<-sum(dane_biejat_bar[(dane_biejat_bar$Gmina) %in% levels(dane_biejat_bar$Gmina)[i],"Liczba.kart.ważnych"])
+  biejat_suma<-sum(dane_biejat_bar[(dane_biejat_bar$Gmina) %in% levels(dane_biejat_bar$Gmina)[i],"Magdalena.Agnieszka.BIEJAT...nr.na.liście.4"])
+  dzielnice[i]<-levels(dane_biejat_bar$Gmina)[i]
+  glosy_b[i]<-biejat_suma/dzielnica_suma*100
+  
+}
+df<-data.frame(glosy=glosy_b, dzielnice=dzielnice)
+gg5<-ggplot(data=df, aes(x=dzielnice, y=glosy)) +
+  geom_bar(stat="identity")+
+  labs(title='Poparcie Magdy Biejat w zależności od dzielnicy',x="Dzielnica", y = "Procent glosow")+theme(axis.text.x=element_text(angle=45,hjust=1))#+geom_density(alpha=.2, fill="#FF6666") 
+
+
+g5<-barplot(df$glosy, names.arg=df$dzielnice,main = 'Poparcie Magdy Biejat w zależności od dzielnicy',xlab = 'Dzielnica',ylab = 'procent glosow Magdy Biejat')
+
+
+
+l5<-barchart(glosy~dzielnice, df,main = 'Poparcie Magdy Biejat w zależności od dzielnicy',xlab = 'Dzielnica',ylab = 'procent glosow Magdy Biejat',scales=list(y=list(rot=45), x=list(rot=45)))
+autoplot(microbenchmark(gg5,g5,l5,times=50))
+```
+
+## R Markdown
+
+Na potrzeby pracy domowej 1 pobrałem dane ze strony PKW, które zawierają wyniki wyborów w Warszawie. W związku z dużą liczbą komisji zbiór wydał się ciekawy. W dużej mierze starałem się sprawdzić najróżniejsze zależności wyborcze dotyczące mojej kandydatki - Magdy Biejat. Wyniki, w tym porównanie szybkości metod przedstawiam poniżej.
+
+```{r cars}
+
+
+
+```
+
+## Histogram
+Wygenerowano nasępujące histogramy:
+
+```{r histogram, echo=FALSE, warning=FALSE}
+gg1
+hist(dane_biejat_hist$Procent,
+     main="Histogram procentowego wyniku Magdy Biejat w wyborach \n do Sejmu 2019",
+     xlab="procent głosów w komisji", ylab='Liczba komisji',breaks=45)
+l1
+autoplot(microbenchmark(ggplot=gg1,graphics=g1,lattice=l1,times=50))
+```
+## Scatter plot
+Wygenerowano nasępujące wykresy punktowe:
+
+```{r scatter, echo=FALSE, warning=FALSE}
+gg2
+plot( Procent~Liczba.kart.ważnych , 
+     data = dane_biejat_hist_bis,main = 'Poparcie Magdy Biejat w zależności od \n wielkości komisji',xlab = 'liczba oddanych kart do głosowanie',ylab = 'procent glosow Magdy Biejat')
+l2
+autoplot(microbenchmark(ggplot=gg2,graphics=g2,lattice=l2,times=50))
+```
+
+## Violin plot
+Wygenerowano nasępujące wykresy skrzypcowe. Niestety dla pakietu graphics nie istnieje violin plot, trzeba byłoby dodać kolejną bibliotekę, a to spowodowałoby niemiarodajność porównań:
+
+```{r violin, echo=FALSE, warning=FALSE}
+gg3
+
+l3
+autoplot(microbenchmark(ggplot=gg3,lattice=l3,times=50))
+```
+## Box plot
+Wygenerowano nasępujące wykresy pudełkowe:
+
+```{r box, echo=FALSE, warning=FALSE}
+gg4
+boxplot(glosy~kandydatka, data=biejat_zukowska,main = 'Wykres pudełkowy poparcia Magdy Biejat i\n Anny Żukowskiej',xlab = 'liczba komisji',ylab = 'Liczba glosow')
+
+l4
+autoplot(microbenchmark(ggplot=gg4,graphics=g4,lattice=l4,times=50))
+```
+## Bar plot
+Wygenerowano nasępujące wykresy słupkowe:
+
+```{r bar, echo=FALSE, warning=FALSE}
+gg5
+barplot(df$glosy, names.arg=df$dzielnice,main = 'Poparcie Magdy Biejat w zależności od dzielnicy',xlab = 'Dzielnica',ylab = 'procent glosow Magdy Biejat')
+l5
+autoplot(microbenchmark(ggplot=gg5,graphics=g5,lattice=l5,times=50))
+```
+## Podsumowanie
+Lattice i Ggplot2 są bibliotekami, których wydajność jest porównywalna. Zbiór danych dla wykresu punktowego liczył 1100 elementów, czyli nie był najmniejszy. Co ciekawe dla wykresu pudełkowego najmniej efektywne okazalo się generowanie przez bibliotekę lattice. W pozostałych przypadkach, to graphics odstawała od dwóch konkurentów. Dla wykresu o małej liczbie danych (barplot na zagregowanych danych - dzielnicach Warszawy) zastosowana biblioteka nie wpływa specjalnie na efektywność.

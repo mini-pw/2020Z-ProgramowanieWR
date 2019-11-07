@@ -1,0 +1,175 @@
+---
+title: '[PD1] Zaawansowany R'
+author: "Szymon Maksymiuk"
+date: "17.10.2019"
+output:
+  html_document:
+    df_print: paged
+    toc: true
+    toc_float: true
+    code_folding: hide
+    number_sections: true
+    theme: spacelab
+---
+
+```{r setup, include=FALSE,message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Wstęp
+
+W tym krótkim, acz związyłm raporcie pochylę się nad trzema pakietami służącymi generowaniu grafiki w R. Święcącym tryumfy **ggplot2**, nieco już starszym jego kolegą, **lattice** (pierwsza wersja na CRAN w roku 2001), oraz dostarczanym nam wraz z **base** pakietem **graphics**. Spróbuję za pomocą biblioteki **microbenchamrk** porównać czasy działnia pięciu przykładowych wykresów generowanych za pomocą tych trzech bilbiotek. W pracy postaram się użyć raczej prostych wykresów z bardzo praktycznej przyczyny. Chciałbym by porównania miały jak najlepsze odniesienie do codziennych czynności z użyciem grafiki, z którymi przeciętny użytkownik R spotyka się każdego dnia. Za zabiór danych posłuży nam [całkowicie losowy](https://www.openml.org/d/1362) zbiór danych z OpenML, którego jedyną przydatną dla nas cechą jest fakt, że posiada 1000000 (słownie: milion) obserwacji.
+
+```{r message=FALSE, warning=FALSE}
+library("lattice")
+library("ggplot2")
+library("graphics") #ot taki żarcik
+data <- OpenML::getOMLDataSet(1362L)$data
+cat("Size of data:", object.size(data))
+```
+
+Oczywiście gołym okiem widać (wszak każdy użytkownik R jest ekspertem informatyki), że nasz zbiór waży 232.72 megabajta, jest więc całkiem duży. Przejdźmy więc do tworzenia grafik.
+
+# Wykresy od nazwiska znanych matematyków, Boxa i Whiskera
+
+```{r}
+ggplot(data = data, aes(y = width, x = oil)) +
+  geom_boxplot() 
+
+bwplot(width~oil, data = data)
+
+boxplot(width~oil, data = data)
+
+```
+
+# Osobiście mój ulubiony typ a więc gęstość
+
+```{r}
+ggplot(data = data, aes(x = thick)) +
+  geom_density()
+
+densityplot(~thick, data = data)
+
+plot(density(data$thick))
+```
+
+# Najbardziej lubiany przez media
+
+```{r}
+ggplot(data = data, aes(x = class)) +
+  geom_bar()
+
+barchart(~class, data = data)
+
+barplot(table(data$class))
+```
+
+# Trywiał i banał w środku by nikt nie widział, czyli scatter plot
+
+```{r}
+ggplot(data = data, aes(x = thick, y = width))+
+  geom_point()
+
+xyplot(width~thick, data = data)
+
+plot(data$thick, data$width)
+```
+
+# Zakończmy ładnie czyli histogram 
+
+```{r}
+ggplot(data = data, aes(x = width))+
+  geom_histogram()
+
+histogram(~width, data = data)
+
+hist(data$width)
+```
+
+# Benchmarki
+ 
+## Boxplot
+
+```{r include=FALSE}
+library(microbenchmark)
+bp <- microbenchmark(ggplot2 = {ggplot(data = data, aes(y = width, x = oil)) +
+  geom_boxplot()},
+
+lattice = {bwplot(width~oil, data = data)},
+
+graphics = {boxplot(width~oil, data = data)}, times = 20)
+```
+
+```{r}
+autoplot(bp)
+```
+
+## Density
+
+```{r include=FALSE}
+
+dens <- microbenchmark(ggplot2 = {ggplot(data = data, aes(x = thick)) +
+  geom_density()},
+
+lattice = {densityplot(~thick, data = data)},
+
+graphics = {plot(density(data$thick))}, times = 20)
+```
+
+```{r}
+autoplot(dens)
+```
+
+## Barplot
+
+```{r include=FALSE}
+col <- microbenchmark(ggplot2 = {ggplot(data = data, aes(x = class)) +
+  geom_bar()},
+
+lattice = {barchart(~class, data = data)},
+
+graphics = {barplot(table(data$class))}, times = 20)
+
+```
+
+```{r}
+autoplot(col)
+```
+
+## Scatter
+
+
+```{r include=FALSE}
+sca <- microbenchmark(ggplot2 = {ggplot(data = data, aes(x = thick, y = width))+
+  geom_point()},
+
+lattice = {xyplot(width~thick, data = data)},
+
+graphics = {plot(data$thick, data$width)}, times = 20)
+
+```
+
+```{r}
+autoplot(sca)
+```
+
+## Histogram
+
+
+```{r include=FALSE}
+hi <- microbenchmark(ggplot2 = {ggplot(data = data, aes(x = width))+
+  geom_histogram()},
+
+lattice = {histogram(~width, data = data)},
+
+graphics = {hist(data$width)}, times = 20)
+
+```
+
+```{r}
+autoplot(hi)
+```
+
+# Podsumowanie
+
+Jak widzimy w większości przypadków mamy stałą pierwszą trójkę. **ggplot2** bije na głowę konkurentów, którym zostaje tylko walka między sobą. Spośród tych pojedynków, warto wspomnieć przykład wykresu słupkowego gdzie **graphics** pokonał **lattice** lecz może to wynikać ze struktury wywołania tworzącego wykres. 
