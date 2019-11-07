@@ -1,6 +1,9 @@
+
 library(shiny)
 library(ggplot2)
 library(DT)
+
+plot_dat <- data.frame(x = 1L:10, y = 10L:1, clicked = FALSE, size = 2)
 
 ui <- fluidPage(plotOutput("points_plot", click = "plot_click"),
                 verbatimTextOutput("values"),
@@ -10,7 +13,7 @@ server <- function(input, output, session) {
   values <- reactiveValues()
   
   observe({
-    values$data <- plot_dat <- data.frame(x = 1L:10, y = 10L:1, clicked = FALSE, size = 2)
+    values$data <-data.frame(x = 1L:10, y = 10L:1, clicked = FALSE, size = 2)
   })
   
   output[["points_plot"]] <- renderPlot({
