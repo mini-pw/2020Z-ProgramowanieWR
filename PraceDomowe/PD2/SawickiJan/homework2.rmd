@@ -7,7 +7,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-```{r functions, echo = FALSE}
+```{r, echo = FALSE}
 makeNseFunction1 <- function(fun) {
   function(data, elementOrFormula, ...) {
     functionEnvironment = environment()
@@ -96,14 +96,16 @@ Sounds evil?
 
 Well it is. But it is quite easy to understand. 
 
-The thing is that in R you can get an element from a e.g. list like so:
+# NSE examples
+
+The thing is that in R you can get an element from a, for example, list like so:
 
 ```{r}
 myList = list(a = 1, b = 2, c = 3)
 myList$a
 ```
 
-BUT. Have you ever wondered what actually is "a" here? The one in the second line. 
+BUT. Have you ever wondered what exactly is "a" here? The one in the second line. 
 
 Let's check it:
 ```{}
@@ -112,17 +114,22 @@ a
 ...
 Actually I cannot check it, because my markdown wouldn't compile.
 
-I would get an error saying that "a" is not found. Well, it was not defined, so it should NOT be found. 
+I would get an error saying that "a" is not found. 
 
-How does it work in the first example then? Let's call it R magic for now. 
+...well, it was not defined, so it should NOT be found. 
+
+How does it work in the first example then? Let's call it **R magic** for now. 
 
 <center>
 ![](https://media.giphy.com/media/12NUbkX6p4xOO4/giphy.gif)
 </center>
 
+
+# Problem
+
 Another question:
 
-What if I wanter to pass "a" as a parameter to a function and use the $ operator inside my function like so:
+What if I wanted to pass "a" as a parameter to a function and use the $ operator inside my function like so:
 
 ```{r}
 myList = list(a = 1, b = 2, c = 3)
@@ -139,7 +146,7 @@ WOW, it works with no problems.
 ![](http://giphygifs.s3.amazonaws.com/media/RddAJiGxTPQFa/giphy.gif)
 </center>
 
-It's R - it only looks like it works.  
+well... **it's R - it only looks like it works**.  
 
 Let's see the example where I want to get "b":
 ```{r}
@@ -152,9 +159,11 @@ myFunction(b, myList)
 ```
 Oops. 
 
-I am not going to go into detail, but the problem is related to passing the argument at it changing it's metaparameters (or at least that's how I understand it).
+I am not going to go into details, but the problem is related to passing the argument at it changing it's... let's call them "metaparameters".
 
-# FIX IT
+At least that's how I understand it.
+
+# Fixing the problem
 Long story short, to fix this error we got to do something like this:
 
 
@@ -181,6 +190,7 @@ myList$a
 ```
 
 If you want a proper explanation I recommend checking those example:
+
 [Examples](https://github.com/mini-pw/2020Z-ProgramowanieWR/blob/2a13fd91b7524c4e66a5c72881cfbe9dcbd10f80/Prezentacje/P2.Rmd#L49)
 
 Or these explanations:
@@ -188,13 +198,15 @@ Or these explanations:
 [Explanation](http://adv-r.had.co.nz/Computing-on-the-language.html)
 [Explanation](https://edwinth.github.io/blog/nse/)
 
-I also recommend listening to Hadley Wickham's 5 (*actually 6*) minute talk about "Tidy evaluation". It really helped me NOT to kill myself in this process. Hope it helps you too. 
+I also recommend listening to Hadley Wickham's 5 (*actually 6*) minute talk about "Tidy evaluation". It really helped me NOT to kill myself in the process of understanding. Hope it helps you too. 
 
 [Tidy evaluation in 5 mins](https://www.youtube.com/watch?v=nERXS3ssntw)
 
+# Back to the the 3 functions
+
 Getting back to our NSEketeers. 
 
-What you saw at the beginning is a few implementations which should create a NSE (NonStandard Evaluation) function from a non-NSE function. 
+What you saw at the beginning is a few implementations which should create a NSE (Non-Standard Evaluation) function from a non-NSE (so just SE) function. 
 
 We want this call:
 ```{}
@@ -206,7 +218,9 @@ to be equal to this call
 min_NSE(myList, a)
 ```
 
-They also take into account formulas but that would be too much to explain at once, so we'll skip it. 
+**BTW*
+They also take into account *formulas* but that would be too much to explain at once, so we'll skip it. 
+
 
 We are here to check their time efficiency. 
 
@@ -219,9 +233,9 @@ So onto the testing we go!
 </center>
 ## Efficiency testing
 
-First we take a look at the results for all three methods and their results for small dataset. 
+First we take a look at the results for all three methods and their results for a small dataset. 
 
-Rougly 100 random numbers from 1-100. Shouldn't be difficult. 
+Rougly 100 random numbers from 1-100 - shouldn't be difficult. 
 
 ```{r}
 testedFunction = min
@@ -266,13 +280,13 @@ Function2 is awful.
 
 But I think I know the reason. 
 
-The problem is that is uses a function from a library and has to load this very library to work. 
+The problem is that it uses a function **enexpr** from a library **rlang** and has to load this very library to work. 
 
 ```{}
 library(rlang)
 ```
 
-Now, one may claim that it would be more more accurate to measure the function WITHOUT loading the library, but it is clearly unfair. 
+Now, one may claim that it would be more accurate to measure the function WITHOUT loading the library, but it is clearly unfair. 
 
 A developer will HAVE to load the library if he wants to use it so the loading time has to be included in the total function time. 
 
@@ -452,7 +466,10 @@ ggplot(data = summary(results), aes(x = expr, y = mean, fill = expr))+
   theme_minimal() +
   theme(legend.position = "none")
 ```
+
+<center>
 ![](https://media.giphy.com/media/26ufdipQqU2lhNA4g/giphy.gif)
+</center>
 
 NOW THAT is interesting. One last chart before conclusion. 
 
@@ -492,18 +509,22 @@ ggplot(data = summary(results), aes(x = expr, y = mean, fill = expr))+
 
 Now let me explain what happens, i.e. why the bars are getting closer and closer to each other. 
 
-It appears that the time of computations of the function grows faster than the time needed to apply out NSE magic.
+It appears that the time of computations of the function grows faster than the time needed to apply our NSE magic.
 
-In computer science this means that the time complexity of the actual function is higher than the NSE transformations. 
+In computer science this means that the *time complexity of the actual function is higher than the NSE transformations**. 
 
 Conclusion? 
 
-*It does not matter which (OF THESE) implementations you use, as long as you have a gigantic dataset* - the time is going to be comparable. 
+**It does not matter which (OF THESE) implementations you use, as long as you have a gigantic *dataset** - the time is going to be comparable. 
 
-For *smaller datasets tough - use function3* - its the fastest and simplest too! 
+For **smaller datasets tough - use function3** - its the fastest and simplest too! 
+
+<center>
+![](https://media.giphy.com/media/a0h7sAqON67nO/giphy.gif)
+</center>
 
 Here are the implementations btw
-```{r functions}
+```{r}
 makeNseFunction1 <- function(fun) {
   function(data, elementOrFormula, ...) {
     functionEnvironment = environment()
