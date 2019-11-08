@@ -7,20 +7,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-Hi! Today we will cover NSE and its veeeery weird nature. 
-Are you ready? 
-Me neither. SO LET'S DO IT
-<center>
-![](https://media.giphy.com/media/zaezT79s3Ng7C/giphy.gif)
-</center>
-## Our boys
-Let's meet our today's villains. 
-The three NSEketeers. 
-<center>
-![](https://media.giphy.com/media/74Fmz0WmYtocw/giphy.gif)
-</center>
-Scroll down to see el explanationi. 
-```{r functions}
+```{r functions, echo = FALSE}
 makeNseFunction1 <- function(fun) {
   function(data, elementOrFormula, ...) {
     functionEnvironment = environment()
@@ -78,6 +65,26 @@ makeNseFunction3 <- function(fun) {
   }
 } 
 ```
+
+Hi! Today we will cover NSE and its veeeery weird nature. 
+Are you ready? 
+Me neither. SO LET'S DO IT
+<center>
+![](https://media.giphy.com/media/zaezT79s3Ng7C/giphy.gif)
+</center>
+## Our boys
+Let's meet our today's villains. 
+The three NSEketeers. 
+```{}
+makeNseFunction1()
+makeNseFunction2()
+makeNseFunction3()
+```
+<center>
+![](https://media.giphy.com/media/74Fmz0WmYtocw/giphy.gif)
+</center>
+Scroll down to see el explanationi. 
+
 Each of the functions implements a different way to do a simple thing. 
 
 CREATING AN NSE VERSION OF A GIVEN FUNCTION WHICH RETRIVES A FIELD USING NON-STANDARD EVALUATION WITH BUILT-IN R MECHNISMS OR EXTERNAL METHODS
@@ -211,6 +218,11 @@ So onto the testing we go!
 ![](http://giphygifs.s3.amazonaws.com/media/pYCZPDymIVjeo/giphy.gif)
 </center>
 ## Efficiency testing
+
+First we take a look at the results for all three methods and their results for small dataset. 
+
+Rougly 100 random numbers from 1-100. Shouldn't be difficult. 
+
 ```{r}
 testedFunction = min
 datasetSize = 100
@@ -244,6 +256,28 @@ ggplot(data = summary(results), aes(x = expr, y = mean, fill = expr))+
   theme(legend.position = "none")
 ```
 
+<center>
+![](https://media.giphy.com/media/l3q2K5jinAlChoCLS/giphy.gif)
+</center>
+
+Well, I was expecting one of the methods to be the worse, but come on. 
+
+Function2 is awful. 
+
+But I think I know the reason. 
+
+The problem is that is uses a function from a library and has to load this very library to work. 
+
+```{}
+library(rlang)
+```
+
+Now, one may claim that it would be more more accurate to measure the function WITHOUT loading the library, but it is clearly unfair. 
+
+A developer will HAVE to load the library if he wants to use it so the loading time has to be included in the total function time. 
+
+But this is not the interesting part. Let's take a look at the next chart. 
+
 ```{r}
 testedFunction = min
 datasetSize = 10000
@@ -276,6 +310,8 @@ ggplot(data = summary(results), aes(x = expr, y = mean, fill = expr))+
   theme_minimal() +
   theme(legend.position = "none")
 ```
+
+A bit bigger dataset, nothing very spectacular happening. All bars went a bit up. Let's go to the next one to check how it behaves with a different function - max(). 
 
 ```{r}
 testedFunction = max
@@ -310,6 +346,8 @@ ggplot(data = summary(results), aes(x = expr, y = mean, fill = expr))+
   theme(legend.position = "none")
 ```
 
+Again - nothing fancy. What about mean()? 
+
 ```{r}
 testedFunction = mean
 datasetSize = 10000
@@ -343,38 +381,7 @@ ggplot(data = summary(results), aes(x = expr, y = mean, fill = expr))+
   theme(legend.position = "none")
 ```
 
-```{r}
-testedFunction = mean
-datasetSize = 1000000
-dataset = list(a = sample(x = 1:100, size = datasetSize, replace = TRUE))
-```
-```{r warning=FALSE, message=FALSE, echo=FALSE}
-library(microbenchmark)
-library(ggplot2)
-
-results = data.frame()
-functionNse <- makeNseFunction1(testedFunction)
-results = rbind(results, microbenchmark(
-  function1 = functionNse(data = dataset, a)
-))
-functionNse <- makeNseFunction2(testedFunction)
-results = rbind(results, microbenchmark(
-  function2 = functionNse(data = dataset, a)
-))
-functionNse <- makeNseFunction3(testedFunction)
-results = rbind(results, microbenchmark(
-  function3 = functionNse(data = dataset, a)
-))
-
-ggplot(data = summary(results), aes(x = expr, y = mean, fill = expr))+
-  geom_bar(stat = "identity") + 
-  geom_text(aes(x=expr,y=mean,label=mean),vjust=-.5) +
-  xlab("Function") + 
-  ylab("Mean execution time [ms]") +
-  scale_fill_manual(values = c("#1D3461", "#BC9EC1", "#D282A6")) +
-  theme_minimal() +
-  theme(legend.position = "none")
-```
+Now, what about mean with a BIG dataset? 
 
 ```{r}
 testedFunction = mean
@@ -408,6 +415,46 @@ ggplot(data = summary(results), aes(x = expr, y = mean, fill = expr))+
   theme_minimal() +
   theme(legend.position = "none")
 ```
+
+Hmmm... that's interesting. All bars are coming closer together. 
+
+What about a REALLY BIG INPUT.
+
+```{r}
+testedFunction = mean
+datasetSize = 100000000
+dataset = list(a = sample(x = 1:100, size = datasetSize, replace = TRUE))
+```
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+library(microbenchmark)
+library(ggplot2)
+
+results = data.frame()
+functionNse <- makeNseFunction1(testedFunction)
+results = rbind(results, microbenchmark(
+  function1 = functionNse(data = dataset, a)
+))
+functionNse <- makeNseFunction2(testedFunction)
+results = rbind(results, microbenchmark(
+  function2 = functionNse(data = dataset, a)
+))
+functionNse <- makeNseFunction3(testedFunction)
+results = rbind(results, microbenchmark(
+  function3 = functionNse(data = dataset, a)
+))
+
+ggplot(data = summary(results), aes(x = expr, y = mean, fill = expr))+
+  geom_bar(stat = "identity") + 
+  geom_text(aes(x=expr,y=mean,label=mean),vjust=-.5) +
+  xlab("Function") + 
+  ylab("Mean execution time [ms]") +
+  scale_fill_manual(values = c("#1D3461", "#BC9EC1", "#D282A6")) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+![](https://media.giphy.com/media/26ufdipQqU2lhNA4g/giphy.gif)
+
+NOW THAT is interesting. One last chart before conclusion. 
 
 ```{r}
 testedFunction = lm
@@ -441,4 +488,76 @@ ggplot(data = summary(results), aes(x = expr, y = mean, fill = expr))+
   scale_fill_manual(values = c("#1D3461", "#BC9EC1", "#D282A6")) +
   theme_minimal() +
   theme(legend.position = "none")
+```
+
+Now let me explain what happens, i.e. why the bars are getting closer and closer to each other. 
+
+It appears that the time of computations of the function grows faster than the time needed to apply out NSE magic.
+
+In computer science this means that the time complexity of the actual function is higher than the NSE transformations. 
+
+Conclusion? 
+
+*It does not matter which (OF THESE) implementations you use, as long as you have a gigantic dataset* - the time is going to be comparable. 
+
+For *smaller datasets tough - use function3* - its the fastest and simplest too! 
+
+Here are the implementations btw
+```{r functions}
+makeNseFunction1 <- function(fun) {
+  function(data, elementOrFormula, ...) {
+    functionEnvironment = environment()
+    
+    if (as.character(substitute(elementOrFormula)) %in% names(data)) {
+      argument = data[[deparse(substitute(elementOrFormula))]]
+    } else {
+      allVariables = all.vars(elementOrFormula)
+      for (variable in allVariables) {
+        assign(variable, eval(as.name(variable), data), envir = functionEnvironment)
+      }
+      argument = elementOrFormula
+      environment(argument) = functionEnvironment
+    }
+    fun(argument, ...)
+  }
+} 
+
+makeNseFunction2 <- function(fun) {
+  function(data, elementOrFormula, ...) {
+    library(rlang)
+    
+    functionEnvironment = environment()
+
+    if (as.character(substitute(elementOrFormula)) %in% names(data)) {
+      elementOrFormula = substitute(elementOrFormula)
+      argument = eval(enexpr(elementOrFormula), data)
+    } else {
+      allVariables = all.vars(elementOrFormula)
+      for (variable in allVariables) {
+        assign(variable, eval(as.name(variable), data))
+      }
+      argument = elementOrFormula
+      environment(argument) = functionEnvironment
+    }
+    fun(argument, ...)
+  }
+}
+
+makeNseFunction3 <- function(fun) {
+  function(data, elementOrFormula, ...) {
+    functionEnvironment = environment()
+    
+    if (as.character(substitute(elementOrFormula)) %in% names(data)) {
+      argument = eval(substitute(elementOrFormula), data)
+    } else {
+      allVariables = all.vars(elementOrFormula)
+      for (variable in allVariables) {
+        assign(variable, eval(as.name(variable), data))
+      }
+      argument = elementOrFormula
+      environment(argument) = functionEnvironment
+    }
+    fun(argument, ...)
+  }
+} 
 ```
