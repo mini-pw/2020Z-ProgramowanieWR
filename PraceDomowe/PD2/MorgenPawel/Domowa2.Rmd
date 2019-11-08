@@ -25,20 +25,20 @@ Domyślnie te funkcje powinny się znaleźć wewnątrz ciał funkcji `NSE_functi
 ```{r support_functions}
 get_argument_name <- function(original){
   # Funkcja zwraca nazwę nowego argumentu, która nie kłóci się z nazwami argumentów funkcji original.
-  # Domyślnie: "argslist".
+  # Domyślnie: "env".
   # Występuje we wszystkich wersjach.
-  argslist_name <- "argslist"
-  while(argslist_name %in% names(get_formals(original))) 
-    argslist_name <- paste0(argslist_name, "1")
-  argslist_name
+  env_name <- "env"
+  while(env_name %in% names(get_formals(original))) 
+    env_name <- paste0(env_name, "1")
+  env_name
 }
 
 fix_argument_name <- function(new_name, FUNCTION){
-  # Funkcja zastępuje nazwę pierwszego argumentu funkcji FUNCTION (argslist) nazwą new_name.
-  # Zakładamy, że w ciele funkcji jedyne użycia argslist odwołują się do jej pierwszego argumentu.
+  # Funkcja zastępuje nazwę pierwszego argumentu funkcji FUNCTION (env) nazwą new_name.
+  # Zakładamy, że w ciele funkcji jedyne użycia env odwołują się do jej pierwszego argumentu.
   # Występuje w wersji 1 i 2.
   new_body <- capture.output(body(FUNCTION)) %>%
-    stri_replace_all_fixed("argslist", new_name) %>%
+    stri_replace_all_fixed("env", new_name) %>%
     str2expression()
   body(FUNCTION) <- new_body[[1]]
   names(fn_fmls(FUNCTION))[1] <- new_name
@@ -72,30 +72,43 @@ get_formals <- function(FUNCTION){
   names(open_brackets) <- rep("open", length(open_brackets))
   names(closed_brackets) <- rep("closed", length(closed_brackets))
   sorted_brackets <- c(open_brackets, closed_brackets) %>% sort()  
+  # sorted_brackets jest nazwanym wektorem liczb, które określają pozycję nawiasów w stringu fn_string.
+  # jeśli name to "open" - chodzi o nawias "("; "closed" - ")".
   assign_weights <- function(str) {
     str[str=="open"]<-1
     str[str=="closed"]<- -1
     as.numeric(str)
   }
-  summed_brackets <- assign_weights(names(sorted_brackets)) %>% cumsum()  
+  summed_brackets <- assign_weights(names(sorted_brackets)) %>% cumsum()
   # Szukamy w summed_brackets 0. Indeks, na którym będzie, to będzie indeks obiektu sorted_brackets, 
   # na którym stoi pozycja szukanego przez nas nawiasu zamykającego.
-  summed_brackets[summed_brackets >= 10] <- 9
   # Stworzymy z summed_brackets stringa, który będzie ciągiem cyfr. 
-  # Nie interesują nas dokładne wartości liczb powyżej 10 - możemy je zmapować na 9. 
+  # Nie interesują nas dokładne wartości liczb powyżej 10 - możemy je zamienić na 9. 
+  summed_brackets[summed_brackets >= 10] <- 9
   # Dzięki temu i-ty znak w stringu będzie odpowiadał i-tej liczbie z summed_brackets.
   brackets_as_int <- do.call(paste0, as.list(summed_brackets)) %>%
     stri_extract_first_regex(pattern = "1[1-9]*0") 
-  # brackets_as_int niesie informacje o nawiasach wewnątrz listy argumentów funkcji.
-  # inner_brackets - znajduje wszystkie pozycje startu i końca wywołań funkcji wewnątrz listy argumentów.
+  # brackets_as_int obcina informacje o wszystkich nawiasach do tych tworzących listę argumentów funkcji
+  # lub wewnątrz tej listy.
+  # inner_brackets - znajduje wszystkie pozycje startu i końca nawiasów związanych z wywołaniami
+  # innych funkcji wewnątrz listy argumentów.
   inner_brackets <- stri_locate_all_regex(brackets_as_int,
                                           pattern = "2[2-9]*1", 
                                           omit_no_match = TRUE)[[1]]
-  all_comas <- stri_locate_all_fixed(fn_string, ",", omit_no_match = TRUE)[[1]][,1] 
   # substring indexes przechowuje informację o pozycjach, na których zaczyna się i kończy lista argumentów.
   substring_indexes <- sorted_brackets[c(1, stri_length(brackets_as_int))] 
-  all_comas <- all_comas[all_comas < substring_indexes[2]] 
-  # jeśli wewnątrz listy argumentów nie ma wywołań innych funkcji, to każdy przecinek oddziela od siebie
+  
+  # Chcemy znaleźć same argumenty. Najłatwiej by było porozdzielać nasz string w miejscach, 
+  # gdzie są przecinki. Niestety, przecinki mogą się pojawić wewnątrz wywołań funkcji 
+  # wewnątrz listy argumentów.
+  all_comas <- stri_locate_all_fixed(fn_string, ",", omit_no_match = TRUE)[[1]][,1] 
+  all_comas <- all_comas[all_comas < substring_indexes[2]]
+  # inner_brackets - znajduje wszystkie pozycje startu i końca nawiasów związanych z wywołaniami
+  # innych funkcji wewnątrz listy argumentów.
+  inner_brackets <- stri_locate_all_regex(brackets_as_int,
+                                          pattern = "2[2-9]*1", 
+                                          omit_no_match = TRUE)[[1]]
+  # Jeśli wewnątrz listy argumentów nie ma wywołań innych funkcji, to każdy przecinek oddziela od siebie
   # argumenty. Jeśli są - pewne przecinki mogą występować wewnątrz wywołań innych funkcji:
    if(length(inner_brackets)!=0){
      forbidden_chars <- do.call(c, apply(inner_brackets, 1, 
@@ -129,20 +142,20 @@ get_formals <- function(FUNCTION){
 
 ### 1. Wersja pierwsza
 
-Pomysł jest prosty - zwracana funkcja przyjmuje 2 argumenty: `argslist` - listę, data.frame lub coś środowiskopodobnego (domyślnie: środowisko wzywającego funkcję `FUNCTION`) i elipsę.
+Pomysł jest prosty - zwracana funkcja przyjmuje 2 argumenty: `env` - listę, data.frame lub coś środowiskopodobnego (domyślnie: środowisko wzywającego funkcję `FUNCTION`) i elipsę.
 
-Oczywiście, może się zdarzyć, że funkcja `FUNCTION` wśród swoich argumentów ma argument o nazwie `argslist`. Wówczas przy pomocy funkcji pomocniczych `get_argument_name()` i `fix_argument_name()` następuje poprawka. Tym niemniej, takie sytuacje należą do rzadkości - dla ustalenia uwagi w dalszej części pracy zakładam, że pierwszy argument *rzeczywiście* nazywa się `argslist`.
+Oczywiście, może się zdarzyć, że funkcja `FUNCTION` wśród swoich argumentów ma argument o nazwie `env`. Wówczas przy pomocy funkcji pomocniczych `get_argument_name()` i `fix_argument_name()` następuje poprawka. Dla ustalenia uwagi w dalszej części pracy zakładam, że pierwszy argument *rzeczywiście* nazywa się `env`.
 
 ```{r version_1}
 NSE_factory_1 <- function(FUNCTION){
   stopifnot(is_function(FUNCTION))
-  out <- function(argslist = caller_env(), ...){
+  out <- function(env = caller_env(), ...){
     given_args <- quos(...)
-    evaluated_args <- lapply(given_args, function(expr) eval(quo_squash(expr), argslist))
+    evaluated_args <- lapply(given_args, function(expr) eval(quo_squash(expr), env))
     do.call(FUNCTION, evaluated_args)
   }
   correct_argument_name <- get_argument_name(FUNCTION) 
-  if(correct_argument_name != "argslist")
+  if(correct_argument_name != "env")
     out <- fix_argument_name(correct_argument_name, out)
   out
 }
@@ -152,33 +165,34 @@ NSE_factory_1 <- function(FUNCTION){
 ### 2. Wersja druga
 
 Zaczęło się od marzenia: *A co, gdyby zwracana funkcja dziedziczyła argumenty funkcji FUNCTION?* .
-Pomocna była funkcja `rlang::fn_fmls()`. Niestety, nie działa na funkcje prymitywne - tu musiałem radzić sobie po swojemu. 
 
-Wersja druga funkcji zwraca funkcję, która na pierwszym miejscu ma argument `argslist` - jak w wersji pierwszej. Pozostałe argumenty są identyczne, jak funkcji FUNCTION.
+Pomocna była funkcja `rlang::fn_fmls()`. Niestety, nie działa na funkcje prymitywne - tu musiałem radzić sobie po swojemu, co widać wyżej w ciele funkcji `get_formals()`. 
+
+Wersja druga funkcji zwraca funkcję, która na pierwszym miejscu ma argument `env` - jak w wersji pierwszej. Pozostałe argumenty są identyczne, jak funkcji FUNCTION.
 
 ```{r version_2}
 NSE_factory_2 <- function(FUNCTION){
   stopifnot(is_function(FUNCTION))
   arguments <- get_formals(FUNCTION)
-  # Dołączamy do listy argumentów argslist z wartością domyślną "caller_env()".
+  # Dołączamy do listy argumentów env z wartością domyślną "caller_env()".
   arguments <- append(arguments, call("caller_env"), 0)
-  names(arguments)[[1]] <- "argslist"
+  names(arguments)[[1]] <- "env"
   out <- function() {
     # Jest problem. Jako programista, nie wiem, jakie argumenty przyjmuje funkcja out.
     # Poszukamy ich w środowisku funkcji.
     arguments_names <- env_names(current_env())[-1]
-    # Ignorujemy argumenty argslist i elipsę.
+    # Ignorujemy argumenty env i elipsę.
     for(name in arguments_names[arguments_names != "..."]){
-      # Sytuacja wygląda tak: name <- arg1 <- val1. Jeśli np ktoś wywołał funkcję f(argslist, x = a), 
+      # Sytuacja wygląda tak: name <- arg1 <- val1. Jeśli np ktoś wywołał funkcję f(env, x = a), 
       # to name jest referencją na x, x jest referencją na obiekt a, 
-      # który trzeba zewaluować w środowisku argslist.
+      # który trzeba zewaluować w środowisku env.
       name <- parse_expr(name)
       new_name <- paste0("substitute(", 
              deparse(expr_interp(name)), ")") %>% parse_expr() 
       # W naszym przykładzie new_name <- substitute(x)
       if(eval(new_name) %>% is_missing()) next
       # eval(new_name) to niezewaluowany obiekt a
-      new_value <- eval(eval(new_name) ,argslist)
+      new_value <- eval(eval(new_name) ,env)
       if(is.name(new_value)) next
       assign(x = deparse(name),value = new_value)
       # teraz w naszym środowisku mieszka nowa zmienna poprawnie zewaluowana. Dalej
@@ -189,7 +203,7 @@ NSE_factory_2 <- function(FUNCTION){
     if("..." %in% arguments_names){
       arguments_extra <- quos(...)
       arguments_extra_evaluated <- lapply(arguments_extra, 
-             function(expr) eval(quo_squash(expr), argslist))
+             function(expr) eval(quo_squash(expr), env))
       # dołączamy do listy argumentów argumenty z elipsy, na dobre miejsce
       evaluated_arguments <- append(evaluated_arguments,
              arguments_extra_evaluated,
@@ -199,7 +213,7 @@ NSE_factory_2 <- function(FUNCTION){
   }
   formals(out) <- arguments
   correct_argument_name <- get_argument_name(FUNCTION) 
-  if(correct_argument_name != "argslist") out <- fix_argument_name(correct_argument_name, out)
+  if(correct_argument_name != "env") out <- fix_argument_name(correct_argument_name, out)
   out
 }
 
@@ -221,15 +235,15 @@ NSE_factory_3 <- function(FUNCTION){
   out <- function() {
     # tu się znajdzie:
     # if(!is_missing(arg1))
-    #   arg1 <- eval(substitute(arg1), argslist)
+    #   arg1 <- eval(substitute(arg1), env)
     # if(!is_missing(arg2))
-    # arg2 <- eval(substitute(arg2), argslist)
+    # arg2 <- eval(substitute(arg2), env)
     # ...
     
     # Dlaczego przed ewaluacją każdego argumentu sprawdzam, czy go nie brakuje?
     # Niektóre funkcje (np lm) mają określone nietrywialne działanie na wypadek, gdy niektóre argumenty
     # na wejściu nie są podane. Celem na tym poziomie funkcji jest ewaluacja podanych przez użytkownika
-    # argumentów w środowisku argslist. 
+    # argumentów w środowisku env. 
     # Zajmowanie się przypadkiem braku argumentów zostawiamy funkcji oryginalnej.
     # Teoretycznie mógłbym nie sprawdzać braku argumentu dla argumentów z ustawioną wartością domyślną,
     # ale wredny użytkownik mógłby to obejść wywołaniem f(arg_z_wartością_domyślną = missing_argument()).
@@ -238,7 +252,7 @@ NSE_factory_3 <- function(FUNCTION){
     # Jeśli wśród argumentów jest elipsa:
     #   arguments_extra <- quos(...)
     #   lapply(arguments_extra, 
-    #          function(expr) eval(quo_squash(expr), argslist)) -> arguments_extra_evaluated
+    #          function(expr) eval(quo_squash(expr), env)) -> arguments_extra_evaluated
     #   append(evaluated_arguments,
     #          arguments_extra_evaluated,
     #          which(arguments_names == "...")) -> evaluated_arguments
@@ -284,7 +298,7 @@ NSE_factory_3 <- function(FUNCTION){
 
 ### Testy szybkości tworzenia funkcji
 
-```{r creation_tests}
+```{r creation_tests, fig.align="center"}
 other_unlist <- function(x, recursive = TRUE, use.names = TRUE) unlist(x, recursive, use.names)
 results <- lapply(list(min, mean, lm, unlist, other_unlist), function(FUNCTION)
 microbenchmark(Version_1 = NSE_factory_1(FUNCTION),
@@ -294,7 +308,11 @@ microbenchmark(Version_1 = NSE_factory_1(FUNCTION),
 results_df <- do.call(rbind, results) %>% 
   mutate(Function = rep(c("min", "mean", "lm", "unlist", "other_unlist"), 
                                     each = 75)) 
-bwplot(log10(time) ~ expr | Function , results_df, title = "Czasy generowania funkcji")
+# ggplot(results_df, aes(x = expr, y = log10(time))) +
+#   geom_boxplot() +
+#   facet_wrap(~Function) +
+#   labs(title = "Czasy generowania funkcji")
+bwplot(log10(time) ~ expr | Function , results_df, main = "Czasy generowania funkcji")
 ```
 
 Jak widzimy, wersja trzecia zostaje z tyłu za pozostałymi. Nic dziwnego - jej złożoność zależy od ilości argumentów (co widać przy `lm`) i od tego, czy funkcja na wejściu jest prymitywna.
@@ -323,6 +341,9 @@ names(big) <- stri_c(rep(letters[1:20], each = 20),
                     rep(LETTERS[1:20], times = 20),
                     collapse = ";") %>%
   stri_split(fixed = ";") %>% unlist()
+
+# Do unlist(use.names = TRUE) potrzebujemy kilku nazw. Poniżej są generowane kolejne wyrazy typu:
+# AAAA, AAAB, AAAC, ..., ZZZZ
 simple_names <- stri_c(rep(LETTERS, each = 26^3),
                        rep(LETTERS, each = 26^2, times = 26),
                        rep(LETTERS, each = 26, times = 26^2),
@@ -514,7 +535,7 @@ ggplot(all_results, aes(x = Version, y = log10(time), group = Version)) +
 
 Dość interesujące wnioski. 
 
- * W większości funkcji widzimy pewną prawdłowość. Ogółem rzecz ujmując, poza oryginałem najlepiej radzą sobie wyniki wersji pierwszej, zaraz za nimi wyniki wersji trzeciej, a wersja druga zostaje daleko w tyle. Prawdopodobnie jest to wina pętli `for()`.  
+ * W większości funkcji widzimy pewną prawdłowość. Ogółem rzecz ujmując, poza oryginałem najlepiej radzą sobie wyniki wersji pierwszej, zaraz za nimi wyniki wersji trzeciej, a wersja druga zostaje daleko w tyle. Prawdopodobnie jest to wina pętli `for()` oraz operacji wewnątrz niej. 
  
  * Przy dużych zbiorach danych różnica się zaciera - coraz więcej czasu zajmuje samo wywołanie funkcji oryginalnej w porównaniu z czasem potrzebnym do ewaluacji argumentów. Zwłaszcza różnica między wersjami pierwszą, trzecią i oryginałem staje się pomijalna.
  
