@@ -11,25 +11,25 @@ library(shiny)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
-
+    
     # Application title
     titlePanel("AAA"),
-
+    
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
         sidebarPanel(
             fileInput("file1", "Wybierz CSV",
-                               multiple = TRUE,
-                               accept = c("text/csv",
-                                          "text/comma-separated-values,text/plain",
-                                          ".csv")),
+                      multiple = TRUE,
+                      accept = c("text/csv",
+                                 "text/comma-separated-values,text/plain",
+                                 ".csv")),
             sliderInput("bins",
                         "Number of bins:",
                         min = 1,
                         max = 50,
                         value = 30)
         ),
-
+        
         # Show a plot of the generated distribution
         mainPanel(
             dataTableOutput("contents")
@@ -39,11 +39,11 @@ ui <- fluidPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-
+    
     output$contents <- renderDataTable({
-
+        
         inFile<-input$file1
-         if (is.null(inFile))
+        if (is.null(inFile))
             return(NULL)
         read.csv(inFile$datapath,sep = inFile$sep,
                  quote = inFile$quote)
