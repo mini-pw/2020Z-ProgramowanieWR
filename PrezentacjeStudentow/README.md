@@ -10,7 +10,7 @@ Pakiety do omówienia:
 
 1. [config](https://github.com/rstudio/config).
 1. [crosstalk](https://github.com/rstudio/crosstalk).
-1. [DALEX](https://github.com/ModelOriented/DALEX).
+1. [DALEX](https://github.com/ModelOriented/DALEX) (Aleksandra Łuczak, Tomasz Klonecki)
 1. [DALEXtra](https://github.com/ModelOriented/DALEXtra).
 1. [drake](https://github.com/ropensci/drake).
 1. [future](https://github.com/HenrikBengtsson/future)
@@ -18,11 +18,11 @@ Pakiety do omówienia:
 1. [modelDown](https://github.com/ModelOriented/modelDown).
 1. [mlr3pipelines](https://github.com/mlr-org/mlr3pipelines).
 1. [modelStudio](https://github.com/ModelOriented/modelStudio) (Hubert Baniecki). 
-1. [pipeR](https://github.com/renkun-ken/pipeR).
-1. [promises](https://github.com/rstudio/promises). (Jan Sawicki) 
-1. [rayshader](https://github.com/tylermorganwall/rayshader).
-1. [RcppArmadillo](https://github.com/RcppCore/RcppArmadillo).
+1. [pipeR](https://github.com/renkun-ken/pipeR). (Piotr Olesiejuk, Piotr Janus)
+1. [promises](https://github.com/rstudio/promises) (Jan Sawicki).
+1. [rayshader](https://github.com/tylermorganwall/rayshader).(Tomek Radzikowski)
+1. [RcppArmadillo](https://github.com/RcppCore/RcppArmadillo) (Dominik Rafacz, Hanna Zdulska).
 1. [rex](https://github.com/kevinushey/rex).
-1. [shinyJS](https://github.com/daattali/shinyjs). (Agata Pałdyna, Ryszard Szymański, Tymoteusz Makowski)
+1. [shinyJS](https://github.com/daattali/shinyjs) (Agata Pałdyna, Ryszard Szymański, Tymoteusz Makowski).
 1. [stargazer](https://github.com/cran/stargazer).
 1. [withr](https://github.com/r-lib/withr).
