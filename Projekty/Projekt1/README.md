@@ -33,5 +33,5 @@ Każdy zespół musi realizować inny temat projektu.
 2. Komunikacja z oficjalnym API Hacker News (Ryszarda Szymańskiego, Andrzej Nowikowski, Zuzanna Magierska, Rafał Muszyński, Piotr Janus): https://github.com/szymanskir/hackeRnews +++++.
 3. API do systemów kolejkowych Otwartych Danych Warszawskich (Paweł Morgen, Hanna Zdulska, Jakub Pingielski) https://github.com/HaZdula/kolejkeR +++++.
 4. API do Wikidata.
-5. Wysyłanie informacji o zakończeniu obliczeń w R poprzez gmail itp. (Tomasz Klonecki, Tymoteusz Makowski) ++++.
+5. Wysyłanie informacji o zakończeniu obliczeń w R poprzez gmail itp. (Tomasz Klonecki, Tymoteusz Makowski) https://github.com/tmakowski/sendeR ++++.
 
