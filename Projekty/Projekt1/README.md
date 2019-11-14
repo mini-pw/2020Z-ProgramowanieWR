@@ -16,7 +16,7 @@ Każdy zespół musi realizować inny temat projektu.
 
 **Przetwarzanie danych**
 
-1. Szybkie zliczanie k-merów występujących w stringach. Należy umożliwić użytkownikowi zdefiniowanie alfabetu w jakim zapisane są stringi, aby pakiet mógł uwzględniać również k-mery zawierające takie kombinacje liter, które nie występują w źródłowych sekwencjach. (grupa: Piotr Olesiejuk, Jadwiga Słowik) [kmer](https://github.com/piotr-ole/kmer/) ++++
+1. Szybkie zliczanie k-merów występujących w stringach. Należy umożliwić użytkownikowi zdefiniowanie alfabetu w jakim zapisane są stringi, aby pakiet mógł uwzględniać również k-mery zawierające takie kombinacje liter, które nie występują w źródłowych sekwencjach. (grupa: Piotr Olesiejuk, Jadwiga Słowik) [seqR](https://github.com/piotr-ole/seqR) ++++
 2. Pakiet do refactoringu kodu.
 
 **Grafika**
