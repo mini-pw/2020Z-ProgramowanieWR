@@ -1,0 +1,37 @@
+---
+title: "NonStandardNSE"
+author: "Rafał Muszyński"
+date: "11/15/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+myNSE <- function(func){
+  function(input_list, ...){
+    eval(
+      substitute(func(...)), 
+      input_list
+    )  
+  }
+}
+
+test_min <- myNSE(min)
+test_min(list(a=c(4,5,6), b=c(512,23,1,1)), a)
+
+test_print <- myNSE(print)
+test_print(list(x = 'hmmmmm'), x, quote=TRUE)
+
+data(iris)
+lm(formula = Sepal.Length~Sepal.Width, iris)
+test_lm <- myNSE(lm)
+test_lm(iris, formula = Sepal.Length~Sepal.Width)
+
+lm(formula = Sepal.Length~Sepal.Width - 1, iris)
+test_lm(iris, formula = Sepal.Length~Sepal.Width - 1)
+
+```
