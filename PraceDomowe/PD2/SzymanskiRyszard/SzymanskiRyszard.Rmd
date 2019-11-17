@@ -1,0 +1,213 @@
+---
+title: "Home Assignment 2 - NSE"
+author: "Ryszard Szymański"
+date: "11/17/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(ggplot2)
+library(microbenchmark)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Functions used for creating NSE equivalents
+```{r}
+create_nse_fun1 <- function(fun) {
+  function(data, ...) {
+    args <- as.list(substitute(list(...)))[-1]
+    args_values <- lapply(args, function(arg) {
+      eval(arg, data)
+    })
+    do.call(fun, args_values)
+  }
+}
+
+create_nse_fun2 <- function(fun) {
+  function(data, ...) {
+    args <- match.call(expand.dots = FALSE)$`...`
+    args_values <- lapply(args, function(arg) {
+      eval(arg, data)
+    })
+    do.call(fun, args_values)
+  }
+}
+
+```
+
+# Benchmarks
+
+Helper function used for visualizing benchmark results:
+```{r}
+visualize_benchmark_results <- function(benchmark_results) {
+  benchmark_summary <- summary(benchmark_results)
+  df <- data.frame(
+    expr_type = c("base", "nse1", "nse2"),
+    mean_time = benchmark_summary$mean
+  )
+  ggplot(df, aes(x = expr_type, y = mean_time, fill = expr_type)) +
+    geom_col() +
+    xlab("Expression") + 
+    ylab("Mean execution times") +
+    coord_flip() 
+}
+
+perform_benchmark <- function(...) {
+  benchmark_results <- microbenchmark(...)
+  visualize_benchmark_results(benchmark_results)
+}
+```
+
+## Min function benchmarks
+```{r}
+min_nse1 <- create_nse_fun1(min)
+min_nse2 <- create_nse_fun2(min)
+```
+
+
+### Small data
+```{r}
+x <- list(a = c(1, 2, -30))
+benchmark_results <- microbenchmark(
+  min(x$a),
+  min_nse1(x, a),
+  min_nse2(x, a)
+)
+visualize_benchmark_results(benchmark_results)
+```
+
+### Large data
+```{r}
+x <- list(
+  a = 1:10000,
+  b = seq(-20, 1e8, 1),
+  c = seq(-20, 1e8, 1),
+  d = seq(-20, 1e7, 1),
+  e = seq(-20, 1e7, 1),
+  z = seq(12310, 123120, 1)
+)
+benchmark_results <- microbenchmark(
+  min(x$b),
+  min_nse1(x, b),
+  min_nse2(x, b)
+)
+visualize_benchmark_results(benchmark_results)
+```
+
+## Mean function benchmarks
+```{r}
+mean_nse1 <- create_nse_fun1(mean)
+mean_nse2 <- create_nse_fun2(mean)
+```
+
+
+### Small data
+```{r}
+x <- list(a = c(1, 2, -30))
+benchmark_results <- microbenchmark(
+  mean(x$a),
+  mean_nse1(x, a),
+  mean_nse2(x, a)
+)
+visualize_benchmark_results(benchmark_results)
+```
+
+### Large data
+```{r}
+x <- list(
+  a = 1:10000,
+  b = seq(-20, 1e8, 1),
+  c = seq(-20, 1e8, 1),
+  d = seq(-20, 1e7, 1),
+  e = seq(-20, 1e7, 1),
+  z = seq(12310, 123120, 1)
+)
+benchmark_results <- microbenchmark(
+  mean(x$b),
+  mean_nse1(x, b),
+  mean_nse2(x, b)
+)
+visualize_benchmark_results(benchmark_results)
+```
+
+## Unlist function benchmarks
+```{r}
+unlist_nse1 <- create_nse_fun1(unlist)
+unlist_nse2 <- create_nse_fun2(unlist)
+```
+
+
+### Small data
+```{r}
+x <- list(a = list(1, 2, -30), c = list(e = 5, f = 30, g = 40))
+benchmark_results <- microbenchmark(
+  unlist(x$c, use.names = TRUE),
+  unlist_nse1(x, c, use.names = TRUE),
+  unlist_nse2(x, c, use.names = TRUE)
+)
+visualize_benchmark_results(benchmark_results)
+```
+
+### Large data
+```{r}
+x <- list(
+  a = list(1:10),
+  b = seq(-20, 1e3, 1),
+  c = list(rep(list(1:1e3, rep(list(1:1e3, rep(list(1:1e5), 5)), 3))))
+)
+
+benchmark_results <- microbenchmark(
+  unlist(x$c),
+  unlist_nse1(x, c),
+  unlist_nse2(x, c)
+)
+visualize_benchmark_results(benchmark_results)
+```
+
+
+## lm function benchmarks
+```{r}
+lm_nse1 <- create_nse_fun1(lm)
+lm_nse2 <- create_nse_fun2(lm)
+```
+
+
+### Small data
+```{r}
+benchmark_results <- microbenchmark(
+  lm(Sepal.Length ~ Sepal.Width, iris),
+  lm_nse1(iris, Sepal.Length ~ Sepal.Width),
+  lm_nse2(iris, Sepal.Length ~ Sepal.Width)
+)
+visualize_benchmark_results(benchmark_results)
+```
+
+### Large data
+```{r}
+library(data.table)
+big_iris <- rbindlist(lapply(1:10000, function(x) iris))
+benchmark_results <- microbenchmark(
+  lm(Sepal.Length ~ Sepal.Width, big_iris),
+  lm_nse1(big_iris, Sepal.Length ~ Sepal.Width),
+  lm_nse2(big_iris, Sepal.Length ~ Sepal.Width)
+)
+visualize_benchmark_results(benchmark_results)
+```
+
+# Summary
+
+- In most cases the NSE equivalent performed slower than the original function especially when the data being processed was on the smaller side. This is caused by the overhead related to the manual evaluation of each argument before performing an actual function call.
+
+- In case of large size data the computation times would equalize and even sometimes the NSE equivalents would perform fasetr.  
+
+- In case of `lm` it turned out that sometimes the NSE equivalents were faster than the original function.
+
+- **match.call(expand.dots = FALSE)$`...`** usually performed slower than **as.list(substitute(list(...)))[-1]**
+
+# Sources
+The NSE factories were inspired be the following resources:
+
+- https://stackoverflow.com/questions/5754367/using-substitute-to-get-argument-name-with
+
+- https://r.789695.n4.nabble.com/substitute-on-arguments-in-ellipsis-quot-dot-dot-dot-quot-td4751658.html
