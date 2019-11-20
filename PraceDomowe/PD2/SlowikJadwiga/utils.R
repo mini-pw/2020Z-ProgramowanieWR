@@ -1,5 +1,6 @@
 library(dplyr)
 library(rlang)
+library(ggplot2)
 
 get_benchmark_df <- function(functions_list, data, ...) {
   names(functions_list) <- sapply(
@@ -16,6 +17,13 @@ get_benchmark_df <- function(functions_list, data, ...) {
     unit="ms",
     times=10
   )
-  eval_tidy(c) %>% summary() %>% select(c("expr", "mean"))
+  eval_tidy(c) %>% summary() %>% select(c("expr", "mean")) %>% as.data.frame()
+}
+
+get_bar_plot <- function(df) {
+  ggplot(df, aes(x=expr, y=mean, fill=expr)) +
+    geom_col() +
+    theme_classic() +
+    ylab("mean [ns]")
 }
 
