@@ -1,0 +1,271 @@
+---
+title: "Praca domowa nr 2"
+author: "Mateusz Polakowski"
+date: "November 20, 2019"
+output: 
+  html_document:
+    code_folding: hide
+    fig_width: 12
+    fig_height: 7
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(microbenchmark)
+```
+
+# Implementacje funkcji z NSE
+
+Poniżej zawarte są dwie funkcje zadane w pracy domowej. Faktyczna różnica jest tylko w spisywaniu kolejnych argumentów funkcji *base_function*, otrzymanych w *...* . Mimo tego, można spodziewać się różnych wyników dla różnych funkcji i zbiorów danych.
+
+```{r}
+nse_function_1 <- function(base_function) {
+  function(data, ...) {
+    args_list <- as.list(substitute(list(...)))[-1]
+    args_values <- lapply(args_list, function(x) {
+      eval(x, data)
+    })
+    do.call(base_function, args_values)
+  }
+}
+
+nse_function_2 <- function(base_function) {
+  function(data, ...) {
+    args_list <- match.call(expand.dots = FALSE)$`...`
+    args_values <- lapply(args_list, function(x) {
+      eval(x, data)
+    })
+    do.call(base_function, args_values)
+  }
+}
+```
+
+# Porównanie dla różnych funkcji i różnych zbiorów danych
+
+## Funkcja *min*
+
+```{r}
+Functions <- rep(c("ORIG", "NSE1", "NSE2"), 2)
+
+vec_small <- list(a = rnorm(10))
+vec_big <- list(a = rnorm(10),
+                b = rnorm(100),
+                c = rnorm(1000),
+                d = rnorm(10000),
+                e = rnorm(100000),
+                f = rnorm(1000000))
+
+min_nse1 <- nse_function_1(min)
+min_nse2 <- nse_function_2(min)
+
+results_min_small <- microbenchmark::microbenchmark(
+  "ORIG_small" = min(vec_small$a),
+  "NSE1_small" = min_nse1(vec_small, a),
+  "NSE2_small" = min_nse2(vec_small, a),
+  unit = 'us'
+)
+results_min_big <- microbenchmark::microbenchmark(
+  "ORIG_big" = min(vec_big$e),
+  "NSE1_big" = min_nse1(vec_big, e),
+  "NSE2_big" = min_nse2(vec_big, e),
+  unit = 'us'
+)
+
+results_min_small <- summary(results_min_small)[, c('expr', 'mean')]
+results_min_big <- summary(results_min_big)[, c('expr', 'mean')]
+
+results_min <- rbind(results_min_small, results_min_big)
+
+ggplot(data = results_min) +
+  geom_col(aes(x = expr, y = mean, fill = Functions)) +
+  coord_flip() +
+  labs(y = "\nMean benchmark time", x = "", title = "Min function comparison") +
+  theme_bw()
+```
+
+## Funkcja *mean*
+
+```{r}
+Functions <- rep(c("ORIG", "NSE1", "NSE2"), 2)
+
+vec_small <- list(a = rnorm(10))
+vec_big <- list(a = rnorm(10),
+                b = rnorm(100),
+                c = rnorm(1000),
+                d = rnorm(10000),
+                e = rnorm(100000),
+                f = rnorm(1000000))
+
+mean_nse1 <- nse_function_1(mean)
+mean_nse2 <- nse_function_2(mean)
+
+results_mean_small <- microbenchmark::microbenchmark(
+  "ORIG_small" = mean(vec_small$a),
+  "NSE1_small" = mean_nse1(vec_small, a),
+  "NSE2_small" = mean_nse2(vec_small, a),
+  unit = 'us'
+)
+results_mean_big <- microbenchmark::microbenchmark(
+  "ORIG_big" = mean(vec_big$e),
+  "NSE1_big" = mean_nse1(vec_big, e),
+  "NSE2_big" = mean_nse2(vec_big, e),
+  unit = 'us'
+)
+
+results_mean_small <- summary(results_mean_small)[, c('expr', 'mean')]
+results_mean_big <- summary(results_mean_big)[, c('expr', 'mean')]
+
+results_mean <- rbind(results_mean_small, results_mean_big)
+
+ggplot(data = results_mean) +
+  geom_col(aes(x = expr, y = mean, fill = Functions)) +
+  coord_flip() +
+  labs(y = "\nMean benchmark time", x = "", title = "Mean function comparison") +
+  theme_bw()
+```
+
+## Funkcja *unlist z use.names = TRUE*
+
+```{r}
+Functions <- rep(c("ORIG", "NSE1", "NSE2"), 2)
+
+vec_small <- list(a = rnorm(10), 
+                  b = list(c = rnorm(2),
+                       d = rnorm(3),
+                       e = rnorm(4)))
+vec_big <- list(a = rnorm(10),
+                b = list(c = rnorm(100),
+                     d = rnorm(1000),
+                     e = rnorm(1000)),
+                f = list(g = list(
+                  h = rnorm(100000),
+                  i = rnorm(100))))
+
+unlist_nse1 <- nse_function_1(unlist)
+unlist_nse2 <- nse_function_2(unlist)
+
+results_unlist_small <- microbenchmark::microbenchmark(
+  "ORIG_usenames_small" = unlist(vec_small$b, use.names = TRUE),
+  "NSE1_usenames_small" = unlist_nse1(vec_small, b, use.names = TRUE),
+  "NSE2_usenames_small" = unlist_nse2(vec_small, b, use.names = TRUE),
+  unit = 'us'
+)
+results_unlist_big <- microbenchmark::microbenchmark(
+  "ORIG_big" = unlist(vec_big$f, use.names = TRUE),
+  "NSE1_big" = unlist_nse1(vec_big, f, use.names = TRUE),
+  "NSE2_big" = unlist_nse2(vec_big, f, use.names = TRUE),
+  unit = 'us'
+)
+
+results_unlist_small <- summary(results_unlist_small)[, c('expr', 'mean')]
+results_unlist_big <- summary(results_unlist_big)[, c('expr', 'mean')]
+
+results_unlist <- rbind(results_unlist_small, results_unlist_big)
+
+ggplot(data = results_unlist) +
+  geom_col(aes(x = expr, y = mean, fill = Functions)) +
+  coord_flip() +
+  labs(y = "\nMean benchmark time", x = "", title = "Mean function comparison") +
+  theme_bw()
+```
+
+## Funkcja *unlist z use.names = FALSE*
+
+```{r}
+Functions <- rep(c("ORIG", "NSE1", "NSE2"), 2)
+
+vec_small <- list(a = rnorm(10), 
+                  b = list(c = rnorm(2),
+                       d = rnorm(3),
+                       e = rnorm(4)))
+vec_big <- list(a = rnorm(10),
+                b = list(c = rnorm(100),
+                     d = rnorm(1000),
+                     e = rnorm(1000)),
+                f = list(g = list(
+                  h = rnorm(100000),
+                  i = rnorm(100))))
+
+unlist_nse1 <- nse_function_1(unlist)
+unlist_nse2 <- nse_function_2(unlist)
+
+results_unlist_small <- microbenchmark::microbenchmark(
+  "ORIG_small" = unlist(vec_small$b, use.names = FALSE),
+  "NSE1_small" = unlist_nse1(vec_small, b, use.names = FALSE),
+  "NSE2_small" = unlist_nse2(vec_small, b, use.names = FALSE),
+  unit = 'us'
+)
+results_unlist_big <- microbenchmark::microbenchmark(
+  "ORIG_big" = unlist(vec_big$f, use.names = FALSE),
+  "NSE1_big" = unlist_nse1(vec_big, f, use.names = FALSE),
+  "NSE2_big" = unlist_nse2(vec_big, f, use.names = FALSE),
+  unit = 'us'
+)
+
+results_unlist_small <- summary(results_unlist_small)[, c('expr', 'mean')]
+results_unlist_big <- summary(results_unlist_big)[, c('expr', 'mean')]
+
+results_unlist <- rbind(results_unlist_small, results_unlist_big)
+
+ggplot(data = results_unlist) +
+  geom_col(aes(x = expr, y = mean, fill = Functions)) +
+  coord_flip() +
+  labs(y = "\nMean benchmark time", x = "", title = "Mean function comparison") +
+  theme_bw()
+```
+
+## Funkcja *lm*
+
+```{r}
+Functions <- rep(c("ORIG", "NSE1", "NSE2"), 2)
+
+data_small <- data.frame(
+  x1 = rnorm(10),
+  x2 = rnorm(10),
+  x3 = rnorm(10),
+  eps = rnorm(10, 0.5)
+)
+data_small$y = data_small$x1 * 0.1 + data_small$x2 * 0.5 + data_small$x1 * 0.7 + data_small$eps
+
+data_big <- data.frame(
+  x1 = rnorm(10000),
+  x2 = rnorm(10000),
+  x3 = rnorm(10000),
+  x4 = rnorm(10000),
+  x5 = rnorm(10000),
+  eps = rnorm(10000, 0.5)
+)
+data_big$y = data_small$x1 * 0.1 + data_small$x2 * 0.5 + data_small$x1 * 0.7 + data_small$x1 * 0.2 + data_small$x1 * 0.4 + data_small$eps
+
+lm_nse1 <- nse_function_1(lm)
+lm_nse2 <- nse_function_2(lm)
+
+results_lm_small <- microbenchmark::microbenchmark(
+  "ORIG_small" = lm(y ~ x1 + x2 + x3, data = data_small),
+  "NSE1_small" = lm_nse1(data_small, y ~ x1 + x2 + x3),
+  "NSE2_small" = lm_nse2(data_small, y ~ x1 + x2 + x3),
+  unit = 'us'
+)
+results_lm_big <- microbenchmark::microbenchmark(
+  "ORIG_big" = lm(y ~ x1 + x2 + x3, data = data_big),
+  "NSE1_big" = lm_nse1(data_big, y ~ x1 + x2 + x3),
+  "NSE2_big" = lm_nse2(data_big, y ~ x1 + x2 + x3),
+  unit = 'us'
+)
+
+results_lm_small <- summary(results_lm_small)[, c('expr', 'mean')]
+results_lm_big <- summary(results_lm_big)[, c('expr', 'mean')]
+
+results_lm <- rbind(results_lm_small, results_lm_big)
+
+ggplot(data = results_lm) +
+  geom_col(aes(x = expr, y = mean, fill = Functions)) +
+  coord_flip() +
+  labs(y = "\nMean benchmark time", x = "", title = "Lm function comparison") +
+  theme_bw()
+```
+
+# Wnioski
+
+Niestety, pomimo prób stworzenia optymalnych funkcji korzystających z NSE nie udało nam się uzyskać zadowalających rezultatów, tj. takich, w których napisane przez nas funkcje byłyby szybsze od podstawowych wywołań funkcji, którym się przyglądaliśmy.
