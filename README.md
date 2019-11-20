@@ -17,7 +17,7 @@ Strona przedmiotu Zaawansowane programowanie w R na wydziale MiNI PW.
 | 17.10 | Tworzenie pakietów R (część 1).                                         | Dokumentacja (roxygen2, pkgdown) i testowanie kodu (testthat).     | 1*      | 2  |            |
 | 24.10 | Tworzenie pakietów R (część 2).                                         | Dobre praktyki tworzenia pakietów.                                 | 1*      |    |            |
 | 31.10 |                                                                         |                                                                    |         |    |            |
-| 07.11 | ShinyProxy i Kubernetes.                                                | Tworzenie aplikacji Shiny. ShinyJS. Shiny i Electron.              | 1       |    | 2          |
+| 07.11 | Shiny. Programowanie reaktywne.                                         | Tworzenie aplikacji Shiny. ShinyJS. Shiny i Electron.              | 1       |    | 2          |
 | 14.11 | Prezentacje wyników projektu 1.                                         |                                                                    |         |    |            |
 | 21.11 | R jako interfejs do obliczeń rozproszonych.                             | Integracja R i Sparka (sparklyr).                                  |         | 3  | 3          |
 | 28.11 | Prezentacje studentów.                                                  | Programowanie równoległe w R.                                      | 2       |    |            |
