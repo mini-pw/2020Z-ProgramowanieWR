@@ -1,0 +1,144 @@
+---
+title: "Praca Domowa 2"
+author: "Dominik Rafacz"
+date: "November 20, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(dplyr)
+library(ggplot2)
+```
+
+# Wstęp
+
+Dzień dobry państwu! Witamy w drugim odcinku programu pt. "Praca domowa z zaawansowanego eRa". W dzisiejszym odcinku poznamy zwycięzcę konkursu na najlepszy sposób ewaluacji  niestandardowej. Albo nie poznamy. Ten element niepowności będzie trzymał nas w napięciu!
+
+# Kandydaci
+
+Do konkursu stanęło pięciu kandydatów. Oto i oni!
+
+```{r solutions}
+wrap_sols <- list()
+
+# 'substitute + eval'
+wrap_sols[["suev_sol"]] <- function(fun) {
+  function(arg_env, arg_name) {
+    fun(eval(substitute(arg_name), arg_env))
+  }
+}
+
+# 'with' oraz pomocniczo 'substitute' i 'eval'
+wrap_sols[["with_sol"]] <- function(fun) {
+  function(arg_env, arg_name) {
+    subs <- substitute(arg_name)
+    fun(with(arg_env, eval(subs)))
+  }
+}
+
+# 'attach'
+wrap_sols[["att_sol"]] <- function(fun) {
+  function(arg_env, arg_name) {
+    attach(arg_env, warn.conflicts = FALSE)
+    ret <- fun(arg_name)
+    detach(arg_env)
+    ret
+  }
+}
+
+# 'substitute + deparse'
+wrap_sols[["sude_sol"]] <- function(fun) {
+  function(arg_env, arg_name) {
+    fun(arg_env[[deparse(substitute(arg_name))]])
+  }
+}
+
+
+# 'get' 
+wrap_sols[["get_sol"]] <- function(fun) {
+  function(arg_env, arg_name) {
+    fun(get(deparse(substitute(arg_name)), arg_env))
+  }
+}
+
+```
+
+
+Warto nadmienić, że ostatnie dwa rozwiązania startują w innej kategorii -- potrafią ewaluować niestandardowo, ale nie tak bardzo. Nadają się do użycia, gdy parametry przekazywane są bezpośrednio. 
+
+Wygenerujemy teraz kilka zbiorków danych, żeby mieć na czym przetestować naszych kontestantów.
+
+```{r data, cache=TRUE}
+set.seed(42571)
+data_to_test <- list(
+  l1 = list(x = 1, y = 12),
+  l2 = list(x = rnorm(10), y = rnorm(10)),
+  l3 = list(x = rnorm(10000), y = rnorm(10000), z = rnorm(20000)),
+  df1 = as.data.frame(matrix(rnorm(500000), 100000, 
+                            dimnames = list(NULL, c("x", "y", "z", "w", "v")))),
+  df2 = as.data.frame(matrix(rnorm(5000000), 1000000, 
+                            dimnames = list(NULL, c("x", "y", "z", "w", "v"))))
+)
+```
+
+Oczywiście, do tego potrzeba kilka funkcji, które wrzucimy do testowanych funckji wrapujących:
+
+```{r helpers}
+funs_to_test <- list(
+  mean = mean,
+  min = min,
+  unlist_T = unlist,
+  unlist_F = function(x) unlist(x, use.names = FALSE),
+  lm = lm
+)
+```
+
+# Wyniki
+
+Na poniższym wykresie prezentujemy, jak sprawują się kontestanci:
+
+```{r test, cache=TRUE, fig.align='center', fig.width=10, fig.height=8, warning=FALSE}
+do.call(rbind, lapply(1:50, function(it) {
+  do.call(rbind, lapply(names(data_to_test), function(datname) {
+    do.call(rbind, lapply(names(wrap_sols), function(wrap_sol) {
+      do.call(rbind, lapply(names(funs_to_test), function(fun) {
+        wrapped_fun <- wrap_sols[[wrap_sol]](funs_to_test[[fun]])
+        dat <- data_to_test[[datname]]
+        if (fun == "lm") {
+          if (wrap_sol %in% c("get_sol", "sude_sol")) {
+            t1 <- NA
+            t2 <- NA
+          } else {
+            t1 <- Sys.time()
+            wrapped_fun(dat, y~x)
+            t2 <- Sys.time()
+          }
+        } else {
+          t1 <- Sys.time()
+          wrapped_fun(dat, x)
+          t2 <- Sys.time()
+        }
+        data.frame(fun = fun, dat = datname, wrap_sol = wrap_sol, time = t2 - t1, it = it)
+      }))  
+    }))  
+  }))
+})) -> res
+
+res %>% group_by(fun, dat, wrap_sol) %>%
+  summarise(m_time = mean(time)) %>%
+  ggplot(aes(x = dat, y = m_time, fill = wrap_sol)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  facet_wrap(~fun, scales = "free_y") +
+  scale_y_continuous("czas wykonywania") +
+  scale_x_discrete("zbior danych")
+```
+
+Z wykresów możemy wyciągnąć kilka wniosków:
+
+* rozwiązanie `substitute + eval` jest prawie zawsze najszybsze,
+* rozwiązanie `attach` jest prawie zawsze najwolniejsze - i to nieraz wielokrotnie!
+* dla większych zbiorów wyniki wszystkich funkcji są podobne.
+
+Wobec tego, możemy uznać, że zwycięzcą jest... para `substitute + eval`! Zwycięzcy gratulujemy i życzymy szczęścia w dalszym byciu kodzonym, natomiast widzów zapraszamy już na kolejny odcinek :) 
