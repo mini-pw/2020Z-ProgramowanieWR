@@ -2,6 +2,7 @@
 
 library(shiny)
 library(shinycssloaders)
+library(shinyhelper)
 
 ui <- pageWithSidebar(
     headerPanel("Interactive Histogram"),
@@ -17,12 +18,14 @@ ui <- pageWithSidebar(
                     min = 1, max = 100, value = 50)
     ),
     mainPanel(
-        withSpinner(plotOutput("histogram"))
+        helper(withSpinner(plotOutput("histogram")), content = "example-file", type = "markdown")
     )
 )
 
 
 server <- function(input, output) {
+    observe_helpers(help_dir = "help_mds")
+    
     data <- reactive({ 
         FUN <- switch(input[["family"]],
                       "Normal" = rnorm,
