@@ -1,0 +1,165 @@
+---
+title: "Praca domowa nr 2"
+author: "Piotr Olesiejuk"
+output: html_notebook
+---
+
+# Funkcje NSE
+
+
+```{r}
+#install.packages("microbenchmark")
+#install.packages("ggplot2")
+#install.packages("ggthemes")
+library(ggplot2)
+library(microbenchmark)
+library(ggthemes)
+library(patchwork)
+```
+
+Przetestowane zostały cztery, dość zbliżone do siebie metody generowania funkcji w NSE. Poniżej zostały przedstawione ciała wspomnianych funkcji.
+
+```{r}
+zadanieDomowe1 <- function(fun) {
+  myFun <- function(input_list, x, ...) {
+    fun(eval(substitute(x), input_list), ...)
+  }
+  myFun
+}
+
+zadanieDomowe2 <- function(fun) {
+  myFun <- function(input_list, x, ...) {
+    do.call(fun, list(eval(substitute(x), input_list), ...))
+  }
+  myFun
+}
+
+
+zadanieDomowe3 <- function(fun) {
+  myFun <- function(input_list, x , ...) {
+    nse_element <- substitute(x)
+    with(input_list, do.call(fun, list(nse_element, ...)))
+  }
+  myFun
+}
+```
+
+## Metodyka testowania wydajności
+
+Do przetestowania wydajności wykorzystano cztery funkcje: min, mean, unlist (z parametrami use.names = TRUE oraz use.names = FALSE) oraz lm. Każda z tych funkcji została przetestowana na małym oraz dużym zestawie danych. Dane do testowania były w każdym przypadku następujące
+```{r}
+generate_big_list <- function(list_size = 100, element_size = 1000) {
+  l <- list()
+  for (i in 1:list_size) {
+    l[[paste0("var", i)]] = sample(1:element_size, size = element_size, replace = FALSE) 
+  }
+  l
+}
+
+small_data <- list(var21 = c(10,3,6,7), var32 = c(4,2,1,5))
+big_data <- generate_big_list()
+```
+Lista big_data została wygenerowana raz i posłużyła do testów wszystkich funkcji.
+
+Funkcje były testowane z wykorzystaniem pakietu microbenchmark poprzez funkcję testing. W przypadku funkcji lm, w funkcji testującej został zmieniony argument przekazywany do odpowiednich funkcji w NSE z var1 na var1~var2. Były prowadzone próby przekazywania wyrażenia jako argumentu w funkcji testing, jednak nie udało się wykonać takiej operacji stąd taka decyzja w kwestii testowanie. Problemem, była nazwa zmiennej przekazywanej do funkcji w NSE.
+```{r}
+testing <- function(func, data, argmts = list(), areArgs = FALSE, title = "Time performance") {
+  
+  
+  fun_NSE_1 <- zadanieDomowe1(func)
+  fun_NSE_2 <- zadanieDomowe2(func)
+  fun_NSE_3 <- zadanieDomowe3(func)
+  #browser()
+  t <- numeric(length = 3)
+  if (areArgs == FALSE){
+    t[1] <- mean(microbenchmark(fun_NSE_1(data, var21), times = 1000)$time)
+    t[2] <- mean(microbenchmark(fun_NSE_2(data, var21), times = 1000)$time)
+    t[3] <- mean(microbenchmark(fun_NSE_3(data, var21), times = 1000)$time)
+  }
+  else{
+    t[1] <- mean(microbenchmark(fun_NSE_1(data, var21, argmts), times = 1000)$time)
+    t[2] <- mean(microbenchmark(fun_NSE_2(data, var21, argmts), times = 1000)$time)
+    t[3] <- mean(microbenchmark(fun_NSE_3(data, var21, argmts), times = 1000)$time)
+  }
+  fun_names <- c("1", "2", "3")
+  
+  t <- sapply(t, function(x) { x / 1000})
+  
+  ggplot(data = data.frame(time = t, solution = fun_names), 
+         aes(x = solution, y = time, fill = fun_names)) +
+    geom_bar(stat = 'identity') +
+    ylim(0, 30) +
+    ggtitle(paste(title, ' [microsec.]')) +
+    theme_fivethirtyeight() +
+    theme(plot.title = element_text(hjust = 0.5), legend.position = 'none',
+          panel.background = element_blank(),
+          plot.background = element_blank())
+}
+
+```
+
+# Wyniki
+
+## Min
+```{r, echo = FALSE}
+p1 <- testing(min, small_data, title = 'Small list')
+p2 <- testing(min, big_data, title = 'Big list')
+p1 + p2
+```
+
+## Mean
+```{r, echo = FALSE}
+p1 <- testing(mean, small_data, title = 'Small list')
+p2 <- testing(mean, big_data, title = 'Big list')
+p1 + p2
+```
+
+## Unlist (use.names = FALSE)
+```{r, echo = FALSE}
+p1 <- testing(unlist, small_data, list(use.names = FALSE), TRUE, title = 'Small list')
+p2 <- testing(unlist, big_data, list(use.names = FALSE), TRUE, title = 'Big list')
+p1 + p2
+```
+
+## Unlist (use.names = TRUE)
+```{r, echo = FALSE}
+p1 <- testing(unlist, small_data, list(use.names = TRUE), TRUE, title = 'Small list')
+p2 <- testing(unlist, big_data, list(use.names = TRUE), TRUE, title = 'Big list')
+p1 + p2
+```
+## lm
+```{r, echo = FALSE}
+testing_lm <- function(func, data, title = "Time performance") {
+  
+  
+  fun_NSE_1 <- zadanieDomowe1(func)
+  fun_NSE_2 <- zadanieDomowe2(func)
+  fun_NSE_3 <- zadanieDomowe3(func)
+  #browser()
+  t <- numeric(length = 3)
+  #browser()
+  t[1] <- mean(microbenchmark(fun_NSE_1(data, var21~var32), times = 1000)$time)
+  t[2] <- mean(microbenchmark(fun_NSE_2(data, var21~var32), times = 1000)$time)
+  t[3] <- mean(microbenchmark(fun_NSE_3(data, var21~var32), times = 1000)$time)
+  fun_names <- c("1", "2", "3")
+  
+  t <- sapply(t, function(x) { x / 1000})
+
+  ggplot(data = data.frame(time = t, solution = fun_names), 
+         aes(x = solution, y = time, fill = fun_names)) +
+    geom_bar(stat = 'identity') +
+    ylim(0, 800) +
+    ggtitle(paste(title, ' [microsec.]')) +
+    theme_fivethirtyeight() +
+    theme(plot.title = element_text(hjust = 0.5), legend.position = 'none',
+          panel.background = element_blank(),
+          plot.background = element_blank())
+}
+
+p1 <- testing_lm(lm, small_data, title = 'Small list')
+p2 <- testing_lm(lm, big_data, title = 'Big list')
+p1 + p2
+```
+# Wnioski
+Jak widać najlepiej spisuje się rozwiązanie nr 1, rozwiązanie 2 często jest drugim wynikiem bądź blisko wyniku rozwiązania nr 3. Rozwiązanie numer 3 spisuje się najczęściej najgorzej, ciekawe jest, że w przypadku budowania modelu liniowego dla małej listy poradził sobie najlepiej. Porównując wydajność na dużych i małych rozmiarach danych można dojść do wniosku, że wyniki nie różnią się znacząco. Rezultaty są lepsze dla mniejszych danych, zaś różnica zależy od wykorzystanej metody.
+

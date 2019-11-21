@@ -1,0 +1,131 @@
+---
+title: "Homework 2"
+author: "Sebastian Sowik"
+date: "20 11 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+library(wesanderson)
+library(tidyr)
+library(lattice)
+library(latticeExtra)
+library(microbenchmark)
+library(mlbench)
+library(rlang)
+```
+
+## Turning function into it's NSE variant
+
+Two different implementations that turn function into function doing the same task but in non standard evaluation fation were implemented.
+First implementation uses only functions available in base R, second one uses expressions and quasiquotations recomended by tidyverse from rlang package.
+
+
+```{r nse, include=TRUE}
+
+baseR_nse <- function(func) {
+  function(data, ...) {
+    args <- as.list(substitute(...()))
+    env <- list2env(data)
+    do.call(func, args, envir=env)
+  }
+}
+
+tidy_nse <- function(f) {
+  function(data, ...) {
+    args <- exprs(...)
+    ef <- enexpr(f)
+    eval_tidy(expr((!!ef)(!!!args)), data=data)
+  }
+} 
+
+test_base_nse <- function(nse_factory, func, ...) {
+  func_nse <- nse_factory(func)
+  func_nse(...)
+}
+
+test_tidy_nse <- function(nse_factory, func, ...) {
+  func_nse <- nse_factory(!!func)
+  func_nse(...)
+}
+data("Satellite" )
+
+small_list <- list(a=c(1,2,3,4), b=c(6,3,5,5))
+large_df <- Satellite
+lex <- list(a = list(1:5, LETTERS[1:5]), b = "Z", c = NA)
+lex_df <- data.frame(lex=lex,o=c(1:5))
+
+```
+
+
+## Benchmark results
+
+Both implementations where compared on the same set of standard functions with two different datasets, small and medium sized.
+
+```{r benchmark}
+# Tested on min function with small dataset
+microbenchmark::microbenchmark(
+  baseR=test_base_nse(baseR_nse, min, small_list, b),
+  tidy=test_tidy_nse(tidy_nse, min, small_list, b),
+  standard=min(small_list[["b"]])
+)
+
+
+# Tested on min function with medium dataset
+microbenchmark::microbenchmark(
+  baseR=test_base_nse(baseR_nse, min, large_df, x.1),
+  tidy=test_tidy_nse(tidy_nse, min, large_df, x.1),
+  standard=min(large_df[["x.1"]])
+)
+
+# Tested on mean function with small dataset
+microbenchmark::microbenchmark(
+  baseR=test_base_nse(baseR_nse, mean, small_list, b),
+  tidy=test_tidy_nse(tidy_nse, mean, small_list, b),
+  standard=mean(small_list[["b"]])
+)
+
+# Tested on mean function with medium dataset
+microbenchmark::microbenchmark(
+  baseR=test_base_nse(baseR_nse, mean, large_df, x.1),
+  tidy=test_tidy_nse(tidy_nse, mean, large_df, x.1),
+  standard=mean(large_df[["x.1"]])
+)
+
+# Tested on lm function with small dataset
+microbenchmark::microbenchmark(
+  baseR=test_base_nse(baseR_nse, lm, small_list, a~b, weights=rep(1.2,4)),
+  tidy=test_tidy_nse(tidy_nse, lm, small_list, a~b, weights=rep(1.2,4)),
+  standard=lm(a~b, small_list, weights=rep(1.2,4))
+)
+
+# Tested on lm function with medium dataset
+microbenchmark::microbenchmark(
+  baseR=test_base_nse(baseR_nse, lm, large_df, x.1~x.2, weights=x.5),
+  tidy=test_tidy_nse(tidy_nse, lm, large_df, x.1~x.2, weights=x.5),
+  standard=lm(x.1~x.2, large_df, weights=large_df[["x.5"]])
+)
+
+# Tested on unlist with use.names=TRUE function with small dataset
+microbenchmark::microbenchmark(
+  baseR=test_base_nse(baseR_nse, unlist, lex_df, lex, use.names=TRUE),
+  tidy=test_tidy_nse(tidy_nse, unlist, lex_df, lex, use.names=TRUE),
+  standard=unlist(lex_df, lex, use.names=TRUE)
+)
+
+# Tested on unlist with use.names=FALSE function with small dataset
+microbenchmark::microbenchmark(
+  baseR=test_base_nse(baseR_nse, unlist, lex_df, lex, use.names=FALSE),
+  tidy=test_tidy_nse(tidy_nse, unlist, lex_df, lex, use.names=FALSE),
+  standard=unlist(lex_df, lex, use.names=FALSE)
+)
+```
+
+## Conclusions
+
+Benchmark results show that functions evaluated in standard fashion are many times faster for small datasets and for large datasets the difference is not so significant. From the two implementations of functions transformed to nse variants the variant using base R functions are faster (more than 50% faster most of the time) than implementations using expressions and quasiquotation. 
+
+This result come with no suprise because functions recommended by tidyverse give more functionality, for example allowing of substituting only some parts of expressions and in result give some computational overhead.

@@ -11,7 +11,7 @@ Pakiety do omówienia:
 1. [config](https://github.com/rstudio/config).
 1. [crosstalk](https://github.com/rstudio/crosstalk).
 1. [DALEX](https://github.com/ModelOriented/DALEX) (Aleksandra Łuczak, Tomasz Klonecki)
-1. [DALEXtra](https://github.com/ModelOriented/DALEXtra).
+1. [DALEXtra](https://github.com/ModelOriented/DALEXtra) (Szymon Maksymiuk, Michał Stawikowski).
 1. [drake](https://github.com/ropensci/drake).
 1. [future](https://github.com/HenrikBengtsson/future)
 1. [golem](https://github.com/ThinkR-open/golem).
