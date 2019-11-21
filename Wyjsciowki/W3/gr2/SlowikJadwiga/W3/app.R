@@ -25,44 +25,35 @@ ui <- fluidPage(
     )
 )
 
+download_helper <- function(filename, plot_generator) {
+    downloadHandler(
+        filename = function() {"histogram.png"},
+        content = function(file) {
+            png(file)
+            plot_generator()
+            dev.off()
+        }
+    )
+}
+
 # Define server logic required to draw a histogram
 server <- function(input, output) {
     
     poiss_data <- reactive({
         rpois(10e6, input[["lambda"]])
     })
-    
-    density_plot_output <- reactive({
+   
+    output[["densityPlot"]] <- renderPlot({
         plot(density(poiss_data()))
     })
-    
-    histogram_plot_output <- reactive({
+    output[["histogramPlot"]] <-renderPlot({
         hist(poiss_data())
     })
     
-    output[["densityPlot"]] <- renderPlot({
-        density_plot_output()
-    })
-    output[["histogramPlot"]] <-renderPlot({
-        histogram_plot_output()
-    })
+    output[["histogramDownload"]] <- download_helper("histogram.png", function() {hist(poiss_data())})
     
-    output[["histogramDownload"]] <- downloadHandler(
-        filename = function() {"histogram.png"},
-        content = function(file) {
-            png(file)
-            hist(poiss_data())
-            dev.off()
-        }
-    )
-    output[["densityDownload"]] <- downloadHandler(
-        filename = function() {"density.png"},
-        content = function(file) {
-            png(file)
-            plot(density(poiss_data()))
-            dev.off()
-        }
-    )
+    output[["densityDownload"]] <- download_helper("density.png", plot(density(poiss_data())))
+    
 }
 
 # Run the application 
