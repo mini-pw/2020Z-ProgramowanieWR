@@ -16,7 +16,7 @@ Każdy zespół musi realizować inny temat projektu.
 
 **Przetwarzanie danych**
 
-1. Szybkie zliczanie k-merów występujących w stringach. Należy umożliwić użytkownikowi zdefiniowanie alfabetu w jakim zapisane są stringi, aby pakiet mógł uwzględniać również k-mery zawierające takie kombinacje liter, które nie występują w źródłowych sekwencjach. (grupa: Piotr Olesiejuk, Jadwiga Słowik) ++++
+1. Szybkie zliczanie k-merów występujących w stringach. Należy umożliwić użytkownikowi zdefiniowanie alfabetu w jakim zapisane są stringi, aby pakiet mógł uwzględniać również k-mery zawierające takie kombinacje liter, które nie występują w źródłowych sekwencjach. (grupa: Piotr Olesiejuk, Jadwiga Słowik) [seqR](https://github.com/piotr-ole/seqR) ++++
 2. Pakiet do refactoringu kodu.
 
 **Grafika**
@@ -33,5 +33,5 @@ Każdy zespół musi realizować inny temat projektu.
 2. Komunikacja z oficjalnym API Hacker News (Ryszarda Szymańskiego, Andrzej Nowikowski, Zuzanna Magierska, Rafał Muszyński, Piotr Janus): https://github.com/szymanskir/hackeRnews +++++.
 3. API do systemów kolejkowych Otwartych Danych Warszawskich (Paweł Morgen, Hanna Zdulska, Jakub Pingielski) https://github.com/HaZdula/kolejkeR +++++.
 4. API do Wikidata.
-5. Wysyłanie informacji o zakończeniu obliczeń w R poprzez gmail itp. (Tomasz Klonecki, Tymoteusz Makowski) ++++.
+5. Wysyłanie informacji o zakończeniu obliczeń w R poprzez gmail itp. (Tomasz Klonecki, Tymoteusz Makowski) https://github.com/tmakowski/sendeR ++++.
 

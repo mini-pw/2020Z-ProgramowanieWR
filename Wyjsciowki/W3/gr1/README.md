@@ -1,0 +1,1 @@
+Stwórz aplikację shiny, która generuje wykresy gęstości i tabele zliczeń wystąpień danych wartości dla miliona punktów z rozkładu Poissona o lambdzie ustalanej przez użytkownika aplikacji. Zarówno wykres jak i tabela muszą się generować z użyciem shinycssloaders::withSpinner, ale programowalnie stwórz własne funkcje plotOutputSpinner i tableOutputSpinner. 
