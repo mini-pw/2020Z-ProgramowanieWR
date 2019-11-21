@@ -362,4 +362,4 @@ p5
 
 # Wnioski
 
-Dla funkcji `min` i `mean` i małej liczby obserwacji bez zaskoczenia zwykła funkcja radzi sobie najlepiej, zaś funckja używająca funkcji z biblioteki `rlang` najgorzej. Sytuacja zmienia się dopiero przy dużej ilości danych, kiedy różnice czasowe się zacierają. Interesujące jest też to, że czasami pierwsza funkcja jest szybsza od drugiej, ale prawdopodobnie jest to spodwodowane przez różne czynniki nie związane z implementacją.
+Dla funkcji `min` i `mean` i małej liczby obserwacji bez zaskoczenia zwykła funkcja radzi sobie najlepiej, zaś funckja używająca funkcji z biblioteki `rlang` najgorzej. Sytuacja zmienia się dopiero przy dużej ilości danych, kiedy różnice czasowe się zacierają. Interesujące jest też to, że czasami pierwsza funkcja jest szybsza od drugiej, ale prawdopodobnie jest to spodwodowane przez różne czynniki niezwiązane z implementacją.
