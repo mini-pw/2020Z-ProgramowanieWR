@@ -1,0 +1,340 @@
+---
+title: "Praca domowa nr 2"
+author: "Agata Pałdyna"
+date: "18/11/2019"
+output: html_document
+---
+
+```{R, include = FALSE, echo = FALSE, message = FALSE, warning = FALSE}
+### Zaladowanie pakietow
+library(rlang)
+library(dplyr)
+library(microbenchmark)
+library(knitr)
+library(ggplot2)
+library(gridExtra)
+
+# Funkcja z wykładu
+getElement_NSE <- function(input_list, element_name) {
+  s_element_name <- element_name
+  if(as.character(s_element_name) %in% names(input_list)) {
+    eval(s_element_name, input_list)
+  } 
+  else {
+    NULL
+  }
+}
+```
+
+
+
+## Opis zadania
+
+Zadanie polegalo na przygotowaniu funkcji, ktora jako argument przyjmuje dowolna funkcje i zwraca funkcje, ktora wykonuje dokladnie to samo, tylko w NSE. Nalezalo przygotowac kilka rozwiazan tego zadania, a nastepnie porownac szybkosc dzialania przy roznych funkcjach i roznych rozmiarach zbioru danych (ktory powinien byc lista lub data.frame)
+
+Czasy dzialania funkcji mierzylam za pomoca funkcji `microbenchmark::microbenchmark` dla 100 powtorzen. Jako czas dzialania funkcji przyjelam mediane z tych powtorzen.
+
+W benchmarku uwzglednilam nastepujace funkcje:
+
+1. min
+2. max
+3. mean
+4. unlist (z use.names = TRUE i use.names = FALSE)
+5. lm
+
+Szybkosc dzialania funkcji sprawdzalam na liscie `x` oraz zbiorze danych `iris`.
+
+
+
+## Rozwiazania
+
+Udalo mi sie przygotowac dwa rozwiazania tego zadania.
+
+#### Rozwiazanie nr 1
+```{R, message = FALSE, warning = FALSE}
+function_NSE1 <- function(input_function) {
+  function(input_list, element_1 = NULL, element_2 = NULL, ...) {
+    params_list <- substitute(...())
+    params_list_len <- length(params_list)
+    
+    element_1 <- substitute(element_1)
+    element_2 <- substitute(element_2)
+    
+    if(class(element_1) == "call") {
+      if(class(eval(element_1)) == "formula") {
+        input_formula <- element_1
+        element_1 <- input_formula[[2]]
+        element_2 <- input_formula[[3]]        
+      }
+    }
+    
+    x <- NULL
+    y <- NULL
+    
+    if(!is.null(element_1)) {
+      x <- getElement_NSE(input_list, element_1)
+    }
+    
+    if(!is.null(element_2)) {
+      y <- getElement_NSE(input_list, element_2)
+    }
+    
+    if(!is.null(x) && !is.null(y)) {
+      xf <- y
+      yf <- x
+      x <- as.formula("yf ~ xf")
+    }
+    else if(is.null(x) && is.null(y)) {
+      x <- input_list 
+    }      
+    # }
+    
+    if(!is.null(x)) {
+      if(params_list_len == 0) {
+        input_function(x)
+      }
+      else {
+        arguments <- c(list(x), params_list)
+        do.call(input_function, arguments)
+      }
+    }
+  }
+}
+```
+
+#### Rozwiazanie nr 2
+```{R, message = FALSE, warning = FALSE}
+function_NSE2 <- function(input_function) {
+  function(input_list, element = NULL, env = caller_env(), ...) {
+    params_list <- substitute(...())
+    params_list_len <- length(params_list)
+    
+    s_element <- substitute(element)
+    
+    if(class(s_element) == "call") {
+      if(class(eval(s_element)) == "formula") {
+        input_formula <- enexpr(element)
+        data <- enexpr(input_list)
+        eval(expr(input_function(!!input_formula, !!data)))
+      }
+    }
+    else {
+      x <- NULL
+      
+      if(!is.null(s_element)) {
+        x <- getElement_NSE(input_list, s_element)
+      }
+      
+      if(is.null(x)) {
+        x <- input_list 
+      } 
+      
+      if(!is.null(x)) {
+        if(params_list_len == 0) {
+          input_function(x)
+        }
+        else {
+          arguments <- c(list(x), params_list)
+          do.call(input_function, arguments)
+        }
+      }  
+    }
+  }
+}
+```
+
+Rozwiazania te sa dosc podobne, oba korzystaja z funkcji z wykladu `getElement_NSE()`, w obu mozna podawac dodatkowe parametry do funkcji takie jak np. `use.names = FALSE` dla funkcji `unlist()` czy `na.rm = TRUE` dla funkcji `min()`. Roznia sie jedynie obsluga formul. Wezmy na przyklad funkcje `lm()`. W przypadku **Rozwiazania nr 1** mozemy podac zmienna objasniana i tylko jedna zmienna objasniajaca, ale mozemy to zrobic na dwa sposoby, podajac zmienne oddzielnie lub jako formule (patrz przyklady nizej).
+
+```{R, message = FALSE, warning = FALSE}
+x <- list(a = c(1, 2, 30), b = c(2, 1, 5), c = c(33, 21, 2))
+lm_NSE <- function_NSE1(lm)
+```
+
+```{R, message = FALSE, warning = FALSE}
+# Sposob 1
+lm_NSE(x, b, a)
+```
+
+```{R, message = FALSE, warning = FALSE}
+# Sposob 2
+lm_NSE(x, b ~ a)
+```
+
+Natomiast w przypadku **Rozwiazania nr 2** nie ma ograniczenia co do liczby zmiennych objasniajacych, a obsluga formuly zostala calkowicie wydzielona jako osobny fragment kodu.
+
+```{R, message = FALSE, warning = FALSE}
+x <- list(a = c(1, 2, 30), b = c(2, 1, 5), c = c(33, 21, 2))
+lm_NSE <- function_NSE2(lm)
+lm_NSE(x, b ~ a + c)
+```
+
+W **Rozwiazaniu nr 1** skorzystalam tylko z bazowego NSE, natomiast w **Rozwiazaniu nr 2** poza bazowym NSE skorzystalam rowniez z funkcji `enexpr()` z pakietu `rlang`.
+
+
+
+## Porownanie szybkosci dzialania
+
+```{R, message = FALSE, warning = FALSE}
+# Dane
+x <- list(a = c(1, 2, 30), b = c(2, 1, 5), c = c(33, 21, 2))
+```
+
+```{R, include = FALSE, echo = FALSE, message = FALSE, warning = FALSE}
+# Rozwiazanie nr 1
+min_NSE_1 <- function_NSE1(min)
+max_NSE_1 <- function_NSE1(max)
+mean_NSE_1 <- function_NSE1(mean)
+unlist_NSE_1 <- function_NSE1(unlist)
+lm_NSE_1 <- function_NSE1(lm)
+
+
+# Rozwiazanie nr 2
+min_NSE_2 <- function_NSE2(min)
+max_NSE_2 <- function_NSE2(max)
+mean_NSE_2 <- function_NSE2(mean)
+unlist_NSE_2 <- function_NSE2(unlist)
+lm_NSE_2 <- function_NSE2(lm)
+
+
+# Tabelka z wynikami porownywania szybkosci dzialania
+results <- data.frame(matrix(ncol = 4, nrow = 24))
+colnames(results) <- c("Function", "Data", "Solution", "Time")
+
+results[1:4, "Function"] <- "min"
+results[5:8, "Function"] <- "max"
+results[9:12, "Function"] <- "mean"
+results[13:16, "Function"] <- "unlist_use.names=TRUE"
+results[17:20, "Function"] <- "unlist_use.names=FALSE"
+results[21:24, "Function"] <- "lm"
+
+for(i in 1:24) {
+  if(i%%4 == 1 || i%%4 == 2) {
+    results[i, "Data"] <- "x"
+  }
+  else {
+    results[i, "Data"] <- "iris"
+  }
+  
+  if(i%%2 == 0) {
+    results[i, "Solution"] <- 2
+  }
+  else {
+    results[i, "Solution"] <- 1
+  }
+}
+
+results[1, "Time"] <- summary(microbenchmark(min_NSE_1(x, a), unit = "ms", times = 100))[["median"]]
+results[2, "Time"] <- summary(microbenchmark(min_NSE_2(x, a), unit = "ms", times = 100))[["median"]]
+results[3, "Time"] <- summary(microbenchmark(min_NSE_1(iris, Sepal.Length), unit = "ms", times = 100))[["median"]]
+results[4, "Time"] <- summary(microbenchmark(min_NSE_2(iris, Sepal.Length), unit = "ms", times = 100))[["median"]]
+results[5, "Time"] <- summary(microbenchmark(max_NSE_1(x, a), unit = "ms", times = 100))[["median"]]
+results[6, "Time"] <- summary(microbenchmark(max_NSE_2(x, a), unit = "ms", times = 100))[["median"]]
+results[7, "Time"] <- summary(microbenchmark(max_NSE_1(iris, Sepal.Length), unit = "ms", times = 100))[["median"]]
+results[8, "Time"] <- summary(microbenchmark(max_NSE_2(iris, Sepal.Length), unit = "ms", times = 100))[["median"]]
+results[9, "Time"] <- summary(microbenchmark(mean_NSE_1(x, a), unit = "ms", times = 100))[["median"]]
+results[10, "Time"] <- summary(microbenchmark(mean_NSE_2(x, a), unit = "ms", times = 100))[["median"]]
+results[11, "Time"] <- summary(microbenchmark(mean_NSE_1(iris, Sepal.Length), unit = "ms", times = 100))[["median"]]
+results[12, "Time"] <- summary(microbenchmark(mean_NSE_2(iris, Sepal.Length), unit = "ms", times = 100))[["median"]]
+results[13, "Time"] <- summary(microbenchmark(unlist_NSE_1(x, use.names = TRUE), unit = "ms", times = 100))[["median"]]
+results[14, "Time"] <- summary(microbenchmark(unlist_NSE_2(x, use.names = TRUE), unit = "ms", times = 100))[["median"]]
+results[15, "Time"] <- summary(microbenchmark(unlist_NSE_1(iris, use.names = TRUE), unit = "ms", times = 100))[["median"]]
+results[16, "Time"] <- summary(microbenchmark(unlist_NSE_2(iris, use.names = TRUE), unit = "ms", times = 100))[["median"]]
+results[17, "Time"] <- summary(microbenchmark(unlist_NSE_1(x, use.names = FALSE), unit = "ms", times = 100))[["median"]]
+results[18, "Time"] <- summary(microbenchmark(unlist_NSE_2(x, use.names = FALSE), unit = "ms", times = 100))[["median"]]
+results[19, "Time"] <- summary(microbenchmark(unlist_NSE_1(iris, use.names = FALSE), unit = "ms", times = 100))[["median"]]
+results[20, "Time"] <- summary(microbenchmark(unlist_NSE_2(iris, use.names = FALSE), unit = "ms", times = 100))[["median"]]
+results[21, "Time"] <- summary(microbenchmark(lm_NSE_1(x, b ~ a), unit = "ms", times = 100))[["median"]]
+results[22, "Time"] <- summary(microbenchmark(lm_NSE_2(x, b ~ a), unit = "ms", times = 100))[["median"]]
+results[23, "Time"] <- summary(microbenchmark(lm_NSE_1(iris, Sepal.Width ~ Sepal.Length), unit = "ms", times = 100))[["median"]]
+results[24, "Time"] <- summary(microbenchmark(lm_NSE_2(iris, Sepal.Width ~ Sepal.Length), unit = "ms", times = 100))[["median"]]
+
+results$Solution <- as.factor(results$Solution)
+results$Time <- as.numeric(results$Time)
+# results$Log_time <- log(results$Time)
+```
+
+Wyniki przedstawiaja ponizsze wykresy:
+```{R, echo = FALSE, out.width = '90%', message = FALSE, warning = FALSE}
+results %>% filter(Function == "min") %>%
+  ggplot(aes(x = Data, y = Time, fill = Solution)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    ggtitle("Porownanie czasu dzialania funkcji min") +
+    xlab("Dane") + ylab("Czas dzialania funkcji - mediana [ms]") +
+    theme(plot.title = element_text(size = 14, face = "bold"),
+          axis.text = element_text(size = 11),
+          axis.title = element_text(size = 12, face = "bold"),
+          legend.title = element_text(size = 12, face = "bold"),
+          legend.text = element_text(size = 11),
+          legend.background = element_rect(colour = "grey"))
+
+results %>% filter(Function == "max") %>%
+  ggplot(aes(x = Data, y = Time, fill = Solution)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    ggtitle("Porownanie czasu dzialania funkcji max") +
+    xlab("Dane") + ylab("Czas dzialania funkcji - mediana [ms]") +
+    theme(plot.title = element_text(size = 14, face = "bold"),
+          axis.text = element_text(size = 11),
+          axis.title = element_text(size = 12, face = "bold"),
+          legend.title = element_text(size = 12, face = "bold"),
+          legend.text = element_text(size = 11),
+          legend.background = element_rect(colour = "grey"))
+
+results %>% filter(Function == "mean") %>%
+  ggplot(aes(x = Data, y = Time, fill = Solution)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    ggtitle("Porownanie czasu dzialania funkcji mean") +
+    xlab("Dane") + ylab("Czas dzialania funkcji - mediana [ms]") +
+    theme(plot.title = element_text(size = 14, face = "bold"),
+          axis.text = element_text(size = 11),
+          axis.title = element_text(size = 12, face = "bold"),
+          legend.title = element_text(size = 12, face = "bold"),
+          legend.text = element_text(size = 11),
+          legend.background = element_rect(colour = "grey"))
+
+results %>% filter(Function == "unlist_use.names=TRUE") %>%
+  ggplot(aes(x = Data, y = Time, fill = Solution)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    ggtitle("Porownanie czasu dzialania funkcji unlist_use.names=TRUE") +
+    xlab("Dane") + ylab("Czas dzialania funkcji - mediana [ms]") +
+    theme(plot.title = element_text(size = 14, face = "bold"),
+          axis.text = element_text(size = 11),
+          axis.title = element_text(size = 12, face = "bold"),
+          legend.title = element_text(size = 12, face = "bold"),
+          legend.text = element_text(size = 11),
+          legend.background = element_rect(colour = "grey"))
+
+results %>% filter(Function == "unlist_use.names=FALSE") %>%
+  ggplot(aes(x = Data, y = Time, fill = Solution)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    ggtitle("Porownanie czasu dzialania funkcji unlist_use.names=FALSE") +
+    xlab("Dane") + ylab("Czas dzialania funkcji - mediana [ms]") +
+    theme(plot.title = element_text(size = 14, face = "bold"),
+          axis.text = element_text(size = 11),
+          axis.title = element_text(size = 12, face = "bold"),
+          legend.title = element_text(size = 12, face = "bold"),
+          legend.text = element_text(size = 11),
+          legend.background = element_rect(colour = "grey"))
+
+results %>% filter(Function == "lm") %>%
+  ggplot(aes(x = Data, y = Time, fill = Solution)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    ggtitle("Porownanie czasu dzialania funkcji lm") +
+    xlab("Dane") + ylab("Czas dzialania funkcji - mediana [ms]") +
+    theme(plot.title = element_text(size = 14, face = "bold"),
+          axis.text = element_text(size = 11),
+          axis.title = element_text(size = 12, face = "bold"),
+          legend.title = element_text(size = 12, face = "bold"),
+          legend.text = element_text(size = 11),
+          legend.background = element_rect(colour = "grey"))
+
+```
+
+Dokladniejsze wyniki mozna sprawdzic w tabeli:
+
+```{R, echo = FALSE, message = FALSE, warning = FALSE}
+results %>% kable()
+```
+
+```{R, echo = FALSE, message = FALSE, warning = FALSE}
+# Przepraszam za tak nieestetyczny kod raportu, zabraklo mi sily zeby lepiej go przygotowac :(
+```

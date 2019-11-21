@@ -1,0 +1,129 @@
+---
+title: "kolejkeR"
+author: "Paweł Morgen, Jakub Pingielski, Sebastian Sowik, Hanna Zdulska"
+date: "10/11/2019"
+output:
+  ioslides_presentation:
+    fullscreen: true
+    smaller: true
+    print_df: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      eval = FALSE)
+```
+
+## Get access to data regarding queues in municipal offices in Warsaw
+
+The city hall of Warsaw made a variety of data public [here](https://api.um.warszawa.pl). Everyone is welcome to access the data via API, using JSON file format. One of the datasets contains the information about queues in municipal offices in Warsaw, ie. expected times, open counters and amount of people waiting. 
+
+`kolejkeR` is an R wrapper around the API, developed as a project for Advanced R classes at the Warsaw University of Technology. It's suitable both for futher data processing and analysis, as well as for quick aquirement of information helpful for everyday life in Warsaw.
+
+## The main function
+
+The bulwark of job is done by function `get_raw_data(office_name, queue_name)`. This function is designed for data processing and analysis.
+
+The parameters are `character`. You can get their possible values using *getter* functions described in next section.
+
+The function returns a `data.frame` with following columns:
+
+ *  status - either 0 (queue is not operating) or 1 (queue is operating).
+ *  czasObslugi - expected time of waiting in queue, in minutes. 
+ *  lp - ordinal number.
+ *  idGrupy - ID of a queue from `nazwaGrupy`.
+ *  liczbaCzynnychStan - amount of opened counters. 
+ *  nazwaGrupy - a name of a queue.
+ *  literaGrupy - a single letter symbolizing a queue name from `nazwaGrupy`. 
+ *  liczbaKlwKolejce - amount of people in queue.
+ *  aktualnyNumer - current ticket number.
+
+## Raw data example
+
+```{r example, echo = FALSE, eval = TRUE}
+
+read.csv("raw_example.csv") -> df
+knitr::kable(df[,c(-1, -7)], align = "c")
+```
+
+## Under the mask
+
+```{r secret}
+
+base_url <- "https://api.um.warszawa.pl/api/action/wsstore_get"
+
+get_request_url <- function(district_id) {
+  paste0(base_url, "/?id=", district_id)
+}
+
+get_data <- function(district_name) {
+  
+  district_id <- get_district_id(district_name)
+  
+  if(is.null(district_id)) stop("Unrecognized office acronym!")
+  
+  request_url <- get_request_url(district_id)
+  
+  jsonlite::fromJSON(request_url)[["result"]][["grupy"]]
+}
+
+```
+
+## Getters
+
+2 functions return acceptable values, that can be passed either to `get_raw_data()` or to functions described below.
+
+* `get_available_offices()` returns names of municipal offices in Warsaw, accepted as `office_name` arguments in other functions.
+
+* `get_available_queues(office_name)` returns names of queues in the chosen municipal office in Warsaw, accepted as `queue_name` arguments in other functions.
+
+
+## Getting specific data directly
+
+These functions are designed to get exact data quickly in form of a `character` vector of length 1. These are:
+
+* `get_waiting_time(office_name, queue_name)`
+
+* `get_open_counters(office_name, queue_name)`
+
+* `get_current_ticket_number(office_name, queue_name)`
+
+* `get_number_of_people(office_name, queue_name)`.
+
+## Getting specific data verbosely
+
+These functions are designed to get exact data quickly in form of a user-friendly statement. Each of them returns a `character` sentence, depending the question called. These are:
+
+* `get_waiting_time(office_name, queue_name, language = 'en')`
+
+* `get_open_counters(office_name, queue_name, language = 'en')`
+
+* `get_current_ticket_number(office_name, queue_name, language = 'en')`
+
+* `get_number_of_people(office_name, queue_name, language = 'en')`.
+
+The `language` variable regards the desired language of the output. Currently the only supported languages are English and Polish.
+
+## Example
+
+Let's assume, that you would like to file an application for 500+ programme in municipal office in Bielany in Warsaw. You wish to find out the average time you need to wait and the amount of people already waiting.
+
+``` {r}
+library(kolejkeR)
+library(stringi)
+
+offices <- get_available_offices()
+
+# Find out the exact name of the office
+Bielany_office <- offices[stri_detect_fixed(offices, "Bielany")][1]
+queues <- get_available_queues(Bielany_office)
+
+# Find the exact name of the queue
+queue500 <- queues[stri_detect_fixed(queues, "500+")][1]
+
+print(get_waiting_time_verbose(Bielany_office, queue500, language = 'pl'))
+print(get_number_of_people_verbose(Bielany_office, queue500, language = "pl"))
+
+```
+Now you can go to the municipal office with a big smile on your face.
+
