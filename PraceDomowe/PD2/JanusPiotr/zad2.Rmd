@@ -1,0 +1,397 @@
+---
+title: "Porównie NSE"
+author: "Piotr Janus"
+date: "15 11 2019"
+output: 
+  html_document:
+    df_print: paged
+    toc: true
+    toc_float: true
+    code_folding: show
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(dplyr)
+library(microbenchmark)
+library(rlang)
+
+```
+
+# Zbiory wykorzystane podczas testowania
+
+Każdy z nich posiada 10 kolumn, a także dla małego, średniego, dużego kolejno $10$, $10^3$, $10^5$ wierszy.
+
+```{r}
+set.seed(2137)
+sample_df_big <- runif(1e6) %>%  matrix(ncol = 10) %>% data.frame()
+
+sample_df_medium <- runif(1e4) %>%  matrix(ncol = 10) %>% data.frame()
+
+sample_df_smol <- runif(1e2) %>%  matrix(ncol = 10) %>% data.frame()
+```
+
+# Wersje funkcji NSE
+
+```{r, warning=FALSE}
+zadanieDomowe1 <- function(func){
+  function(data_s, arg=NA, ...) {
+    expre <- quote(func(data_s, ...))
+    if(!missing(arg)) {
+      if(is_formula(substitute(arg)))
+      {
+        expre <- quote(func(data_s, formula = arg, ...))
+      }
+      else {
+        data_s <- eval(substitute(arg), data_s)
+        expre <- quote(func(data_s, ...))
+      }
+    }
+    eval(expre)
+  }
+}
+
+zadanieDomowe2 <- function(func){
+  function(data_s, arg=NA, ...) {
+    expre <- rlang::expr(func(data_s, !!!list(...)))
+    if(!missing(arg)) {
+      if(is_formula(enexpr(arg)))
+      {
+        expre <- rlang::expr(func(data_s, formula = arg, !!!list(...)))
+      }
+      else {
+        data_s <- eval(enexpr(arg), data_s)
+        expre <- rlang::expr(func(data_s, !!!list(...)))
+      }
+    }
+    rlang::eval_tidy(expre, caller_env())
+  }
+}
+
+zadanieDomowe3 <- function(func) {
+  function(data, arg, ...) {
+    args <- match.call(expand.dots = FALSE)$`...`
+    if(!missing(arg)) {
+      data <- eval(substitute(arg), data)
+    }
+    do.call(func, list(data, ...))
+  }
+}
+
+zadanieDomowe4 <- function(func) {
+  function(data, arg, ...) {
+    args <- match.call(expand.dots = FALSE)$`...`
+    if(!missing(arg)) {
+      data <- eval(substitute(arg), data)
+    }
+    rlang::invoke(func, list(data, ...))
+  }
+}
+```
+
+
+# Funkcja `min`
+```{r,  echo=FALSE, warning=FALSE}
+zadanie1_min <- zadanieDomowe1(min)
+zadanie2_min <- zadanieDomowe2(min)
+zadanie3_min <- zadanieDomowe3(min)
+zadanie4_min <- zadanieDomowe4(min)
+
+res <- microbenchmark(
+org_min_small = min(sample_df_smol),
+org_min_med = min(sample_df_medium),
+org_min_big = min(sample_df_big),
+
+z1_min_small = zadanie1_min(sample_df_smol),
+z1_min_med = zadanie1_min(sample_df_medium),
+z1_min_big = zadanie1_min(sample_df_big),
+
+z2_min_small = zadanie2_min(sample_df_smol),
+z2_min_med = zadanie2_min(sample_df_medium),
+z2_min_big = zadanie2_min(sample_df_big),
+
+z3_min_small = zadanie3_min(sample_df_smol),
+z3_min_med = zadanie3_min(sample_df_medium),
+z3_min_big = zadanie3_min(sample_df_big),
+
+z4_min_small = zadanie4_min(sample_df_smol),
+z4_min_med = zadanie4_min(sample_df_medium),
+z4_min_big = zadanie4_min(sample_df_big),
+
+org_min_small_param = min(sample_df_smol$X2),
+org_min_med_param = min(sample_df_medium$X2),
+org_min_big_param = min(sample_df_big$X2),
+
+z1_min_small_param = zadanie1_min(sample_df_smol, X2),
+z1_min_med_param = zadanie1_min(sample_df_medium, X2),
+z1_min_big_param = zadanie1_min(sample_df_big, X2),
+
+z2_min_small_param = zadanie2_min(sample_df_smol, X2),
+z2_min_med_param = zadanie2_min(sample_df_medium, X2),
+z2_min_big_param = zadanie2_min(sample_df_big, X2),
+
+z3_min_small_param = zadanie3_min(sample_df_smol, X2),
+z3_min_med_param = zadanie3_min(sample_df_medium, X2),
+z3_min_big_param = zadanie3_min(sample_df_big, X2),
+
+z4_min_small_param = zadanie4_min(sample_df_smol, X2),
+z4_min_med_param = zadanie4_min(sample_df_medium, X2),
+z4_min_big_param = zadanie4_min(sample_df_big, X2),
+times = 200
+)
+
+res <- as.data.frame(summary(res))
+res$funkcja <- as.character(lapply(strsplit(as.character(res$expr), split="_"),
+                                   function(x) x[1]))
+res$func <- as.character(lapply(strsplit(as.character(res$expr), split="_"),
+                                    function(x) x[2]))
+res$is_param <- unlist(lapply(strsplit(as.character(res$expr), split="_"),
+                       function(x) ifelse(x[length(x)] == "param","z parametrem", "bez parametru")))
+
+res$size <- as.character(lapply(strsplit(as.character(res$expr), split="_"),
+                                function(x) x[3]))
+
+```
+
+
+```{r, echo=FALSE, warning=FALSE}
+ggplot(res[res$is_param=='z parametrem',], aes(x = size, y = mean, fill = funkcja ))+
+  geom_bar(stat="identity", width=.5, position = "dodge")+
+  theme_minimal()+
+  ylab('Czas wykonania [ms]')+
+  xlab('Typ wykresu')+
+  ggtitle(paste('Porównanie działania dla funkcji',as.character(res$func[1]), 'z parametrem'))+
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+```{r, echo=FALSE, warning=FALSE}
+ggplot(res[res$is_param=='bez parametru',], aes(x = size, y = mean, fill = funkcja ))+
+  geom_bar(stat="identity", width=.5, position = "dodge")+
+  theme_minimal()+
+  ylab('Czas wykonania [ms]')+
+  xlab('Typ wykresu')+
+  ggtitle(paste('Porównanie działania dla funkcji',as.character(res$func[1]), as.character(res$is_param[1]) ))+
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+# Funkcja `mean`
+
+```{r, echo=FALSE, warning=FALSE}
+zadanie1_mean <- zadanieDomowe1(mean)
+zadanie2_mean <- zadanieDomowe2(mean)
+zadanie3_mean <- zadanieDomowe3(mean)
+zadanie4_mean <- zadanieDomowe4(mean)
+
+res <- microbenchmark(
+  org_mean_small_param = mean(sample_df_smol$X2),
+  org_mean_med_param = mean(sample_df_medium$X2),
+  org_mean_big_param = mean(sample_df_big$X2),
+  
+  z1_mean_small_param = zadanie1_mean(sample_df_smol, X2),
+  z1_mean_med_param = zadanie1_mean(sample_df_medium, X2),
+  z1_mean_big_param = zadanie1_mean(sample_df_big, X2),
+  
+  z2_mean_small_param = zadanie2_mean(sample_df_smol, X2),
+  z2_mean_med_param = zadanie2_mean(sample_df_medium, X2),
+  z2_mean_big_param = zadanie2_mean(sample_df_big, X2),
+  
+  z3_mean_small_param = zadanie3_mean(sample_df_smol, X2),
+  z3_mean_med_param = zadanie3_mean(sample_df_medium, X2),
+  z3_mean_big_param = zadanie3_mean(sample_df_big, X2),
+  
+  z4_mean_small_param = zadanie4_mean(sample_df_smol, X2),
+  z4_mean_med_param = zadanie4_mean(sample_df_medium, X2),
+  z4_mean_big_param = zadanie4_mean(sample_df_big, X2),
+  times = 200
+)
+
+res <- as.data.frame(summary(res))
+res$funkcja <- as.character(lapply(strsplit(as.character(res$expr), split="_"),
+                                   function(x) x[1]))
+
+res$func <- as.character(lapply(strsplit(as.character(res$expr), split="_"),
+                                function(x) x[2]))
+res$is_param <- unlist(lapply(strsplit(as.character(res$expr), split="_"),
+                              function(x) ifelse(x[length(x)] == "param","z parametrem", "bez parametru")))
+
+res$size <- as.character(lapply(strsplit(as.character(res$expr), split="_"),
+                                function(x) x[3]))
+
+```
+
+```{r, echo=FALSE, warning=FALSE}
+ggplot(res, aes(x = size, y = mean, fill = funkcja ))+
+  geom_bar(stat="identity", width=.5, position = "dodge")+
+  theme_minimal()+
+  ylab('Czas wykonania [ms]')+
+  xlab('Typ wykresu')+
+  ggtitle(paste('Porównanie działania dla funkcji',as.character(res$func[1])))+
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+# Funkcja `unlist`
+
+```{r, echo=FALSE, warning=FALSE}
+zadanie1_unlist<- zadanieDomowe1(unlist)
+zadanie2_unlist <- zadanieDomowe2(unlist)
+zadanie3_unlist <- zadanieDomowe3(unlist)
+zadanie4_unlist <- zadanieDomowe4(unlist)
+
+res <- microbenchmark(
+  org_unlist_small = unlist(sample_df_smol),
+  org_unlist_med = unlist(sample_df_medium),
+  org_unlist_big = unlist(sample_df_big),
+  
+  z1_unlist_small = zadanie1_unlist(sample_df_smol),
+  z1_unlist_med = zadanie1_unlist(sample_df_medium),
+  z1_unlist_big = zadanie1_unlist(sample_df_big),
+  
+  z2_unlist_small = zadanie2_unlist(sample_df_smol),
+  z2_unlist_med = zadanie2_unlist(sample_df_medium),
+  z2_unlist_big = zadanie2_unlist(sample_df_big),
+  
+  z3_unlist_small = zadanie3_unlist(sample_df_smol),
+  z3_unlist_med = zadanie3_unlist(sample_df_medium),
+  z3_unlist_big = zadanie3_unlist(sample_df_big),
+  
+  z4_unlist_small = zadanie4_unlist(sample_df_smol),
+  z4_unlist_med = zadanie4_unlist(sample_df_medium),
+  z4_unlist_big = zadanie4_unlist(sample_df_big),
+  
+  org_unlist_small_param = unlist(sample_df_smol, use.names = FALSE),
+  org_unlist_med_param = unlist(sample_df_medium, use.names = FALSE),
+  org_unlist_big_param = unlist(sample_df_big, use.names = FALSE),
+  
+  z1_unlist_small_param = zadanie1_unlist(sample_df_smol, use.names = FALSE),
+  z1_unlist_med_param = zadanie1_unlist(sample_df_medium, use.names = FALSE),
+  z1_unlist_big_param = zadanie1_unlist(sample_df_big, use.names = FALSE),
+  
+  z2_unlist_small_param = zadanie2_unlist(sample_df_smol, use.names = FALSE),
+  z2_unlist_med_param = zadanie2_unlist(sample_df_medium, use.names = FALSE),
+  z2_unlist_big_param = zadanie2_unlist(sample_df_big, use.names = FALSE),
+  
+  z3_unlist_small_param = zadanie3_unlist(sample_df_smol, use.names = FALSE),
+  z3_unlist_med_param = zadanie3_unlist(sample_df_medium, use.names = FALSE),
+  z3_unlist_big_param = zadanie3_unlist(sample_df_big, use.names = FALSE),
+  
+  z4_unlist_small_param = zadanie4_unlist(sample_df_smol, use.names = FALSE),
+  z4_unlist_med_param = zadanie4_unlist(sample_df_medium, use.names = FALSE),
+  z4_unlist_big_param = zadanie4_unlist(sample_df_big, use.names = FALSE),
+  
+  times = 40
+)
+
+res <- as.data.frame(summary(res))
+res$funkcja <- as.character(lapply(strsplit(as.character(res$expr), split="_"),
+                                   function(x) x[1]))
+
+res$func <- as.character(lapply(strsplit(as.character(res$expr), split="_"),
+                                function(x) x[2]))
+res$is_param <- unlist(lapply(strsplit(as.character(res$expr), split="_"),
+                              function(x) ifelse(x[length(x)] != "param","z parametrem", "bez parametru")))
+
+res$size <- as.character(lapply(strsplit(as.character(res$expr), split="_"),
+                                function(x) x[3]))
+
+```
+
+```{r, echo=FALSE, warning=FALSE}
+
+ggplot(res[res$is_param=='z parametrem',], aes(x = size, y = mean, fill = funkcja ))+
+  geom_bar(stat="identity", width=.5, position = "dodge")+
+  theme_minimal()+
+  ylab('Czas wykonania [ms]')+
+  xlab('Typ wykresu')+
+  ggtitle(paste('Porównanie działania dla funkcji',as.character(res$func[1]), 'z parametrem'))+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+```{r, echo=FALSE, warning=FALSE}
+ggplot(res[res$is_param=='bez parametru',], aes(x = size, y = mean, fill = funkcja ))+
+  geom_bar(stat="identity", width=.5, position = "dodge")+
+  theme_minimal()+
+  ylab('Czas wykonania [ms]')+
+  xlab('Typ wykresu')+
+  ggtitle(paste('Porównanie działania dla funkcji',as.character(res$func[1]), 'bez parametru'))+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+# Funkcja `lm`
+
+```{r, echo=FALSE, warning=FALSE}
+zadanie1_lm<- zadanieDomowe1(lm)
+zadanie2_lm <- zadanieDomowe2(lm)
+zadanie3_lm <- zadanieDomowe3(lm)
+zadanie4_lm <- zadanieDomowe4(lm)
+
+
+
+res <- microbenchmark(
+  org_lm_small = lm(X4 ~ X2*X3,sample_df_smol),
+  org_lm_med = lm(X4 ~ X2*X3, sample_df_medium),
+  org_lm_big = lm(X4 ~ X2*X3, sample_df_big),
+  
+  z1_lm_small = zadanie1_lm(sample_df_smol, X4 ~ X2*X3),
+  z1_lm_med = zadanie1_lm(sample_df_medium, X4 ~ X2*X3),
+  z1_lm_big = zadanie1_lm(sample_df_big, X4 ~ X2*X3),
+  
+  z2_lm_small = zadanie2_lm(sample_df_smol, X4 ~ X2*X3),
+  z2_lm_med = zadanie2_lm(sample_df_medium, X4 ~ X2*X3),
+  z2_lm_big = zadanie2_lm(sample_df_big, X4 ~ X2*X3),
+  
+  z3_lm_small = zadanie3_lm(sample_df_smol, X4 ~ X2*X3),
+  z3_lm_med = zadanie3_lm(sample_df_medium, X4 ~ X2*X3),
+  z3_lm_big = zadanie3_lm(sample_df_big, X4 ~ X2*X3),
+  
+  z4_lm_small = zadanie4_lm(sample_df_smol, X4 ~ X2*X3),
+  z4_lm_med = zadanie4_lm(sample_df_medium, X4 ~ X2*X3),
+  z4_lm_big = zadanie4_lm(sample_df_big, X4 ~ X2*X3),
+  times = 200
+)
+
+
+res <- as.data.frame(summary(res))
+res$funkcja <- as.character(lapply(strsplit(as.character(res$expr), split="_"),
+                                   function(x) x[1]))
+
+res$func <- as.character(lapply(strsplit(as.character(res$expr), split="_"),
+                                function(x) x[2]))
+
+res$size <- as.character(lapply(strsplit(as.character(res$expr), split="_"),
+                                function(x) x[3]))
+
+```
+
+```{r, echo=FALSE, warning=FALSE}
+
+ggplot(res, aes(x = size, y = mean, fill = funkcja ))+
+  geom_bar(stat="identity", width=.5, position = "dodge")+
+  theme_minimal()+
+  ylab('Czas wykonania [ms]')+
+  xlab('Typ wykresu')+
+  ggtitle(paste('Porównanie działania dla funkcji',as.character(res$func[1])))+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+# Podsumowanie
+
+- Funkcje nieskalane moją implementacją NSE z reguły działają szybciej dla zbioru małego i średniego.
+
+- Sytuacja się nieco odwraca dla scenariusza, gdy na tapete bierzemy zbiór duży. Nadal czas wykonania pozostaje jedym z najmniejszych, jednak są sytuacje kiedy lepiej sprawuje się funkcja NSE.
+
+- Dla małych zbiorów i niemal każdej funkcji z testowanych najgorzej sprawuje się wersja NSE z `invoke`, które w dokumentacji opisane jest następująco "invoke() is basically a version of base::do.call()". Dla dużych zbiorów, narzut związany ze stworzeniem środowiska, wypłaca nam benefity w postaci krótszego czasu wykonania dla niektórych funkcji.
+
+- Podobnie ma sie korzystanie z ` rlang::expr` oraz `rlang:eval_tidy`, które dla małych zbiorów generalnie wypadają gorzej... Dla dużych też, ale to nie jest już reguła.
+
+- Generalnie `do.call` działa lepiej dla mały zbiorów niż `invoke`.
+
+- Funkcje `org`, `z1`, `z3`, po lekkim zmrużeniu oczu, działają mniej więcej tak samo, niezależnie od wielkości zbioru.
+
+- Różnica między zbiorem $10$ a $10^3$ jest mała, natomiast między $10^5$, a resztą jest już bardzo duża.
+
+
+ 

@@ -22,7 +22,7 @@ Pakiety do omówienia:
 1. [promises](https://github.com/rstudio/promises) (Jan Sawicki).
 1. [rayshader](https://github.com/tylermorganwall/rayshader).(Tomek Radzikowski)
 1. [RcppArmadillo](https://github.com/RcppCore/RcppArmadillo) (Dominik Rafacz, Hanna Zdulska).
-1. [rex](https://github.com/kevinushey/rex).
-1. [shinyJS](https://github.com/daattali/shinyjs) (Agata Pałdyna, Ryszard Szymański, Tymoteusz Makowski).
+1. [rex](https://github.com/kevinushey/rex) (Paweł Morgen, Jadwiga Słowik)
+1. [shinyJS](https://github.com/daattali/shinyjs) (Agata Pałdyna, Rafał Muszyński, Tymoteusz Makowski).
 1. [stargazer](https://github.com/cran/stargazer).
 1. [withr](https://github.com/r-lib/withr).
