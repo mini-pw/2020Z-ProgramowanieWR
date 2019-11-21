@@ -1,7 +1,7 @@
 # adapted from https://gist.github.com/garrettgman/6673251
 
 library(shiny)
-
+library(shinycssloaders)
 
 ui <- pageWithSidebar(
     headerPanel("Interactive Histogram"),
@@ -17,7 +17,7 @@ ui <- pageWithSidebar(
                     min = 1, max = 100, value = 50)
     ),
     mainPanel(
-        plotOutput("histogram")
+        withSpinner(plotOutput("histogram"))
     )
 )
 
