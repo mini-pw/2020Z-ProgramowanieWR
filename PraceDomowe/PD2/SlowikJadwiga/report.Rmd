@@ -1,0 +1,390 @@
+---
+title: "PD2 - NSE"
+author: "Jadwiga Słowik"
+date: "November 20, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("nse_funs.R")
+source("utils.R")
+library(dplyr)
+```
+
+## Aim
+The aim of this task was to implement wrapper functions using *NSE* (*Non standard evaluation*)
+and then test them in order to measure their performance.
+
+## Implemented functions
+Four versions of wrapper-functions were implemented. In some of them I used the *base* package for *NSE*
+and in the other *rlang* package was used, which provides *quasiquotation*.
+
+The implementation of aforementioned *NSE* functions are provided in a separate file - `nse_funs.R`.
+
+## Tests
+Tests were splitted into two groups: small and big.
+
+### Small tests
+
+#### min
+The test case has the following form:
+
+```{r}
+data <- list(a=c(1,2,3), b=c(1,2,3) * 10)
+fun <- min
+nse1 <- my_NSE1(fun)
+nse2 <- my_NSE2(fun)
+nse3 <- my_NSE3(fun)
+nse4 <- my_NSE4(fun)
+```
+
+To check the result:
+```{r}
+c(nse1(data, b), nse2(data, b), nse3(data, b), nse4(data, b), min(data$b))
+```
+
+The benchmark is the following:
+```{r}
+visualize(
+  microbenchmark::microbenchmark(
+    nse1={nse1(data, b)},
+    nse2={nse2(data, b)},
+    nse3={nse3(data, b)},
+    nse4={nse4(data, b)},
+    raw={min(data$b)},
+    unit="ms",
+    times=10
+  )
+)
+```
+
+#### max
+The test case has the following form:
+
+```{r}
+data <- list(a=c(1,2,3), b=c(1,2,3) * 10)
+fun <- max
+nse1 <- my_NSE1(fun)
+nse2 <- my_NSE2(fun)
+nse3 <- my_NSE3(fun)
+nse4 <- my_NSE4(fun)
+```
+
+To check the result:
+```{r}
+c(nse1(data, b), nse2(data, b), nse3(data, b), nse4(data, b), max(data$b))
+```
+
+The benchmark is the following:
+```{r}
+visualize(
+  microbenchmark::microbenchmark(
+    nse1={nse1(data, b)},
+    nse2={nse2(data, b)},
+    nse3={nse3(data, b)},
+    nse4={nse4(data, b)},
+    raw={max(data$b)},
+    unit="ms",
+    times=10
+  )
+)
+```
+
+#### mean
+The test case has the following form:
+
+```{r}
+data <- list(a=c(1,2,3), b=c(1,2,3) * 10)
+fun <- mean
+nse1 <- my_NSE1(fun)
+nse2 <- my_NSE2(fun)
+nse3 <- my_NSE3(fun)
+nse4 <- my_NSE4(fun)
+```
+
+To check the result:
+```{r}
+c(nse1(data, b), nse2(data, b), nse3(data, b), nse4(data, b), mean(data$b))
+```
+
+The benchmark is the following:
+```{r}
+visualize(
+  microbenchmark::microbenchmark(
+    nse1={nse1(data, b)},
+    nse2={nse2(data, b)},
+    nse3={nse3(data, b)},
+    nse4={nse4(data, b)},
+    raw={mean(data$b)},
+    unit="ms",
+    times=10
+  )
+)
+```
+
+#### unlist
+
+##### use.names=TRUE
+
+The test case has the following form:
+
+```{r}
+data <- list(a=list(a=1,b=2,c=3), b=list(a=10,b=20,c=30))
+fun <- unlist
+nse1 <- my_NSE1(fun)
+nse2 <- my_NSE2(fun)
+nse3 <- my_NSE3(fun)
+nse4 <- my_NSE4(fun)
+```
+
+To check the result:
+```{r}
+list(nse1(data, b, use.names=TRUE), nse2(data, b, use.names=TRUE), nse3(data, b, use.names=TRUE), nse4(data, b, use.names=TRUE), unlist(data$b, use.names=TRUE))
+```
+
+The benchmark is the following:
+```{r}
+visualize(
+  microbenchmark::microbenchmark(
+    nse1={nse1(data, b, use.names=TRUE)},
+    nse2={nse2(data, b, use.names=TRUE)},
+    nse3={nse3(data, b, use.names=TRUE)},
+    nse4={nse4(data, b, use.names=TRUE)},
+    raw={unlist(data$b, use.names = TRUE)},
+    unit="ms",
+    times=10
+  )
+)
+```
+
+#### unlist
+
+##### use.names=TRUE
+
+The test case has the following form:
+
+```{r}
+data <- list(a=list(a=1,b=2,c=3), b=list(a=10,b=20,c=30))
+fun <- unlist
+nse1 <- my_NSE1(fun)
+nse2 <- my_NSE2(fun)
+nse3 <- my_NSE3(fun)
+nse4 <- my_NSE4(fun)
+```
+
+To check the result:
+```{r}
+list(nse1(data, b, use.names=FALSE), nse2(data, b, use.names=FALSE), nse3(data, b, use.names=FALSE), nse4(data, b, use.names=FALSE), unlist(data$b, use.names=FALSE))
+```
+
+The benchmark is the following:
+```{r}
+visualize(
+  microbenchmark::microbenchmark(
+    nse1={nse1(data, b, use.names=FALSE)},
+    nse2={nse2(data, b, use.names=FALSE)},
+    nse3={nse3(data, b, use.names=FALSE)},
+    nse4={nse4(data, b, use.names=FALSE)},
+    raw={unlist(data$b, use.names=FALSE)},
+    unit="ms",
+    times=10
+  )
+)
+```
+
+
+#### lm
+
+The test case has the following form:
+
+```{r}
+data <- data.frame(a=1:10, b=1:10)
+fun <- lm
+nse1 <- my_NSE1(fun)
+nse2 <- my_NSE2(fun)
+nse3 <- my_NSE3(fun)
+nse4 <- my_NSE4(fun)
+```
+
+To check the result:
+```{r}
+list(nse1(data, a~b)$coefficients, nse2(data, a~b)$coefficients, nse3(data, a~b)$coefficients, nse4(data, a~b)$coefficients, lm(a~b, data)$coefficients)
+```
+
+The benchmark is the following:
+```{r}
+visualize(
+  microbenchmark::microbenchmark(
+    nse1={nse1(data, a~b)},
+    nse2={nse2(data, a~b)},
+    nse3={nse3(data, a~b)},
+    nse4={nse4(data, a~b)},
+    raw={lm(a~b, data)},
+    unit="ms",
+    times=10
+  )
+)
+```
+
+### Larger tests
+Due to readablility for this kind of tests printing outputs is omitted .
+
+### min
+The test case has the following form:
+
+```{r}
+n <- 100000
+data <- data.frame(a=1:n, b=1:n)
+fun <- min
+nse1 <- my_NSE1(fun)
+nse2 <- my_NSE2(fun)
+nse3 <- my_NSE3(fun)
+nse4 <- my_NSE4(fun)
+```
+
+The benchmark is the following:
+```{r}
+visualize(
+  microbenchmark::microbenchmark(
+    nse1={nse1(data, a)},
+    nse2={nse2(data, a)},
+    nse3={nse3(data, a)},
+    nse4={nse4(data, a)},
+    raw={min(data$a)},
+    unit="ms",
+    times=10
+  )
+)
+```
+
+### max
+The test case has the following form:
+
+```{r}
+n <- 100000
+data <- data.frame(a=1:n, b=1:n)
+fun <- max
+nse1 <- my_NSE1(fun)
+nse2 <- my_NSE2(fun)
+nse3 <- my_NSE3(fun)
+nse4 <- my_NSE4(fun)
+```
+
+The benchmark is the following:
+```{r}
+visualize(
+  microbenchmark::microbenchmark(
+    nse1={nse1(data, a)},
+    nse2={nse2(data, a)},
+    nse3={nse3(data, a)},
+    nse4={nse4(data, a)},
+    raw={max(data$a)},
+    unit="ms",
+    times=10
+  )
+)
+```
+
+#### unlist
+
+##### use.names=TRUE
+
+The test case has the following form:
+
+```{r}
+n <- 100000
+data <- data.frame(a=1:n, b=1:n)
+fun <- unlist
+nse1 <- my_NSE1(fun)
+nse2 <- my_NSE2(fun)
+nse3 <- my_NSE3(fun)
+nse4 <- my_NSE4(fun)
+```
+
+The benchmark is the following:
+```{r}
+visualize(
+  microbenchmark::microbenchmark(
+    nse1={nse1(data, b, use.names=TRUE)},
+    nse2={nse2(data, b, use.names=TRUE)},
+    nse3={nse3(data, b, use.names=TRUE)},
+    nse4={nse4(data, b, use.names=TRUE)},
+    raw={unlist(data$b, use.names = TRUE)},
+    unit="ms",
+    times=10
+  )
+)
+```
+
+#### unlist
+
+##### use.names=TRUE
+
+The test case has the following form:
+
+```{r}
+n <- 100000
+l <- as.list(1:n)
+names(l) = 1:n
+data <- list(b=l)
+fun <- unlist
+nse1 <- my_NSE1(fun)
+nse2 <- my_NSE2(fun)
+nse3 <- my_NSE3(fun)
+nse4 <- my_NSE4(fun)
+```
+
+The benchmark is the following:
+```{r}
+visualize(
+  microbenchmark::microbenchmark(
+    nse1={nse1(data, b, use.names=FALSE)},
+    nse2={nse2(data, b, use.names=FALSE)},
+    nse3={nse3(data, b, use.names=FALSE)},
+    nse4={nse4(data, b, use.names=FALSE)},
+    raw={unlist(data$b, use.names=FALSE)},
+    unit="ms",
+    times=10
+  )
+)
+```
+
+
+#### lm
+
+The test case has the following form:
+
+```{r}
+n <- 1000000
+data <- data.frame(a=1:n, b=1:n)
+fun <- lm
+nse1 <- my_NSE1(fun)
+nse2 <- my_NSE2(fun)
+nse3 <- my_NSE3(fun)
+nse4 <- my_NSE4(fun)
+```
+
+The benchmark is the following:
+```{r}
+visualize(
+  microbenchmark::microbenchmark(
+    nse1={nse1(data, a~b)},
+    nse2={nse2(data, a~b)},
+    nse3={nse3(data, a~b)},
+    nse4={nse4(data, a~b)},
+    raw={lm(a~b, data)},
+    unit="ms",
+    times=10
+  )
+)
+```
+
+## Summary
+In all cases the *raw* version of a functions turned out to be the most efficient.
+Moreover, in most cases the difference in performance is very significant.
+Additionally, it is worth pointing out that in all executed tests the provided functions performed similarly
+taking into account the performance rank. Namely, the rank is: *raw*, *nse4*, *nse2*, *nse1*, *nse3*.
+Usually, the difference between *nse3* and *nse1* is larger than the other.
+
+However, a reader should notice that in the last test (larger test for *lm*) the differences in performance are negligible - all perform similarly.

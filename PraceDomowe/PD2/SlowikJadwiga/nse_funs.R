@@ -1,6 +1,6 @@
 library(rlang)
 
-my_NSE <- function(fun) {
+my_NSE1 <- function(fun) {
   function(data, ...) {
     dots <- enquos(...)
     args <- lapply(dots, function(arg) {

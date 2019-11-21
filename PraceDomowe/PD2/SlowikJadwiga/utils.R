@@ -24,6 +24,13 @@ get_bar_plot <- function(df) {
   ggplot(df, aes(x=expr, y=mean, fill=expr)) +
     geom_col() +
     theme_classic() +
-    ylab("mean [ns]")
+    ylab("mean [ms]")
+}
+
+visualize <- function(bench_mark) {
+  bench_mark %>% 
+    summary %>% 
+    as.data.frame %>% 
+    get_bar_plot
 }
 
