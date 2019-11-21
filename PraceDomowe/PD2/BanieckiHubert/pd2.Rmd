@@ -1,0 +1,241 @@
+---
+title: "Praca Domowa 2"
+subtitle: "2020Z-ProgramowanieWR"
+author: "Hubert Baniecki"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    df_print: paged
+    toc: true
+    toc_float: true
+    theme: readable
+    highlight: haddock
+    code_folding: hide
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.align = "center", fig.width = 8, fig.height = 5)
+library(microbenchmark)
+library(ggplot2)
+```
+
+# Rozwiązania
+
+## Wywołanie funkcji na "wyjętych" danych {.tabset .tabset-fade}
+
+### Kod
+
+```{r class.source='fold-show'}
+f_NSE1 <- function(f) {
+  function(input_list, name_or_formula, ...) {
+    s_name_or_formula <- substitute(name_or_formula)
+    input <- eval(s_name_or_formula, input_list)
+    f(input, ...)
+  }
+}
+```
+
+### Testy jednostkowe
+
+```{r}
+new_min1 <- f_NSE1(min)
+new_min1(iris, Sepal.Width)
+
+new_mean1 <- f_NSE1(mean)
+new_mean1(iris, Sepal.Length, na.rm = TRUE)
+
+new_unlist1 <- f_NSE1(unlist)
+new_unlist1(list(A = list(a=1, b=2, c=3), B = list()), A, use.names = FALSE)
+new_unlist1(list(A = list(a=1, b=2, c=3), B = list()), A, use.names = TRUE)
+
+new_lm1 <- f_NSE1(lm)
+new_lm1(iris, Sepal.Width~Sepal.Length+Petal.Length-1)
+```
+
+## Wywołanie funkcji w środowisku stworzonym z danych - `with` {.tabset .tabset-fade}
+
+### Kod
+
+```{r class.source='fold-show'}
+f_NSE2 <- function(f) {
+  function(input_list, name_or_formula, ...) {
+    ex_name_or_formula <- as.expression(substitute(name_or_formula))
+    with(input_list, f(eval(ex_name_or_formula), ...))
+  }
+}
+```
+
+### Testy jednostkowe
+
+```{r}
+new_min2 <- f_NSE2(min)
+new_min2(iris, Sepal.Width)
+
+new_mean2 <- f_NSE2(mean)
+new_mean2(iris, Sepal.Length, na.rm = TRUE)
+
+new_unlist2 <- f_NSE2(unlist)
+new_unlist2(list(A = list(a=1, b=2, c=3), B = list()), A, use.names = FALSE)
+new_unlist2(list(A = list(a=1, b=2, c=3), B = list()), A, use.names = TRUE)
+
+new_lm2 <- f_NSE2(lm)
+new_lm2(iris, Sepal.Width~Sepal.Length+Petal.Length-1)
+```
+
+## Wywołanie funkcji w środowisku stworzonym z danych - `evalq` i `list2env` {.tabset .tabset-fade}
+
+### Kod
+
+```{r class.source='fold-show'} 
+f_NSE3 <- function(f) {
+  function(input_list, name_or_formula, ...) {
+    ex_name_or_formula <- as.expression(substitute(name_or_formula))
+    evalq(f(eval(ex_name_or_formula), ...), envir = list2env(input_list))
+  }
+}
+```
+
+### Testy jednostkowe
+
+```{r}
+new_min3 <- f_NSE3(min)
+new_min3(iris, Sepal.Width)
+
+new_mean3 <- f_NSE3(mean)
+new_mean3(iris, Sepal.Length, na.rm = TRUE)
+
+new_unlist3 <- f_NSE3(unlist)
+new_unlist3(list(A = list(a=1, b=2, c=3), B = list()), A, use.names = FALSE)
+new_unlist3(list(A = list(a=1, b=2, c=3), B = list()), A, use.names = TRUE)
+
+new_lm3 <- f_NSE3(lm)
+new_lm3(iris, Sepal.Width~Sepal.Length+Petal.Length-1)
+```
+
+# Testy
+
+Do testów użyję trzech zbiorów danych:
+
++ mały - 2000x2
++ średni - 20000x4
++ duży - 200000x8
+
+```{r}
+named_list <- rnorm(2000,0,10)
+names(named_list) <- rnorm(2000,0,10)
+data1 <- data.frame(A=rnorm(2000,0,10), B=named_list)
+object.size(data1)
+
+named_list <- rnorm(20000,0,10)
+names(named_list) <- rnorm(20000,0,10)
+data2 <- data.frame(A=rnorm(20000,0,10), B=named_list,
+                    C=rnorm(20000,0,10), D=rnorm(20000,0,10))
+object.size(data2)
+
+named_list <- rnorm(200000,0,10)
+names(named_list) <- rnorm(200000,0,10)
+data3 <- data.frame(A=rnorm(200000,0,10), B=named_list,
+                    C=rnorm(200000,0,10), D=rnorm(200000,0,10),
+                    E=rnorm(200000,0,10), X=rnorm(200000,0,10),
+                    G=rnorm(200000,0,10), H=rnorm(200000,0,10))
+object.size(data3)
+```
+
+## Rozw 1.
+
+```{r cache=TRUE}
+m11 <- microbenchmark(
+  min = new_min1(data1, B),
+  mean = new_mean1(data1, B, na.rm = TRUE),
+  unlistF = new_unlist1(data1, B, use.names = FALSE),
+  unlistT = new_unlist1(data1, B, use.names = TRUE),
+  lm = new_lm1(data1, A~B),
+  times = 1000
+)
+m12 <- microbenchmark(
+  min = new_min1(data2, B),
+  mean = new_mean1(data2, B, na.rm = TRUE),
+  unlistF = new_unlist1(data2, B, use.names = FALSE),
+  unlistT = new_unlist1(data2, B, use.names = TRUE),
+  lm = new_lm1(data2, A~B+C+D),
+  times = 1000
+)
+m13 <- microbenchmark(
+  min = new_min1(data3, B),
+  mean = new_mean1(data3, B, na.rm = TRUE),
+  unlistF = new_unlist1(data3, B, use.names = FALSE),
+  unlistT = new_unlist1(data3, B, use.names = TRUE),
+  lm = new_lm1(data3, A~B+C+D+E+X+G+H),
+  times = 1000
+)
+m1 <- cbind(rbind(m11,m12,m13), dataset = c(rep("small",500),rep("medium",500),rep("big",500)))
+ggplot(data=m1) + geom_boxplot(aes(x = expr, y = time, fill = dataset)) + scale_y_log10()
+```
+
+## Rozw 2.
+
+```{r cache=TRUE}
+m21 <- microbenchmark(
+  min = new_min2(data1, B),
+  mean = new_mean2(data1, B, na.rm = TRUE),
+  unlistF = new_unlist2(data1, B, use.names = FALSE),
+  unlistT = new_unlist2(data1, B, use.names = TRUE),
+  lm = new_lm2(data1, A~B),
+  times = 1000
+)
+m22 <- microbenchmark(
+  min = new_min2(data2, B),
+  mean = new_mean2(data2, B, na.rm = TRUE),
+  unlistF = new_unlist2(data2, B, use.names = FALSE),
+  unlistT = new_unlist2(data2, B, use.names = TRUE),
+  lm = new_lm2(data2, A~B+C+D),
+  times = 1000
+)
+m23 <- microbenchmark(
+  min = new_min2(data3, B),
+  mean = new_mean2(data3, B, na.rm = TRUE),
+  unlistF = new_unlist2(data3, B, use.names = FALSE),
+  unlistT = new_unlist2(data3, B, use.names = TRUE),
+  lm = new_lm2(data3, A~B+C+D+E+X+G+H),
+  times = 1000
+)
+m2 <- cbind(rbind(m21,m22,m23), dataset = c(rep("small",500),rep("medium",500),rep("big",500)))
+ggplot(data=m2) + geom_boxplot(aes(x = expr, y = time, fill = dataset)) + scale_y_log10()
+```
+
+## Rozw 3.
+
+```{r cache=TRUE}
+m31 <- microbenchmark(
+  min = new_min3(data1, B),
+  mean = new_mean3(data1, B, na.rm = TRUE),
+  unlistF = new_unlist3(data1, B, use.names = FALSE),
+  unlistT = new_unlist3(data1, B, use.names = TRUE),
+  lm = new_lm3(data1, A~B),
+  times = 1000
+)
+m32 <- microbenchmark(
+  min = new_min3(data2, B),
+  mean = new_mean3(data2, B, na.rm = TRUE),
+  unlistF = new_unlist3(data2, B, use.names = FALSE),
+  unlistT = new_unlist3(data2, B, use.names = TRUE),
+  lm = new_lm3(data2, A~B+C+D),
+  times = 1000
+)
+m33 <- microbenchmark(
+  min = new_min3(data3, B),
+  mean = new_mean3(data3, B, na.rm = TRUE),
+  unlistF = new_unlist3(data3, B, use.names = FALSE),
+  unlistT = new_unlist3(data3, B, use.names = TRUE),
+  lm = new_lm3(data3, A~B+C+D+E+X+G+H),
+  times = 1000
+)
+m3 <- cbind(rbind(m31,m32,m33), dataset = c(rep("small",500),rep("medium",500),rep("big",500)))
+ggplot(data=m3) + geom_boxplot(aes(x = expr, y = time, fill = dataset)) + scale_y_log10()
+```
+
+# Wniosek
+
+Nie widać większych różnic czasowych pomiędzy tymi rozwiązaniami. Sam korzystałbym z rozwiązania nr. 2, czyli
+tego wykorzystującego funkcję `with`. Wydaje się, że funkcja ta została stworzona do takich zadań.
