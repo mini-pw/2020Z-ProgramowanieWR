@@ -381,7 +381,7 @@ visualize(
 ```
 
 ## Summary
-In all cases the *raw* version of a functions turned out to be the most efficient.
+In all cases the *raw* version turned out to be the most efficient.
 Moreover, in most cases the difference in performance is very significant.
 Additionally, it is worth pointing out that in all executed tests the provided functions performed similarly
 taking into account the performance rank. Namely, the rank is: *raw*, *nse4*, *nse2*, *nse1*, *nse3*.
