@@ -4,17 +4,29 @@ library(shiny)
 library(shinycssloaders)
 library(shinyhelper)
 
+f_names <- c("numericInput", "selectInput", "sliderInput")
+l <- lapply(f_names, function(ith_f_name) 
+    function(inputId, ...) 
+        helper(getFromNamespace(ith_f_name, ns = "shiny")(inputId = inputId, ...),  
+               content = inputId, type = "markdown")
+    )
+
+for(i in 1L:length(f_names)) {
+    assign(x = paste0(f_names[i], "Helper"), value = l[[i]])
+}
+
+
 ui <- pageWithSidebar(
     headerPanel("Interactive Histogram"),
     sidebarPanel(
-        numericInput("n", "Generate this many points", 
+        numericInputHelper("n", "Generate this many points", 
                      min = 1, value = 10e6),
-        selectInput("family", "From this family",
+        selectInputHelper("family", "From this family",
                     choices = c("Normal",
                                 "Uniform",
                                 "Exponential"),
                     selected = "normal"),
-        sliderInput("bins", "number of bins", 
+        sliderInputHelper("bins", "number of bins", 
                     min = 1, max = 100, value = 50)
     ),
     mainPanel(
