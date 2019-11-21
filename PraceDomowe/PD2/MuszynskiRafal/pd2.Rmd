@@ -1,58 +1,18 @@
 ---
 title: "NonStandardNSE"
 author: "Rafał Muszyński"
-date: "11/15/2019"
+date: "11/21/2019"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(rlang)
-```
-
-```{r}
-
-test_nse <- function(nse_constructor){
-  test_min <- nse_constructor(min)
-  print(test_min(list(a=c(4,5,6), b=c(512,23,1,1)), a))
-  
-  test_mean <- nse_constructor(mean)
-  print(test_mean(list(a=c(4,5,6), b=c(512,23,1,1)), b))
-  
-  test_print <- nse_constructor(print)
-  test_print(list(x = 'hmmmmm'), x, quote=TRUE)
-  
-  data(iris)
-  print(lm(formula = Sepal.Length~Sepal.Width, iris))
-  test_lm <- nse_constructor(lm)
-  print(test_lm(iris, formula = Sepal.Length~Sepal.Width))
-  print(lm(formula = Sepal.Length~Sepal.Width - 1, iris))
-  print(test_lm(iris, formula = Sepal.Length~Sepal.Width - 1))
-  
-  test_unlist <- nse_constructor(unlist)
-  print(test_unlist(list( x=list(x = 1, y = 2, z = 3, w = c('aa', 'bb'))), x, use.names=FALSE))
-  print(test_unlist(list( x=list(x = 1, y = 2, z = 3, w = c('aa', 'bb'))), x, use.names=TRUE))
-  
-  test_func <- function(func){
-    print(func)
-  }
-  
-  nse_constructor(test_func)(list(func=c(1,2,3)), func)
-
-  something <- c(5,2,3,6)
-  nse_constructor(min)(list(a=c(5,8,8,8,3,4)), something)
-  
-}
-
 ```
 
 
-#my NSE VOL1
-
-
+# Simple NSE
 
 ```{r}
-# simple approach
 
 simple_nse <- function(func){
   function(input_list, ...){
@@ -63,12 +23,10 @@ simple_nse <- function(func){
   }
 }
 
-test_nse(simple_nse)
-
 ```
 
 
-#NSE vol 2
+# Advanced NSE
 
 ```{r}
 # improved version of simple nse, allows arguments from parent scope
@@ -84,17 +42,12 @@ advanced_nse <- function(func){
   }
 }
 
-
-
-test_nse(advanced_nse)
-something = c(5,4,2,6,1)
-simple_nse(min)(list(a=c(5,8,8,8,3,4)), something)
-advanced_nse(min)(list(a=c(5,8,8,8,3,4)), something)
-
 ```
 
+# Rlang NSE
+
 ```{r}
-library(tidyr)
+library(rlang)
 
 rlang_nse <- function(func){
   function(input_list, ...){
@@ -109,29 +62,28 @@ rlang_nse <- function(func){
   }
 }
 
-rlang_nse(min)(list(a=c(4,2,3)), a)
-
-
-test_nse(rlang_nse)
-
 ```
 
+# Benchmarking function
 
 ```{r}
 # define benchmark function
 library(microbenchmark)
-library(ggplot2)
 
-benchmark_function <- function(nse_constructor, nse_constructor_name){
+benchmark_function <- function(nse_constructor){
+  # yet another nse
+  nse_constructor_name <- deparse(substitute(nse_constructor))
   min_nse <- nse_constructor(min)
   mean_nse <- nse_constructor(mean)
   data(iris)
   lm_nse <- nse_constructor(lm)
   unlist_nse <- nse_constructor(unlist)
 
+  long_dataframe <- as.data.frame(matrix(1, ncol = 1000, nrow = 2))
+  
   results <- microbenchmark(
-    min_nse(list(a=c(4,5,6), b=c(512,23,1,1)), a),
-    mean_nse(list(a=c(4,5,6), b=c(512,23,1,1)), b),
+    min_nse(long_dataframe, V1000),
+    mean_nse(long_dataframe, V1000),
     lm_nse(iris, formula = Sepal.Length~Sepal.Width - 1),
     unlist_nse(list( x=list(x = 1, y = 2, z = 3, w = c('aa', 'bb'))), x, use.names=FALSE),
     unlist_nse(list( x=list(x = 1, y = 2, z = 3, w = c('aa', 'bb'))), x, use.names=TRUE),
@@ -145,14 +97,14 @@ benchmark_function <- function(nse_constructor, nse_constructor_name){
 ```
 
 
-```{r}
+```{r, echo=FALSE}
 
 library(ggplot2)
 
 results <- rbind(
-  benchmark_function(simple_nse, 'simple nse'),
-  benchmark_function(advanced_nse, 'advanced_nse'),
-  benchmark_function(advanced_nse, 'rlang_nse')
+  benchmark_function(simple_nse),
+  benchmark_function(advanced_nse),
+  benchmark_function(rlang_nse)
 )
 
 ggplot(results, aes(x=tests, y=mean, fill=method)) +
@@ -161,3 +113,27 @@ ggplot(results, aes(x=tests, y=mean, fill=method)) +
 
 ```
 
+```{r, echo=FALSE, include=FALSE}
+# tests if this even works
+test_function <- function(nse_constructor){
+
+  min_nse <- nse_constructor(min)
+  mean_nse <- nse_constructor(mean)
+  data(iris)
+  lm_nse <- nse_constructor(lm)
+  unlist_nse <- nse_constructor(unlist)
+
+  long_dataframe <- as.data.frame(matrix(1, ncol = 1000, nrow = 2))
+
+  print(min_nse(long_dataframe, V1000))
+  print(mean_nse(long_dataframe, V1000))
+  print(lm_nse(iris, formula = Sepal.Length~Sepal.Width - 1))
+  print(unlist_nse(list( x=list(x = 1, y = 2, z = 3, w = c('aa', 'bb'))), x, use.names=FALSE))
+  print(unlist_nse(list( x=list(x = 1, y = 2, z = 3, w = c('aa', 'bb'))), x, use.names=TRUE))
+  
+}
+test_function(simple_nse)
+test_function(advanced_nse)
+test_function(rlang_nse)
+
+```
