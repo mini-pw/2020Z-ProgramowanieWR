@@ -1,0 +1,105 @@
+---
+title: "Advanced R"
+author: "Tymoteusz Makowski"
+date: '2019-11-17'
+subtitle: "Home assignment (PD2) - partial solution"
+---
+
+
+```{r setup, include=FALSE}
+library("ggplot2")
+knitr::opts_chunk$set(echo = TRUE, comment = "", message = FALSE, warning = FALSE)
+```
+
+
+## First approach
+```{r}
+NSErize1 <- function(func) {
+    function(x, ...) {
+        # Skipping first element because that's a function call.
+        args_deparsed <- sapply(substitute(list(...))[-1], deparse)
+        
+        # Leaving only x elements.
+        args_x_elements <- intersect(args_deparsed, names(x))
+        
+        # Getting arguments which are not x's elements as an expression.
+        args_other <- as.list(args_deparsed[!(args_deparsed %in% names(x))])
+        args_other_expr <- as.expression(
+            sapply(
+                names(args_other),
+                function(arg_name) paste(arg_name, "=", args_other[[arg_name]])
+            )
+        )
+        
+        sapply(
+            args_x_elements,
+            function(x_el_name) {
+                # Avoid adding NULL argument when args_other_expr is an empty expression.
+                if (length(args_other_expr) > 0) {
+                    func(x[[x_el_name]], eval(args_other_expr))
+                } else {
+                    func(x[[x_el_name]])
+                }
+            })
+    }
+}
+```
+
+
+## Second approach
+```{r}
+# Function performs do.call with arguments being merged inner_args and ellipsis values.
+func_caller <- function(func, inner_args = NULL, ...) {
+    do.call(
+        function(...) do.call(func, list(...)),
+        args = c(inner_args, list(...))
+    )
+}
+
+
+NSErize2 <- function(func) {
+    function(x, ...) {
+        args_call <- substitute(list(...))
+        args_list <- do.call(list, as.list(args_call[-1]), envir = as.environment(x))
+        
+        x_el_flag <- names(args_list) == ""
+        if (length(x_el_flag) == 0) {
+            x_el_flag <- TRUE
+        }
+        
+        sapply(args_list[x_el_flag], function(x_el) func_caller(func, args_list[!x_el_flag], x_el))
+    }
+}
+```
+
+
+## Tests
+```{r}
+x <- list(a = c(1, 2, 30), b = c(2, 1))
+
+min_NSE1 <- NSErize1(min)
+min_NSE2 <- NSErize2(min)
+unlist_NSE1 <- NSErize1(unlist)
+unlist_NSE2 <- NSErize2(unlist)
+mean_NSE1 <- NSErize1(mean)
+mean_NSE2 <- NSErize2(mean)
+
+res <- microbenchmark::microbenchmark(
+    min_NSE1_2args = min_NSE1(x, a, b),
+    min_NSE2_2args = min_NSE2(x, a, b),
+    min_NSE1_1arg = min_NSE1(x, a),
+    min_NSE2_1arg = min_NSE2(x, a),
+    unlist_NSE1_args = unlist_NSE1(list("abc" = x, "y" = 123), abc, y, use.names = FALSE),
+    unlist_NSE2_args = unlist_NSE2(list("abc" = x, "y" = 123), abc, y, use.names = FALSE),
+    unlist_NSE1_noargs = unlist_NSE1(list("abc" = x, "y" = 123), abc, y),
+    unlist_NSE2_noargs = unlist_NSE2(list("abc" = x, "y" = 123), abc, y),
+    mean_NSE1 = mean_NSE1(x, a, b),
+    mean_NSE2 = mean_NSE2(x, a, b),
+    times = 100
+)
+
+res_summary <- summary(res, unit = "us")
+
+print(res_summary[, -ncol(res_summary)])
+autoplot(res) + theme_classic()
+```
