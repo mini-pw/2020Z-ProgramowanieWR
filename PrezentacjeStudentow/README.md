@@ -15,7 +15,7 @@ Pakiety do omówienia:
 1. [drake](https://github.com/ropensci/drake) (Jacek Myna, Sebastian Sowik).
 1. [future](https://github.com/HenrikBengtsson/future)
 1. [golem](https://github.com/ThinkR-open/golem).
-1. [modelDown](https://github.com/ModelOriented/modelDown).
+1. [modelDown](https://github.com/ModelOriented/modelDown) (Jakub Pingielski)
 1. [mlr3pipelines](https://github.com/mlr-org/mlr3pipelines) (Mateusz Bąkała, Andrzej Nowikowski).
 1. [modelStudio](https://github.com/ModelOriented/modelStudio) (Hubert Baniecki, Witold Merkel). 
 1. [pipeR](https://github.com/renkun-ken/pipeR). (Piotr Olesiejuk, Piotr Janus)
