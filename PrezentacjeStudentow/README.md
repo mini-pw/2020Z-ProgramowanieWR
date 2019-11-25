@@ -26,3 +26,23 @@ Pakiety do omówienia:
 1. [shinyJS](https://github.com/daattali/shinyjs) (Agata Pałdyna, Rafał Muszyński, Tymoteusz Makowski).
 1. [stargazer](https://github.com/cran/stargazer).
 1. [withr](https://github.com/r-lib/withr).
+
+Porządek prezentacji:
+
+28.11 
+  
+1. Jan Sawicki.
+2. Tomek Radzikowski.
+3. Agata Pałdyna, Rafał Muszyński, Tymoteusz Makowski.
+4. Jacek Myna, Sebastian Sowik.
+5. Mateusz Bąkała, Andrzej Nowikowski
+6. 
+  
+05.12.
+
+1. Aleksandra Łuczak, Tomasz Klonecki
+2. Hubert Baniecki, Witold Merkel
+2. Dominik Rafacz, Hanna Zdulska
+3. Szymon Maksymiuk, Michał Stawikowski.
+4. Paweł Morgen, Jadwiga Słowik
+5. Piotr Olesiejuk, Piotr Janus
