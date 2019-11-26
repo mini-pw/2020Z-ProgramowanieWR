@@ -1,0 +1,42 @@
+---
+title: "Drake R package"
+author: "Jacek Myna, Sebastian Sowik"
+date: "November 26, 2019"
+output: 
+  ioslides_presentation:
+    logo: ./MiNI.svg
+  
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## R Markdown
+<IMG style="position:absolute;top:15%;right:15%;width:350px;"SRC="drake.svg">
+This is an R Markdown presentation. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
+
+## Slide with Bullets
+
+- Bullet 1
+- Bullet 2
+- Bullet 3
+
+## Slide with R Output
+
+```{r cars, echo = TRUE}
+summary(cars)
+```
+
+## Slide with Plot
+
+```{r pressure}
+plot(pressure)
+```
+
+
+# Caption1
+
+## Caption 2
