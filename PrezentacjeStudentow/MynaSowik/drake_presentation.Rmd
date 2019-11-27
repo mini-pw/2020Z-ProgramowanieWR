@@ -4,31 +4,136 @@ author: "Jacek Myna, Sebastian Sowik"
 date: "November 26, 2019"
 output: 
   ioslides_presentation:
-    logo: ./MiNI.svg
+    logo: ./images/MiNI.svg
   
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+library(drake)
 ```
 
-## Problems with data science projects
+## Kiedy drake jest przydatny?
 
-## drake package to the resque
+- duże zbiory danych
+- skomplikowane zależności
+- duże, częste zmiany w danych wejściowych
 
-<IMG style="position:absolute;top:35%;right:10%;width:350px;"SRC="drake.svg">
+## Przetwarzanie dużych danych
 
-> - Process optimization
-> - Reproducibility
-> - Skiping steps with up-to-date  
-results after project updates
+<center>
+![](./images/LargeDatasets.svg)
+</center>
 
-## How to use drake package
+## Skomplikowane zależności
 
-```{r cars, echo = TRUE}
-summary(cars)
+<center>
+![](./images/ComplDataFlow.svg)
+</center>
+
+## Zmiany w danych wejściowych
+
+<center>
+![](./images/tweet.png)
+</center>
+
+## Zastosowania pakietu drake
+
+- reprodukowalność
+- budowanie grafów zależności
+- optymalizacja przetwarzania
+
+## Reprodukowalność
+
+- spójność wewnętrzna
+- output zgodny z kodem i danymi
+- odzyskiwanie danych
+
+## Reprodukowalność
+
+```{r r2}
+library(ggplot2)
+ggplot(data = iris, aes(x = Petal.Width, fill = Species)) +
+    geom_histogram(binwidth = 0.25) +
+    theme_gray(20)
 ```
 
 
+## Grafy zależności
 
-## Conclusions
+<center>
+![](./images/dependency-graph.png){
+width=80% }
+</center>
+
+## Optymalizacja przetwarzania
+
+- przetwarzanie tylko potrzebnych części
+- przetwarzanie równoległe
+
+## Przykład potoku przetwarzania
+
+```{r simple_pipeline, echo=TRUE, include=TRUE}
+# From https://github.com/wlandau/drake-examples/
+random_rows <- function(data, n) {
+  data[sample.int(n = nrow(data), size = n, replace = TRUE), ]
+}
+
+simulate <- function(n) {
+  data <- random_rows(data = mtcars, n = n)
+  data.frame(x = data$wt, y = data$mpg)
+}
+
+reg1 <- function(d) {
+  lm(y ~ + x, data = d)
+}
+
+reg2 <- function(d) {
+  d$x2 <- d$x ^ 2
+  lm(y ~ x2, data = d)
+}
+```
+
+## Przetwarzanie z użyciem pakietu drake
+
+```{r simple_drake, echo=TRUE, include=TRUE}
+# From https://github.com/wlandau/drake-examples/
+plan <- drake_plan(
+  small = simulate(48), large = simulate(64),
+  regression1 = target(
+    reg1(data), transform = map(data = c(small, large), .tag_out = reg)
+  ),
+  regression2 = target(
+    reg2(data), transform = map(data, .tag_out = reg)
+  ),
+  summ = target(
+    suppressWarnings(summary(reg$residuals)),
+    transform = map(reg)
+  ),
+  coef = target(
+    suppressWarnings(summary(reg))$coefficients,
+    transform = map(reg)
+  )
+)
+```
+## Wizualizacja planu
+
+```{r drake_vis, echo=TRUE, include=TRUE}
+# From https://github.com/wlandau/drake-examples/
+config <- drake_config(plan)
+drake_ggraph(config)
+```
+## Zbudowanie projektu
+
+```{r drake_make, echo=TRUE, include=TRUE}
+# From https://github.com/wlandau/drake-examples/
+config <- drake_config(plan)
+make(plan)
+drake_ggraph(config)
+```
+## Podsumowanie
+
+- Pozwala na zaoszczędzenie dużej ilości czasu
+- Wymaga zmiany przyzwyczajeń programisty
+- Sprzyja powtarzalności wyników
+- Łatwe rozszerzenie o przetwarzanie rozproszone
