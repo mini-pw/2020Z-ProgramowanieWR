@@ -18,11 +18,71 @@ This is an R Markdown presentation. Markdown is a simple formatting syntax for a
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
 
-## Slide with Bullets
+## Kiedy drake jest przydatny?
 
-- Bullet 1
-- Bullet 2
-- Bullet 3
+- du¿e zbiory danych
+- skomplikowane zale¿noœci
+- du¿e, czêste zmiany w danych wejœciowych
+
+## Przetwarzanie du¿ych danych
+
+<center>
+![](LargeDatasets.svg)
+</center>
+
+## Skomplikowane zale¿noœci
+
+<center>
+![](ComplDataFlow.svg)
+</center>
+
+## Zmiany w danych wejœciowych
+
+<center>
+![](tweet.png)
+</center>
+
+## Zastosowania pakietu drake
+
+- reprodukowalnoœæ
+- budowanie grafów zale¿noœci
+- optymalizacja przetwarzania
+
+## Reprodukowalnoœæ
+
+- spójnoœæ wewnêtrzna
+- output zgodny z kodem i danymi
+- odzyskiwanie danych
+
+## Reprodukowalnoœæ
+
+```{r r1}
+library(ggplot2)
+ggplot(data = iris, aes(x = Petal.Width, fill = Species)) +
+    geom_histogram()
+```
+
+## Reprodukowalnoœæ
+
+```{r r2}
+library(ggplot2)
+ggplot(data = iris, aes(x = Petal.Width, fill = Species)) +
+    geom_histogram(binwidth = 0.25) +
+    theme_gray(20)
+```
+
+
+## Grafy zale¿noœci
+
+<center>
+![](dependency-graph.png){
+width=80% }
+</center>
+
+## Optymalizacja przetwarzania
+
+- przetwarzanie tylko potrzebnych czêœci
+- przetwarzanie równoleg³e
 
 ## Slide with R Output
 
