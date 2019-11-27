@@ -12,31 +12,23 @@ output:
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-## R Markdown
-<IMG style="position:absolute;top:15%;right:15%;width:350px;"SRC="drake.svg">
-This is an R Markdown presentation. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+## Problems with data science projects
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
+## drake package to the resque
 
-## Slide with Bullets
+<IMG style="position:absolute;top:35%;right:10%;width:350px;"SRC="drake.svg">
 
-- Bullet 1
-- Bullet 2
-- Bullet 3
+> - Process optimization
+> - Reproducibility
+> - Skiping steps with up-to-date  
+results after project updates
 
-## Slide with R Output
+## How to use drake package
 
 ```{r cars, echo = TRUE}
 summary(cars)
 ```
 
-## Slide with Plot
-
-```{r pressure}
-plot(pressure)
-```
 
 
-# Caption1
-
-## Caption 2
+## Conclusions
