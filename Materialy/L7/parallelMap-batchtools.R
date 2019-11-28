@@ -40,7 +40,7 @@ library(batchtools)
 registry <- makeRegistry(file.dir = "./file_registry", seed = 15390)
 getDefaultRegistry()
 # setDefaultRegistry()
-# clearRegistry
+# clearRegistry()
 batchMap(fun = approximate_pi, n = rep(1e5, 10))
 getJobTable()
 submitJobs(resources = list(walltime = 3600, memory = 1024))
@@ -50,6 +50,14 @@ getStatus()
 
 loadResult(1)
 
+makeClusterFunctionsMulticore(ncpus = 4)
+clearRegistry()
+batchMap(fun = approximate_pi, n = rep(1e5, 10))
+getJobTable()
+submitJobs(resources = list(walltime = 3600, memory = 1024))
+waitForJobs()
 #?parallelStartBatchtools
 library(future.batchtools)
 plan("batchtools_interactive")
+batchMap(fun = approximate_pi, n = rep(1e5, 10))
+clearRegistry()
