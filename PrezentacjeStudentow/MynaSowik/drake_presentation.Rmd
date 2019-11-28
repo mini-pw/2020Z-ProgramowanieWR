@@ -136,4 +136,5 @@ drake_ggraph(config)
 - Pozwala na zaoszczędzenie dużej ilości czasu
 - Wymaga zmiany przyzwyczajeń programisty
 - Sprzyja powtarzalności wyników
-- Łatwe rozszerzenie o przetwarzanie rozproszone
+- Łatwe rozszerzenie na przetwarzanie rozproszone (np. slurm)
+- Kompatybilny z dockerem
