@@ -49,5 +49,5 @@ Porządek prezentacji:
 
 12.12.
 
-1. Adam Rydelek (future)
-2. Jakub Pingielski (modelDown)
+1. Adam Rydelek, Mateusz Polakowski
+2. Jakub Pingielski
