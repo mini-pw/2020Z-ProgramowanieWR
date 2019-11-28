@@ -1,0 +1,204 @@
+---
+title: "Generator funkcji NSE"
+author: "Mateusz Bąkała"
+date: "30 lutego 1972"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(microbenchmark)
+```
+
+Celem poniższego raportu jest ~~zaliczenie pracy domowej~~ analiza działania dwóch funkcji generujących niestandardowo ewaluujące odpowiedniki przekazywanych funkcji.
+
+## Funkcje
+
+Na potrzeby raportu napisane zostały dwie funkcje. Pierwsza z nich wykorzystuje funkcję `eval` w celu wyłuskania interesujących nas podzbiorów z podanej listy. Druga natomiast wykorzystuje parametr `envir` funkcji `do.call` w celu ewaluacji funkcji w środowisku generowanym przez podaną listę.
+
+```{r functions}
+func2NSE <- function(func) {
+  function(NSE_list, NSE_args, ...) {
+    func(eval(substitute(NSE_args), NSE_list), ...)
+  }
+}
+
+nse_from_fun <- function(func) {
+  function(NSE_list, NSE_args, ...) {
+    do.call(what = func, args = list(substitute(NSE_args), ...), envir = list2env(NSE_list))
+  }
+}
+```
+
+Nazwy funkcji zostały wybrane, by w możliwie wierny sposób odtworzyć specyfikę R-owego nazewnictwa.
+
+## Testy poprawności
+
+Zbadajmy najpierw poprawność zachowania się funkcji (spoiler: jest okej).
+
+```{r tests}
+NSE_list <- list(a = c(dwa = 2, jeden = 1, siedem = 30), b = c(3, 0))
+NSE_list_2 <- list(n = list(p = NSE_list, q = c(1, 3)), m = c("string"))
+evaluate_NSE <- function(NSE_generator) {
+  min_NSE <- NSE_generator(min)
+  mean_NSE <- NSE_generator(mean)
+  unlist_NSE <- NSE_generator(unlist)
+  lm_NSE <- NSE_generator(lm)
+  c(
+    all.equal(min_NSE(NSE_list, a),
+              min(NSE_list[["a"]])),
+    all.equal(mean_NSE(NSE_list, b),
+              mean(NSE_list[["b"]])),
+    all.equal(unlist_NSE(NSE_list, a),
+              unlist(NSE_list[["a"]])),
+    all.equal(unlist_NSE(NSE_list, c(a, b), use.names = FALSE),
+              c(unlist(NSE_list[["a"]], use.names = FALSE), unlist(NSE_list[["b"]], use.names = FALSE))),
+    all.equal(unlist_NSE(NSE_list_2, n, recursive = FALSE),
+              unlist(NSE_list_2[["n"]], recursive = FALSE)),
+    all.equal(unlist_NSE(NSE_list_2, n, use.names = FALSE),
+              unlist(NSE_list_2[["n"]], use.names = FALSE)),
+    all.equal(lm_NSE(iris, Sepal.Length ~ Petal.Width + Sepal.Width - 1)[["coefficients"]],
+              lm(Sepal.Length ~ Petal.Width + Sepal.Width - 1, iris)[["coefficients"]]),
+    all.equal(lm_NSE(iris, Sepal.Length ~ Petal.Width + Sepal.Width)[["coefficients"]],
+              lm(Sepal.Length ~ Petal.Width + Sepal.Width, iris)[["coefficients"]])
+  )
+}
+evaluate_NSE(func2NSE)
+evaluate_NSE(nse_from_fun)
+```
+
+Jesteśmy szczęśliwi, albowiem wszystkie testy zwracają nam pozytywny wynik. A nie są to testy na obecność narkotyków!
+
+Należy przy tym zauważyć istotną różnicę. `unlist_NSE(NSE_list, c(a, b))` zachowuje się inaczej niż `unlist(NSE_list[c("a", "b")])`, gdyż nie wyciąga listy zawierającej elementy o nazwach `a` i `b`, tylko wyciąga te dwa elementy. Jest to zachowanie całkiem pożądane i - być może - pozwalające na przyspieszenie obliczeń w przypadku wspólnego unlistowania wielu list.
+
+## Testy wydajności
+
+Wbudowane zbiory danych mają ograniczone, nieduże rozmiary, więc niewiele powiedzą nam na temat wydajności stworzonych funkcji na dużych ramkach danych. Wygenerujmy więc dużą ramkę danych (pomysł zainspirowany pracą pana Polakowskiego).
+
+```{r dataset}
+N <- 27365
+data <- data.frame(hedgehogs = 1:N,
+                   are = runif(N, max = 13),
+                   definitely = rpois(N, 10),
+                   the = rt(N, df = 8),
+                   best = rnorm(N),
+                   and = rep("why tho", N),
+                   you = sqrt(N:1),
+                   cannot = paste0("task ", 1:N, " began"),
+                   deny = rbinom(N, 5, 0.5),
+                   it = rcauchy(N))
+data_2 <- list(hedgehog1 = data,
+               hedgehog2 = data,
+               hedgehog_final = data)
+rownames(data_2[["hedgehog_final"]]) <- paste0("entity_", 1:N)
+```
+
+Do pomiaru szybkości obliczeń wykorzystamy oczywiście pakiet `microbenchmark`.
+
+```{r b1, cache=TRUE}
+min_NSE1 <- func2NSE(min)
+min_NSE2 <- nse_from_fun(min)
+(bench1 <- microbenchmark(
+  min(data[["hedgehogs"]]),
+  min_NSE1(data, hedgehogs),
+  min_NSE2(data, hedgehogs)
+))
+```
+
+Jak widzimy, czas wykonywania się funkcji jest zbliżony.
+
+```{r b2, cache=TRUE}
+mean_NSE1 <- func2NSE(mean)
+mean_NSE2 <- nse_from_fun(mean)
+(bench2 <- microbenchmark(
+  mean(data[["you"]]),
+  mean_NSE1(data, you),
+  mean_NSE2(data, you)
+))
+```
+
+Naturalnie, funkcja obliczająca średnią zwraca czas podobny do funkcji obliczającej minimum.
+
+```{r b3, cache=TRUE}
+unlist_NSE1 <- func2NSE(unlist)
+unlist_NSE2 <- nse_from_fun(unlist)
+(bench3 <- microbenchmark(
+  unlist(data_2[["hedgehog_final"]]),
+  unlist_NSE1(data_2, hedgehog_final),
+  unlist_NSE2(data_2, hedgehog_final),
+  times = 20
+))
+```
+
+Ponownie, różnica w czasie wykonywania się funkcji jest statystycznie nieistotna.
+
+Spróbujmy czegoś ciekawszego:
+
+```{r b4, cache=TRUE}
+(bench4 <- microbenchmark(
+  mean(c(data[, "are"], data[, "definitely"], data[, "the"], data[, "best"])),
+  mean_NSE1(data, c(are, definitely, the, best)),
+  mean_NSE2(data, c(are, definitely, the, best))
+))
+```
+
+Wprawdzie nadal różnica jest mała... ale co się stanie, jeśli weźmiemy kilkunastokrotnie mniejszy zbiór danych?
+
+```{r b5, cache=TRUE}
+temp <- data[1:787, ]
+(bench5 <- microbenchmark(
+  mean(c(temp[, "are"], temp[, "definitely"], temp[, "the"], temp[, "best"])),
+  mean_NSE1(temp, c(are, definitely, the, best)),
+  mean_NSE2(temp, c(are, definitely, the, best))
+))
+```
+
+Ha! Oszczędzamy na alokacji wektora z wyciągniętymi kolumnami i na wyciąganiu każdej kolumny z osobna.
+
+Zobaczmy, jak zachowuje się funkcja `lm`.
+
+```{r b6, cache=TRUE}
+lm_NSE1 <- func2NSE(lm)
+lm_NSE2 <- nse_from_fun(lm)
+(bench6 <- microbenchmark(
+  lm(hedgehogs ~ are + definitely + the + best + you + deny + it, data),
+  lm_NSE1(data, hedgehogs ~ are + definitely + the + best + you + deny + it),
+  lm_NSE2(data, hedgehogs ~ are + definitely + the + best + you + deny + it)
+))
+```
+
+Bez zaskoczeń, wszystkie funkcje mają podobne rezultaty (przy czym standardowa nieznacznie niższe, lecz w granicy błędu).
+
+Możemy też próbować podać środowisko jako argument. Jednak...
+
+```{r b7, cache=TRUE, error=TRUE}
+env <- list2env(data_2)
+unlist_NSE2(env, hedgehog_final, use.names = FALSE)
+(bench7 <- microbenchmark(
+  unlist(env[["hedgehog_final"]], use.names = FALSE),
+  unlist_NSE1(env, hedgehog_final, use.names = FALSE)
+))
+```
+
+...tylko `func2NSE` i defaultowy `unlist` będzie prawidłowo ewaluować wyrażenie.
+
+```{r b8, cache=TRUE}
+(bench8 <- microbenchmark(
+  c(unlist(env[["hedgehog1"]], use.names = FALSE),
+    unlist(env[["hedgehog2"]], use.names = FALSE),
+    unlist(env[["hedgehog_final"]], use.names = FALSE)),
+  unlist_NSE1(env, c(hedgehog1, hedgehog2, hedgehog_final), use.names = FALSE)
+))
+```
+
+Kolejny test potwierdzający przypuszczenia - w przypadku wspólnego ewaluowania kilku elementów listy (bądź kilku obiektów z jednego środowiska) funkcje NSE, a przynajmniej te wygenerowane przez `func2NSE`, są zauważalnie, kilkukrotnie szybsze od ich SE (?) odpowiedników.
+
+## Konkluzja
+
+Powyżej zaprezentowane implementacje konwerterów do NSE są satysfakcjonujące (przy czym `func2NSE` bardziej), gdyż nie ustępują szybkością standardowym funkcjom, a w pewnych przypadkach je przewyższają. W dodatku można bardzo szybko wygenerować dużą ilość funkcji NSE, aplikując:
+
+```{r baseenv, eval=FALSE}
+lapply(.BaseNamespaceEnv, func2NSE)
+```
+
+Nic tylko brać!
