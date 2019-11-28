@@ -17,7 +17,7 @@ library(drake)
 
 - duże zbiory danych
 - skomplikowane zależności
-- duże, częste zmiany w danych wejściowych
+- duże, częste zmiany w danych 
 
 ## Przetwarzanie dużych danych
 
@@ -31,7 +31,7 @@ library(drake)
 ![](./images/ComplDataFlow.svg)
 </center>
 
-## Zmiany w danych wejściowych
+## Zmiany w danych 
 
 <center>
 ![](./images/tweet.png)
