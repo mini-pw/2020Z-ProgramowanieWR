@@ -116,21 +116,31 @@ plan <- drake_plan(
   )
 )
 ```
+
 ## Wizualizacja planu
 
 ```{r drake_vis, echo=TRUE, include=TRUE}
 # From https://github.com/wlandau/drake-examples/
+clean()
 config <- drake_config(plan)
 drake_ggraph(config)
 ```
-## Zbudowanie projektu
 
+## Make
+
+Budowanie projektu
 ```{r drake_make, echo=TRUE, include=TRUE}
 # From https://github.com/wlandau/drake-examples/
-config <- drake_config(plan)
 make(plan)
+```
+
+## Graf po zbudowaniu
+
+```{r graph_maked, echo=TRUE, include=TRUE}
+# From https://github.com/wlandau/drake-examples/
 drake_ggraph(config)
 ```
+
 ## Cheat sheet 
 
 <center>
