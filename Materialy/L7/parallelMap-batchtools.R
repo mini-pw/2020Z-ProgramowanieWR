@@ -22,6 +22,7 @@ lapply(rep(1e5, 100), approximate_pi)
 # under the hood parallel::mclapply
 # również parallelStartMPI
 parallelStartMulticore(4, show.info = TRUE)
+# parallelStart()
 parallelLapply(rep(1e5, 100), approximate_pi)
 parallelStop()
 
@@ -49,13 +50,15 @@ getStatus()
 # readRDS("./file_registry/user.function.rds")
 
 loadResult(1)
-
+readRDS("./file_registry/results/1.rds")
 makeClusterFunctionsMulticore(ncpus = 4)
 clearRegistry()
-batchMap(fun = approximate_pi, n = rep(1e5, 10))
+batchMap(fun = approximate_pi, n = rep(1e5, 500))
 getJobTable()
 submitJobs(resources = list(walltime = 3600, memory = 1024))
 waitForJobs()
+
+# makeClusterFunctionsSSH
 #?parallelStartBatchtools
 library(future.batchtools)
 plan("batchtools_interactive")

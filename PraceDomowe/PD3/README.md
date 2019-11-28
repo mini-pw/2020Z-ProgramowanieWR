@@ -1,4 +1,4 @@
-Praca Domowa 3: czas do północy 19.12 (pod koniec dnia)
+Praca Domowa 3: czas do pierwszej gwiazdki 23.12
 
 Przygotuj aplikację Shiny, która:
  - pozwala wczytać dowolny zbiór danych w formacie .csv
