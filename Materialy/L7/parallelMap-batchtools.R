@@ -7,12 +7,15 @@ library(microbenchmark)
 
 # adapted from: https://mllg.github.io/batchtools/articles/batchtools.html#example-1-approximation-of-pi
 
-approximate_pi = function(n) {
+approximate_pi <- function(n) {
   nums <- matrix(runif(2 * n), ncol = 2)
   d <- sqrt(nums[, 1]^2 + nums[, 2]^2)
   4 * mean(d <= 1)
 }
+RNGkind("L'Ecuyer-CMRG")
 set.seed(1410)
+
+approximate_pi(5)
 
 lapply(rep(1e5, 100), approximate_pi)
 
