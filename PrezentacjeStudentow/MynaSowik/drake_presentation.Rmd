@@ -131,6 +131,12 @@ config <- drake_config(plan)
 make(plan)
 drake_ggraph(config)
 ```
+## Cheat sheet 
+
+<center>
+![](./images/cheatsheet.png)
+</center>
+
 ## Podsumowanie
 
 - Pozwala na zaoszczędzenie dużej ilości czasu
