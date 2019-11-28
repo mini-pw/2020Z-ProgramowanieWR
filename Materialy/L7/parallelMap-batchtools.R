@@ -1,3 +1,5 @@
+fortunes::fortune(10)
+
 ?Map
 
 library(parallelMap)
