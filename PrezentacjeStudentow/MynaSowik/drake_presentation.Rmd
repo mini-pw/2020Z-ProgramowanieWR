@@ -120,30 +120,27 @@ plan <- drake_plan(
 
 ```{r drake_vis, echo=TRUE, include=TRUE}
 # From https://github.com/wlandau/drake-examples/
-clean()
 config <- drake_config(plan)
 drake_ggraph(config)
 ```
-
 ## Zbudowanie projektu
 
-wykonanie planu
-
-```{r drake_make, echo=TRUE}
-make(plan)
-```
-
-## Graf po zbudowaniu
-
-```{r drake_maked, echo=TRUE, include=TRUE}
+```{r drake_make, echo=TRUE, include=TRUE}
 # From https://github.com/wlandau/drake-examples/
+config <- drake_config(plan)
+make(plan)
 drake_ggraph(config)
 ```
+## Cheat sheet 
+
+<center>
+![](./images/cheatsheet.png)
+</center>
 
 ## Podsumowanie
 
 - Pozwala na zaoszczędzenie dużej ilości czasu
-- Sprzyja powtarzalności wyników
-- Sprzyja zachowaniu spójności danych i wykresów
-- Łatwe rozszerzenie o przetwarzanie rozproszone
 - Wymaga zmiany przyzwyczajeń programisty
+- Sprzyja powtarzalności wyników
+- Łatwe rozszerzenie na przetwarzanie rozproszone (np. slurm)
+- Kompatybilny z dockerem
