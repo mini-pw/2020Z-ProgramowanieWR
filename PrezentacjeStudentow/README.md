@@ -46,3 +46,8 @@ Porządek prezentacji:
 3. Szymon Maksymiuk, Michał Stawikowski.
 4. Paweł Morgen, Jadwiga Słowik
 5. Piotr Olesiejuk, Piotr Janus
+
+12.12.
+
+1. Adam Rydelek (future)
+2. Jakub Pingielski (modelDown)
