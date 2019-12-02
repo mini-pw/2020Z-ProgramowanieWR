@@ -1,6 +1,8 @@
-library("shiny")
-library("ggplot2")
 library("data.table")
+library("DT")
+library("ggplot2")
+library("shiny")
+library("shinythemes")
 library("tools")
 
 
@@ -9,127 +11,170 @@ library("tools")
 read_data <- function(data_path, has_header, data_encoding = "UTF-8", errored = FALSE) {
     if (file_ext(data_path) != "csv") return("Error: provided file is not a csv.")
     
-    tryCatch(
+    data <- tryCatch(
         fread(data_path, header = has_header, encoding = data_encoding),
         warning = function(w) {
             fread(data_path, header = has_header, encoding = data_encoding)
         },
         error = function(e) {
-            if (errored) return("Could not load uploaded file.")
+            if (errored) return("Error could not load the uploaded file.")
             read_data(data_path, has_header, "Latin-1", TRUE)
         }
     )
+    
+    if (!has_header) {
+        colnames(data) <- paste("Column", seq_len(ncol(data)))
+    }
+    
+    data
 }
 
 
+# Plotting interface for 3 different geometries utilising do.call and ellipsis.
 plot_data <- function(geometry, df, ...) {
-    plot_func <- switch(geometry, 
-           "Heatmap" = function(x, y, fill) {
-               ggplot(df, aes_string(x = x, y = y, fill = fill)) +
-                   geom_tile()
-            }
+    geom_func <- switch(geometry, 
+           "Heatmap" = geom_tile,
+           "Barchart" = geom_bar,
+           "Scatterplot" = geom_point
     )
     
-    do.call(plot_func, list(...))
+    do.call(what = function(...) ggplot(df, aes_string(...)), args = list(...)) +
+        geom_func() + theme_minimal()
 }
 
 
-ui <- pageWithSidebar(
-    headerPanel("An app."), # TODO
-    sidebarPanel(
-        tabsetPanel(id = "tabs",
-            tabPanel("Data upload", value = "panel_data_upload", br(),
-                fileInput("input", label = "Upload a file",
-                          accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
-                checkboxInput("headers", label = "Data has headers", value = TRUE),
-                textOutput("error")
-            ),
-            tabPanel("Plot settings", value = "panel_plot_settings", br(),
-                conditionalPanel("!output.data_uploaded", h5("Please upload a file first.")),
-                conditionalPanel("output.data_uploaded",
-                    selectInput("geometry", label = "Plot geometry",
-                                choices = c("Heatmap", "Barchart", "Scatterplot")),
-                    uiOutput("plot_settings"),
-                    actionButton("draw_plot", label = "Plot!"))
+ui <- fluidPage(
+    theme = shinytheme("flatly"),
+    tags$head(
+        tags$style(".selectize-dropdown {position: static}"),
+        tags$style("#error_upload {color: red; font-size: 16px; font-style: bold;}"),
+        tags$style("#error_plot {color: red; font-size: 16px; font-style: bold;}")
+    ),
+    
+    titlePanel("PIY (Plot It Yourself)"),
+    sidebarLayout(
+        sidebarPanel(
+            tabsetPanel(id = "tabs",
+                        
+                # Data upload panel.
+                tabPanel("Data upload", value = "panel_data_upload", br(),
+                    checkboxInput("headers", label = "My data has headers", value = TRUE),
+                    fileInput("input", label = "Upload a file",
+                              accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
+                    textOutput("error_upload")
+                ),
+                
+                # Plot settings panel (with placeholder when the file is not uploaded).
+                tabPanel("Plot settings", value = "panel_plot_settings", br(),
+                    conditionalPanel("!output.data_uploaded", h5("Upload a file first.")),
+                    conditionalPanel("output.data_uploaded",
+                        selectInput("geometry", label = "Plot geometry",
+                                    choices = c("Barchart", "Heatmap", "Scatterplot")),
+                        uiOutput("plot_settings"),
+                        actionButton("draw_plot", label = "Plot!"))
+                )
+            )
+        ),
+        mainPanel(
+            conditionalPanel("!output.data_uploaded", h5("Upload a file to create a plot.")),
+            conditionalPanel("output.data_uploaded",
+                tabsetPanel(
+                    tabPanel("Plot", br(),
+                        conditionalPanel("!output.data_plotted",
+                                         h5("Select plot settings and press \"Plot!\" button.")),
+                        conditionalPanel("output.data_plotted",
+                                         textOutput("error_plot"),
+                                         plotOutput("plot"))
+                    ),
+                    tabPanel("Data preview", br(), DT::dataTableOutput("data_preview"))
+                )
             )
         )
-    ),
-    mainPanel(
-        tags$head(
-            tags$style(".selectize-dropdown {position: static}"),
-            tags$style("#error{color: red; font-size: 16px; font-style: bold;}")
-        ),
-        conditionalPanel("!output.data_uploaded", h5("Upload file to create a plot.")),
-        plotOutput("plot")
     )
 )
 
 
 server <- function(input, output, session) {
-    data <- reactiveValues("df" = data.frame(), "error" = NULL)
+    data <- reactiveValues("df" = data.frame(), "error_upload" = NULL,
+                           "error_plot" = NULL,"plot" = FALSE)
     cNames <- reactive(colnames(data[["df"]]))
     
     # For conditional panel with Plot settings.
     output[["data_uploaded"]] <- reactive(nrow(data[["df"]]) > 0)
     outputOptions(output, "data_uploaded", suspendWhenHidden = FALSE)
     
+    # For placeholder text in plot panel after data upload.
+    output[["data_plotted"]] <- reactive(data[["plot"]])
+    outputOptions(output, "data_plotted", suspendWhenHidden = FALSE)
+    observeEvent(input[["draw_plot"]], data[["plot"]] <- TRUE)
+    
     observeEvent(input[["input"]], {
         data_path <- input[["input"]][["datapath"]]
         input_data <- read_data(data_path, input[["headers"]])
     
-        data[["error"]] <- input_data
+        data[["error_upload"]] <- input_data
         if (is.data.table(input_data)) {
             data[["df"]] <- as.data.frame(input_data)
-            data[["error"]] <- NULL
+            data[["error_upload"]] <- NULL
+            data[["plot"]] <- FALSE
             updateTabsetPanel(session, "tabs", selected = "panel_plot_settings")
         }
     })
     
-    output[["error"]] <- renderText(data[["error"]])
+    output[["error_upload"]] <- renderText(data[["error_upload"]])
+    output[["error_plot"]] <- renderText(data[["error_plot"]])
     
+    # Dynamic settings for different geometries.
     output[["plot_settings"]] <- renderUI(
         switch(input[["geometry"]],
                "Heatmap" = list(
                    splitLayout(
-                       selectInput("x", label = "X-axis variable",
-                                   selected = NULL, choices = cNames()),
-                       selectInput("y", label = "Y-axis variable",
-                                   selected = NULL,  choices = cNames())),
-                   selectInput("fill", label = "Fill variable",
-                               selected = NULL, choices = cNames())
+                       selectInput("x", label = "X-axis variable", choices = cNames()),
+                       selectInput("y", label = "Y-axis variable", choices = cNames())),
+                   selectInput("fill", label = "Fill variable", choices = cNames())
                ),
-               "Barchart" = {
-                   
-               })
+               "Barchart" = selectInput("x", label = "X-axis variable", choices = cNames()),
+               "Scatterplot" = splitLayout(
+                   selectInput("x", label = "X-axis variable", choices = cNames()),
+                   selectInput("y", label = "Y-axis variable", choices = cNames()))
+        )
     )
     
-    plot_obj <- eventReactive(input[["draw_plot"]], {
+    # Event reactive which outputs plot (only when the button is pressed).
+    plot_obj <- eventReactive(c(input[["draw_plot"]], data[["plot"]]), {
+        if (!data[["plot"]]) return(NULL)
+        
         call_args <- switch(input[["geometry"]],
-                            "Heatmap" = list(x = input[["x"]],
-                                             y = input[["y"]],
-                                             fill = input[["fill"]])
+                            "Heatmap" = list(
+                                x = input[["x"]],
+                                y = input[["y"]],
+                                fill = input[["fill"]]),
+                            "Barchart" = list(
+                                x = input[["x"]]),
+                            "Scatterplot" = list(
+                                x = input[["x"]],
+                                y = input[["y"]])
         )
         
-        do.call(what = function(...) plot_data(input[["geometry"]], data[["df"]], ...),
-                args = call_args)
+        tryCatch(
+            do.call(what = function(...) plot_data(input[["geometry"]], data[["df"]], ...),
+                    args = call_args),
+            error = function(e) data[["error_plot"]] <- "Error: could not plot provided data.")
     })
         
     output[["plot"]] <- renderPlot(plot_obj())
+    
+    output[["data_preview"]] <- DT::renderDataTable(data[["df"]])
 }
 
 
 shinyApp(ui = ui, server = server, options = c("port" = 8080))
 
 
-
-# TODO
-# 1. Wczytywanie pliku .csv
-#  - Parametr, czy są nazwy kolumn
-#  - Sprawdzenie poprawności danych (liczba kolumn poszczególnych wierszy)
-#  - 
-#     
-# 2. Rysowanie wykresu
-#  - Wybór typu wykresu
-#  - Wybór zmiennych z pliku na wymiary wykresu
-# 
-# 3. Aktualizacja wykresu, żeby był interaktywny.
+# TODO: Dodać inne wymiary:
+#  - Kolor
+#  - Kształt linii
+# TODO: Dodać interaktywność:
+#  - Przybliżanie i oddalanie
+#  - Tooltipy z wartością
+# TODO: README.md z dodanym linkiem do shinyapps.
