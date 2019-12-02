@@ -6,6 +6,8 @@ library("shinythemes")
 library("tools")
 
 
+# Utilities --------------------------------------------------------------------
+
 # Trying to read the data with UTF-8 encoding and then with Latin-1 encoding if
 # UTF-8 fails. If both fail then we handle an error.
 read_data <- function(data_path, has_header, data_encoding = "UTF-8", errored = FALSE) {
@@ -14,10 +16,11 @@ read_data <- function(data_path, has_header, data_encoding = "UTF-8", errored = 
     data <- tryCatch(
         fread(data_path, header = has_header, encoding = data_encoding),
         warning = function(w) {
-            fread(data_path, header = has_header, encoding = data_encoding)
+            if (errored) return("Error: could not load the uploaded file.")
+            read_data(data_path, has_header, "Latin-1", TRUE)
         },
         error = function(e) {
-            if (errored) return("Error could not load the uploaded file.")
+            if (errored) return("Error: could not load the uploaded file.")
             read_data(data_path, has_header, "Latin-1", TRUE)
         }
     )
@@ -43,8 +46,9 @@ plot_data <- function(geometry, df, ...) {
 }
 
 
+# UI ---------------------------------------------------------------------------
 ui <- fluidPage(
-    theme = shinytheme("flatly"),
+    theme = shinytheme("sandstone"),
     tags$head(
         tags$style(".selectize-dropdown {position: static}"),
         tags$style("#error_upload {color: red; font-size: 16px; font-style: bold;}"),
@@ -94,6 +98,7 @@ ui <- fluidPage(
 )
 
 
+# Server -----------------------------------------------------------------------
 server <- function(input, output, session) {
     data <- reactiveValues("df" = data.frame(), "error_upload" = NULL,
                            "error_plot" = NULL,"plot" = FALSE)
@@ -126,17 +131,23 @@ server <- function(input, output, session) {
     
     # Dynamic settings for different geometries.
     output[["plot_settings"]] <- renderUI(
-        switch(input[["geometry"]],
-               "Heatmap" = list(
-                   splitLayout(
+        list(
+            switch(input[["geometry"]],
+                   "Heatmap" = c(
+                       splitLayout(
+                           selectInput("x", label = "X-axis variable", choices = cNames()),
+                           selectInput("y", label = "Y-axis variable", choices = cNames())),
+                       selectInput("fill", label = "Fill variable", choices = cNames())
+                   ),
+                   "Barchart" = selectInput("x", label = "X-axis variable", choices = cNames()),
+                   "Scatterplot" = splitLayout(
                        selectInput("x", label = "X-axis variable", choices = cNames()),
-                       selectInput("y", label = "Y-axis variable", choices = cNames())),
-                   selectInput("fill", label = "Fill variable", choices = cNames())
-               ),
-               "Barchart" = selectInput("x", label = "X-axis variable", choices = cNames()),
-               "Scatterplot" = splitLayout(
-                   selectInput("x", label = "X-axis variable", choices = cNames()),
-                   selectInput("y", label = "Y-axis variable", choices = cNames()))
+                       selectInput("y", label = "Y-axis variable", choices = cNames()))
+            ),
+            splitLayout(
+                selectInput("facet", label = "Facet grid variable", choices = c("<None>" = "...<None>...", cNames())),
+                selectInput("facet_dim", label = "Facet grid dimension", choices = c("Rows" = "rows", "Cols" = "cols"))
+            )
         )
     )
     
@@ -156,12 +167,24 @@ server <- function(input, output, session) {
                                 y = input[["y"]])
         )
         
-        tryCatch(
+        g <- tryCatch(
             do.call(what = function(...) plot_data(input[["geometry"]], data[["df"]], ...),
                     args = call_args),
-            error = function(e) data[["error_plot"]] <- "Error: could not plot provided data.")
+            error = function(e) {
+                data[["error_plot"]] <- "Error: could not plot provided data."
+                return(NULL)
+        })
+
+        if (input[["facet"]] != "...<None>...") {
+            facet_args <- list("rows" = NULL, "cols" = NULL)
+            facet_args[[input[["facet_dim"]]]] <- vars(!!as.name(input[["facet"]]))
+            
+            g <- do.call(function(...) g + facet_grid(...), facet_args)
+        }
+
+        g
     })
-        
+
     output[["plot"]] <- renderPlot(plot_obj())
     
     output[["data_preview"]] <- DT::renderDataTable(data[["df"]])
