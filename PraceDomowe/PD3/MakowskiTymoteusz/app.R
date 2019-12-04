@@ -80,6 +80,11 @@ ui <- fluidPage(
                 
                 # Help panel.
                 tabPanel("help", value = "panel_help", includeMarkdown("help.md"))
+            ),
+            br(),
+            tags$footer(
+                HTML('<a href = "https://github.com/tmakowski/plotit"><font color="#0570b0">View source code at GitHub.</font></a>'),
+                tstyle = "position: absolute; bottom: 0; height: 50px;"
             )
         ),
         mainPanel(
