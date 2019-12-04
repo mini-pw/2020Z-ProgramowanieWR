@@ -4,6 +4,7 @@ library("ggplot2")
 library("shiny")
 library("shinythemes")
 library("tools")
+require("markdown")
 
 
 # Utilities --------------------------------------------------------------------
