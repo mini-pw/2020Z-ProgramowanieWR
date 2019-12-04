@@ -55,10 +55,10 @@ ui <- fluidPage(
         tags$style("#error_plot {color: red; font-size: 16px; font-style: bold;}")
     ),
     
-    titlePanel("PIY (Plot It Yourself)"),
+    titlePanel("Plot It Yourself"),
     sidebarLayout(
         sidebarPanel(
-            tabsetPanel(id = "tabs",
+            tabsetPanel(id = "tabs_sidebar",
                         
                 # Data upload panel.
                 tabPanel("Data upload", value = "panel_data_upload", br(),
@@ -82,17 +82,18 @@ ui <- fluidPage(
         mainPanel(
             conditionalPanel("!output.data_uploaded", h5("Upload a file to create a plot.")),
             conditionalPanel("output.data_uploaded",
-                tabsetPanel(id = "tabs_main",
-                    tabPanel("Plot", value = "panel_plot", br(),
+                tabsetPanel(
+                    tabPanel("Plot", br(),
                         conditionalPanel("!output.data_plotted",
                                          h5("Select plot settings and press \"Plot!\" button.")),
                         conditionalPanel("output.data_plotted",
                                          textOutput("error_plot"),
-                                         plotOutput("plot", hover = "hover"))
-                    ,verbatimTextOutput("tooltip") #TODO: move this to the mouse location.
+                                         plotOutput("plot", hover = "hover",
+                                                    brush = brushOpts("brush", resetOnNew = TRUE),
+                                                    dblclick = "zoom_reset")),
+                    verbatimTextOutput("tooltip")
                     ),
-                    tabPanel("Data preview", value = "panel_data", br(),
-                             DT::dataTableOutput("data_preview"))
+                    tabPanel("Data preview", br(), DT::dataTableOutput("data_preview"))
                 )
             )
         )
@@ -102,8 +103,8 @@ ui <- fluidPage(
 
 # Server -----------------------------------------------------------------------
 server <- function(input, output, session) {
-    data <- reactiveValues("df" = data.frame(), "error_upload" = NULL,
-                           "error_plot" = NULL,"plot" = FALSE)
+    data <- reactiveValues("df" = data.frame(), "error_upload" = NULL, "error_plot" = NULL,
+                           "plot" = FALSE, "x" = NULL, "y" = NULL)
     cNames <- reactive(colnames(data[["df"]]))
     
     # For conditional panel with Plot settings.
@@ -125,7 +126,7 @@ server <- function(input, output, session) {
             data[["df"]] <- as.data.frame(input_data)
             data[["error_upload"]] <- NULL
             data[["plot"]] <- FALSE
-            updateTabsetPanel(session, "tabs", selected = "panel_plot_settings")
+            updateTabsetPanel(session, "tabs_sidebar", selected = "panel_plot_settings")
         }
     })
     
@@ -195,20 +196,32 @@ server <- function(input, output, session) {
             g <- do.call(function(...) g + facet_grid(...), facet_args)
         }
         
-        # Switching to the plot tab
-        updateTabsetPanel(session, "tabs_main", selected = "panel_plot")
         g
     })
 
-    output[["plot"]] <- renderPlot(plot_obj())
-    
+    # Plot zooming.
+    observeEvent(input[["zoom_reset"]], {
+        data[["x"]] <- data[["y"]] <- NULL
+    })
+
+    observe({
+        brush <- input[["brush"]]
+        if (!is.null(brush)) {
+            data[["x"]] <- c(brush[["xmin"]], brush[["xmax"]])
+            data[["y"]] <- c(brush[["ymin"]], brush[["ymax"]])
+        }
+    })
+
+    output[["plot"]] <- renderPlot({
+        plot_obj() + coord_cartesian(xlim = data[["x"]], ylim = data[["y"]])
+    })
+
     output[["data_preview"]] <- DT::renderDataTable(data[["df"]])
     
     # Tooltip.
     output[["tooltip"]] <- renderPrint({
-        disp_name <- disp_value <- disp_info <- NULL
-        
         if (data[["plot"]] && !is.null(input[["hover"]])) {
+            disp_name <- disp_value <- disp_info <- NULL
         
             if (input[["geometry"]] == "Barchart") {
                 lvls <- levels(as.factor(data[["df"]][[input$x]]))
@@ -254,7 +267,3 @@ server <- function(input, output, session) {
 
 
 shinyApp(ui = ui, server = server, options = c("port" = 8080))
-
-# TODO: Dodać interaktywność:
-#  - Przybliżanie i oddalanie
-# TODO: README.md z dodanym linkiem do shinyapps.
