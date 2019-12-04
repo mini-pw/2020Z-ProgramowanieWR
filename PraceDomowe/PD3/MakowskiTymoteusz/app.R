@@ -36,9 +36,9 @@ read_data <- function(data_path, has_header, data_encoding = "UTF-8", errored = 
 # Plotting interface for 3 different geometries utilising do.call and ellipsis.
 plot_data <- function(geometry, df, ...) {
     geom_func <- switch(geometry, 
-           "Heatmap" = geom_tile,
-           "Barchart" = geom_bar,
-           "Scatterplot" = geom_point
+           "Heatmap" = function() geom_tile(),
+           "Barchart" = function() geom_bar(position = "dodge"),
+           "Scatterplot" = function() geom_point()
     )
     
     do.call(what = function(...) ggplot(df, aes_string(...)), args = list(...)) +
@@ -82,15 +82,17 @@ ui <- fluidPage(
         mainPanel(
             conditionalPanel("!output.data_uploaded", h5("Upload a file to create a plot.")),
             conditionalPanel("output.data_uploaded",
-                tabsetPanel(
-                    tabPanel("Plot", br(),
+                tabsetPanel(id = "tabs_main",
+                    tabPanel("Plot", value = "panel_plot", br(),
                         conditionalPanel("!output.data_plotted",
                                          h5("Select plot settings and press \"Plot!\" button.")),
                         conditionalPanel("output.data_plotted",
                                          textOutput("error_plot"),
-                                         plotOutput("plot"))
+                                         plotOutput("plot", hover = "hover"))
+                    ,verbatimTextOutput("tooltip") #TODO: move this to the mouse location.
                     ),
-                    tabPanel("Data preview", br(), DT::dataTableOutput("data_preview"))
+                    tabPanel("Data preview", value = "panel_data", br(),
+                             DT::dataTableOutput("data_preview"))
                 )
             )
         )
@@ -113,6 +115,7 @@ server <- function(input, output, session) {
     outputOptions(output, "data_plotted", suspendWhenHidden = FALSE)
     observeEvent(input[["draw_plot"]], data[["plot"]] <- TRUE)
     
+    # Reading the data.
     observeEvent(input[["input"]], {
         data_path <- input[["input"]][["datapath"]]
         input_data <- read_data(data_path, input[["headers"]])
@@ -126,14 +129,16 @@ server <- function(input, output, session) {
         }
     })
     
+    # Error messages
     output[["error_upload"]] <- renderText(data[["error_upload"]])
     output[["error_plot"]] <- renderText(data[["error_plot"]])
     
     # Dynamic settings for different geometries.
     output[["plot_settings"]] <- renderUI(
         list(
+            h3("Required settings"),
             switch(input[["geometry"]],
-                   "Heatmap" = c(
+                   "Heatmap" = list(
                        splitLayout(
                            selectInput("x", label = "X-axis variable", choices = cNames()),
                            selectInput("y", label = "Y-axis variable", choices = cNames())),
@@ -144,6 +149,8 @@ server <- function(input, output, session) {
                        selectInput("x", label = "X-axis variable", choices = cNames()),
                        selectInput("y", label = "Y-axis variable", choices = cNames()))
             ),
+            h3("Additional settings"),
+            selectInput("color", label = "Color variable", choices = c("<None>" = "...<None>...", cNames())),
             splitLayout(
                 selectInput("facet", label = "Facet grid variable", choices = c("<None>" = "...<None>...", cNames())),
                 selectInput("facet_dim", label = "Facet grid dimension", choices = c("Rows" = "rows", "Cols" = "cols"))
@@ -157,15 +164,20 @@ server <- function(input, output, session) {
         
         call_args <- switch(input[["geometry"]],
                             "Heatmap" = list(
-                                x = input[["x"]],
-                                y = input[["y"]],
-                                fill = input[["fill"]]),
+                                "x" = input[["x"]],
+                                "y" = input[["y"]],
+                                "fill" = input[["fill"]]),
                             "Barchart" = list(
-                                x = input[["x"]]),
+                                "x" = input[["x"]]),
                             "Scatterplot" = list(
-                                x = input[["x"]],
-                                y = input[["y"]])
+                                "x" = input[["x"]],
+                                "y" = input[["y"]])
         )
+        
+        # Adding color if applicable.
+        if (input[["color"]] != "...<None>...") {
+            call_args <- c(call_args, list("color" = input[["color"]]))   
+        }
         
         g <- tryCatch(
             do.call(what = function(...) plot_data(input[["geometry"]], data[["df"]], ...),
@@ -175,29 +187,74 @@ server <- function(input, output, session) {
                 return(NULL)
         })
 
+        # Adding faceting if applicable.
         if (input[["facet"]] != "...<None>...") {
             facet_args <- list("rows" = NULL, "cols" = NULL)
             facet_args[[input[["facet_dim"]]]] <- vars(!!as.name(input[["facet"]]))
             
             g <- do.call(function(...) g + facet_grid(...), facet_args)
         }
-
+        
+        # Switching to the plot tab
+        updateTabsetPanel(session, "tabs_main", selected = "panel_plot")
         g
     })
 
     output[["plot"]] <- renderPlot(plot_obj())
     
     output[["data_preview"]] <- DT::renderDataTable(data[["df"]])
+    
+    # Tooltip.
+    output[["tooltip"]] <- renderPrint({
+        disp_name <- disp_value <- disp_info <- NULL
+        
+        if (data[["plot"]] && !is.null(input[["hover"]])) {
+        
+            if (input[["geometry"]] == "Barchart") {
+                lvls <- levels(as.factor(data[["df"]][[input$x]]))
+                name_idx <- round(input[["hover"]][["x"]])
+                
+                if (!is.null(lvls) && name_idx > 0) {
+                    name <- lvls[name_idx]
+                    valueDF <- as.data.table(data[["df"]])[, .(n = .N), by = eval(input[["x"]])]
+                    value <- valueDF[which(valueDF[[input$x]] == name), "n", drop = TRUE]
+                    
+                    disp_name <- sprintf("%s: %s", input[["x"]], name)
+                    disp_value <- sprintf("Count: %s", value)
+                }
+            } else {
+                
+                npDF <- nearPoints(data[["df"]], input[["hover"]])
+                if (nrow(npDF) > 1) {
+                    disp_info <- sprintf("Multiple points detected (%d), displaying tooltip only for one.", nrow(npDF))
+                    npDF <- npDF[1, ]
+                }
+                
+                disp_name <- sprintf("%s: %s\n%s: %s",
+                                     input[["x"]], npDF[, input[["x"]], drop = TRUE],
+                                     input[["y"]], npDF[, input[["x"]], drop = TRUE])
+            
+                if (input[["geometry"]] == "Heatmap") {
+                    disp_value <- sprintf("%s: %s", input[["fill"]], npDF[, input[["fill"]], drop = TRUE])
+                }
+            }
+            
+            tooltip <- disp_name
+            if (!is.null(disp_value)) {
+                tooltip <- paste(tooltip, disp_value, sep = "\n")
+            }
+            if (!is.null(disp_info)) {
+                tooltip <- paste(tooltip, disp_info, sep = "\n\n")
+            }
+            
+            cat(tooltip)
+        }
+    })
 }
 
 
 shinyApp(ui = ui, server = server, options = c("port" = 8080))
 
-
-# TODO: Dodać inne wymiary:
-#  - Kolor
-#  - Kształt linii
 # TODO: Dodać interaktywność:
 #  - Przybliżanie i oddalanie
-#  - Tooltipy z wartością
 # TODO: README.md z dodanym linkiem do shinyapps.
