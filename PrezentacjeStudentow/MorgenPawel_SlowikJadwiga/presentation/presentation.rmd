@@ -100,7 +100,7 @@ rex(
 
 ## Meta-characters {.smaller}
 
-|Regex alias|POSIX[Link](https://www.regular-expressions.info/posixbrackets.html#class)| rex |
+|Regex alias|PCRE| rex |
 |:---:            |:---:|:---:|
 |[A-Za-z0-9]|[[:alnum:]]|`alnum`|
 |\\h        |[[:blank:]]|`blank`|
