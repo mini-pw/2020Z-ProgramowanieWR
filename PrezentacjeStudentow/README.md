@@ -42,12 +42,13 @@ Porządek prezentacji:
 
 1. Aleksandra Łuczak, Tomasz Klonecki
 2. Hubert Baniecki, Witold Merkel
-2. Dominik Rafacz, Hanna Zdulska
-3. Szymon Maksymiuk, Michał Stawikowski.
+3. Dominik Rafacz, Hanna Zdulska
 4. Paweł Morgen, Jadwiga Słowik
 5. Piotr Olesiejuk, Piotr Janus
+6. 
 
 12.12.
 
 1. Adam Rydelek, Mateusz Polakowski
 2. Jakub Pingielski
+3. Szymon Maksymiuk, Michał Stawikowski.
