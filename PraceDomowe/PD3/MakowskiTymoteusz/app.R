@@ -76,7 +76,10 @@ ui <- fluidPage(
                                     choices = c("Barchart", "Heatmap", "Scatterplot")),
                         uiOutput("plot_settings"),
                         actionButton("draw_plot", label = "Plot!"))
-                )
+                ),
+                
+                # Help panel.
+                tabPanel("help", value = "panel_help", includeMarkdown("help.md"))
             )
         ),
         mainPanel(
