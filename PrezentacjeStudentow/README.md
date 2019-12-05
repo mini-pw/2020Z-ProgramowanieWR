@@ -15,7 +15,7 @@ Pakiety do omówienia:
 1. [drake](https://github.com/ropensci/drake) (Jacek Myna, Sebastian Sowik).
 1. [future](https://github.com/HenrikBengtsson/future)
 1. [golem](https://github.com/ThinkR-open/golem).
-1. [modelDown](https://github.com/ModelOriented/modelDown).
+1. [modelDown](https://github.com/ModelOriented/modelDown) (Jakub Pingielski)
 1. [mlr3pipelines](https://github.com/mlr-org/mlr3pipelines) (Mateusz Bąkała, Andrzej Nowikowski).
 1. [modelStudio](https://github.com/ModelOriented/modelStudio) (Hubert Baniecki, Witold Merkel). 
 1. [pipeR](https://github.com/renkun-ken/pipeR). (Piotr Olesiejuk, Piotr Janus)
@@ -26,3 +26,29 @@ Pakiety do omówienia:
 1. [shinyJS](https://github.com/daattali/shinyjs) (Agata Pałdyna, Rafał Muszyński, Tymoteusz Makowski).
 1. [stargazer](https://github.com/cran/stargazer).
 1. [withr](https://github.com/r-lib/withr).
+
+Porządek prezentacji:
+
+28.11 
+  
+1. Jan Sawicki.
+2. Tomek Radzikowski.
+3. Agata Pałdyna, Rafał Muszyński, Tymoteusz Makowski.
+4. Jacek Myna, Sebastian Sowik.
+5. Mateusz Bąkała, Andrzej Nowikowski
+6. 
+  
+05.12.
+
+1. Aleksandra Łuczak, Tomasz Klonecki
+2. Hubert Baniecki, Witold Merkel
+3. Dominik Rafacz, Hanna Zdulska
+4. Paweł Morgen, Jadwiga Słowik
+5. Piotr Olesiejuk, Piotr Janus
+6. 
+
+12.12.
+
+1. Adam Rydelek, Mateusz Polakowski
+2. Jakub Pingielski
+3. Szymon Maksymiuk, Michał Stawikowski.

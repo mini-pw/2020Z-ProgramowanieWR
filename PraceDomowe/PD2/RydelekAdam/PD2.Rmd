@@ -1,0 +1,365 @@
+---
+title: "PD2"
+author: "Adam Rydelek"
+date: "21 listopada 2019"
+output: html_document
+---
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(rbenchmark)
+library(ggplot2)
+```
+
+# Wprowadzenie
+
+Temat pracy domowej numer 2 było wykonanie funkcji do przekształcania funkcji istniejących w R w funkcje NSE. Zrobiłem to na dwa sposoby przedstawione poniżej.
+
+```{r}
+nseFunction1 <- function(fun) {
+  function(envir, arguments) {
+    attach(envir)
+    nse <- fun(arguments)
+    detach(envir)
+    nse
+  }}
+
+nseFunction2 <- function(fun) {
+  function(input, ...) {
+    arguments <- as.list(substitute(list(...)))[-1]
+    do.call(fun, lapply(arguments, function(elem) {
+      eval(elem, input)
+    }))
+  }}
+
+```
+
+# Szybkość działania funkcji
+
+Teraz sprawdzimy jak szybko działają stworzone przeze mnie funkcje w porównaniu do funkcji bazowych na podstawie kilku podstawowych funkcji, takich jak: **min**, **mean**, **lm**, **unlist**. Sprawdzimy ich szybkość zarówno na małym zbiorze danych jak i na dużym.
+
+## MIN
+
+Pierwszą funkcją, którą sprawdzimy jest funkcja **min** licząca minimum funkcji.
+
+### Mały zbiór danych
+
+Najpierw sprawdzimy szybkość funkcji na małym zbiorze danych.
+
+```{r, echo=FALSE}
+min1 <- nseFunction1(min)
+min2 <- nseFunction2(min)
+
+testData <- list(small=rnorm(10), big=rnorm(10^7))
+
+b1m <- benchmark("Base min" = {
+  min(testData$small)
+},
+"Nse min 1" = {
+  min1(testData,small)
+},
+"Nse min 2" = {
+  min2(testData, small)
+},
+replications = 100,
+columns = c("test", "replications", "elapsed", "user.self", "sys.self"))
+
+b1m
+```
+
+### Duży zbiór danych
+
+A teraz na dużym.
+
+```{r, echo=FALSE}
+
+#big data
+
+b1d <- benchmark("Base min" = {
+  min(testData$big)
+},
+"Nse min 1" = {
+  min1(testData,big)
+},
+"Nse min 2" = {
+  min2(testData, big)
+},
+replications = 100,
+columns = c("test", "replications", "elapsed",
+            "relative", "user.self", "sys.self"))
+
+b1d
+```
+
+### Podsumowanie
+```{r, echo=FALSE}
+x <- c(b1m$elapsed,b1d$elapsed)
+d1 <- data.frame(val = x, size = c("small","small","small","big","big","big"), ind=1:length(x))
+d1$method <- c("base", "nse1", "nse2")
+ggplot(data = d1) +
+  geom_col(aes(x = ind, y = val, fill=method, color=size), size = 2) +
+  labs(y = "Benchmark time", x = "", title = "Min function") +      theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) + scale_color_hue(l=20, c=35)
+```
+
+## MEAN
+
+### Mały zbiór
+
+```{r, echo=FALSE}
+mean1 <- nseFunction1(mean)
+mean2 <- nseFunction2(mean)
+
+testData <- list(small=rnorm(10), big=rnorm(10^7))
+
+b2m <- benchmark("Base mean" = {
+  mean(testData$small)
+},
+"Nse mean 1" = {
+  mean1(testData,small)
+},
+"Nse mean 2" = {
+  mean2(testData, small)
+},
+replications = 100,
+columns = c("test", "replications", "elapsed", "user.self", "sys.self"))
+
+b2m
+```
+
+### Duży zbiór
+
+```{r, echo=FALSE}
+
+#big data
+
+b2d <- benchmark("Base mean" = {
+  mean(testData$big)
+},
+"Nse mean 1" = {
+  mean1(testData,big)
+},
+"Nse mean 2" = {
+  mean2(testData, big)
+},
+replications = 100,
+columns = c("test", "replications", "elapsed",
+            "relative", "user.self", "sys.self"))
+
+b2d
+
+```
+
+### Podsumowanie
+
+```{r, echo=FALSE}
+x <- c(b2m$elapsed,b2d$elapsed)
+d1 <- data.frame(val = x, size = c("small","small","small","big","big","big"), ind=1:length(x))
+d1$method <- c("base", "nse1", "nse2")
+ggplot(data = d1) +
+  geom_col(aes(x = ind, y = val, fill=method, color=size), size = 2) +
+  labs(y = "Benchmark time", x = "", title = "Mean function") +      theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) + scale_color_hue(l=20, c=35)
+```
+
+## LM
+
+Teraz sprawdzimy funkcję **lm**.
+
+### Mały zbiór
+
+```{r, echo=FALSE}
+lm1 <- nseFunction1(lm)
+lm2 <- nseFunction2(lm)
+
+xSmall <- list(x1=rnorm(10),x2=rnorm(10),x3=rnorm(10),x4=rnorm(10),eps=rnorm(10, 0.25,0.25))
+xBig <- list(x1=rnorm(10^6),x2=rnorm(10^6),x3=rnorm(10^6),x4=rnorm(10^6),eps=rnorm(10^6, 0.25, 0.25))
+
+ySmall <- list(y=3*xSmall$x1+2*xSmall$x2+6*xSmall$x3+5*xSmall$x4+xSmall$eps)
+yBig <- list(y=3*xBig$x1+2*xBig$x2+6*xBig$x3+5*xBig$x4+xBig$eps)
+Small <- c(xSmall,ySmall)
+Big <- c(xBig,yBig)
+
+b3m <- benchmark("Base lm" = {
+  lm(y~x1+x2+x3+x4,data=Small)
+},
+"Nse lm 1" = {
+  lm1(Small,y~x1+x2+x3+x4)
+},
+"Nse lm 2" = {
+  lm2(Small, y~x1+x2+x3+x4)
+},
+replications = 100,
+columns = c("test", "replications", "elapsed", "user.self", "sys.self"))
+
+b3m
+```
+
+### Duży zbiór
+
+```{r, echo=FALSE}
+
+#big data
+
+b3d <- benchmark("Base lm" = {
+  lm(y~x1+x2+x3+x4,data=Big)
+},
+"Nse lm 1" = {
+  lm1(Big,y~x1+x2+x3+x4)
+},
+"Nse lm 2" = {
+  lm2(Big, y~x1+x2+x3+x4)
+},
+replications = 100,
+columns = c("test", "replications", "elapsed", "user.self", "sys.self"))
+
+b3d
+
+```
+
+### Podsumowanie
+
+```{r, echo=FALSE}
+x <- c(b3m$elapsed,b3d$elapsed)
+d1 <- data.frame(val = x, size = c("small","small","small","big","big","big"), ind=1:length(x))
+d1$method <- c("base", "nse1", "nse2")
+ggplot(data = d1) +
+  geom_col(aes(x = ind, y = val, fill=method, color=size), size = 2) +
+  labs(y = "Benchmark time", x = "", title = "Lm function") +      theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) + scale_color_hue(l=20, c=35)
+```
+
+## Unlist bez use.names
+
+Najpierw sprawdzimy funkcję **unlist** z parametrem *use.names* = FALSE
+
+## Mały zbiór
+
+```{r, echo=FALSE}
+unlistSmall <- list(l1 = list(rep(1,10)), 
+                  l2 = list(a = rep(1,10),
+                       b = rep(1,10),
+                       c = rep(1,10)))
+unlistBig <- list(l1 = list(rep(1,10^6)),
+                l2 = list(a = rep(1,10^6),b = rep(1,10^6),c = rep(1,10^6)),
+                l3 = list(d = list(e = rep(1,10^6))))
+
+unlist1 <- nseFunction1(function(x) unlist(x, use.names = FALSE))
+unlist2 <- nseFunction2(unlist)
+
+b4m <- benchmark("Base mean" = {
+  unlist(unlistSmall$l1, use.names = FALSE)
+},
+"Nse mean 1" = {
+  unlist1(unlistSmall,l1)
+},
+"Nse mean 2" = {
+  unlist2(unlistSmall, l1, use.names=FALSE)
+},
+replications = 100,
+columns = c("test", "replications", "elapsed", "user.self", "sys.self"))
+
+b4m
+```
+
+### Duży zbiór
+
+```{r, echo=FALSE}
+
+#big data
+
+b4d <- benchmark("Base mean" = {
+  unlist(unlistBig$l1, use.names = FALSE)
+},
+"Nse mean 1" = {
+  unlist1(unlistBig,l1)
+},
+"Nse mean 2" = {
+  unlist2(unlistBig, l1, use.names=FALSE)
+},
+replications = 100,
+columns = c("test", "replications", "elapsed", "user.self", "sys.self"))
+
+b4d
+```
+
+### Podsumowanie
+```{r, echo=FALSE}
+x <- c(b4m$elapsed,b4d$elapsed)
+d1 <- data.frame(val = x, size = c("small","small","small","big","big","big"), ind=1:length(x))
+d1$method <- c("base", "nse1", "nse2")
+ggplot(data = d1) +
+  geom_col(aes(x = ind, y = val, fill=method, color=size), size = 2) +
+  labs(y = "Benchmark time", x = "", title = "Unlist function") +      theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) + scale_color_hue(l=20, c=35)
+```
+
+## Unlist z use.names
+
+Teraz parametr **use.names** będzie TRUE.
+
+### Mały zbiór
+
+```{r, echo=FALSE}
+unlist1 <- nseFunction1(unlist)
+unlist2 <- nseFunction2(unlist)
+
+
+b5m <- benchmark("Base mean" = {
+  unlist(unlistSmall$l1)
+},
+"Nse mean 1" = {
+  unlist1(unlistSmall,l1)
+},
+"Nse mean 2" = {
+  unlist2(unlistSmall, l1)
+},
+replications = 100,
+columns = c("test", "replications", "elapsed", "user.self", "sys.self"))
+
+b5m
+
+```
+
+### Duży zbiór
+
+```{r, echo=FALSE}
+
+#big data
+
+b5d <- benchmark("Base mean" = {
+  unlist(unlistBig$l1)
+},
+"Nse mean 1" = {
+  unlist1(unlistBig,l1)
+},
+"Nse mean 2" = {
+  unlist2(unlistBig, l1)
+},
+replications = 100,
+columns = c("test", "replications", "elapsed", "user.self", "sys.self"))
+
+b5d
+
+```
+
+### Podsumowanie
+
+```{r, echo=FALSE}
+x <- c(b5m$elapsed,b5d$elapsed)
+d1 <- data.frame(val = x, size = c("small","small","small","big","big","big"), ind=1:length(x))
+d1$method <- c("base", "nse1", "nse2")
+ggplot(data = d1) +
+  geom_col(aes(x = ind, y = val, fill=method, color=size), size = 2) +
+  labs(y = "Benchmark time", x = "", title = "Unlist function") +      theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) + scale_color_hue(l=20, c=35)
+```
+
+# Podsumowanie
+
+Generalnie rzecz biorąc funkcja nse1 tworzyła zazwyczaj najwolniejsze funkcje - szczególnie dla małych danych. Dla dużych zbiorów różnica się zacierała. Najszybszy zazwyczaj był base, chociaż funkcja nse2 tworzyła funkcje prawie równie szybkie, a czasem nawet szybsze.

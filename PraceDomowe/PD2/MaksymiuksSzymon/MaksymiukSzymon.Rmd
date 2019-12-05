@@ -1,0 +1,322 @@
+---
+title: '[PD2] Zaawansowany R'
+author: "Szymon Maksymiuk"
+date: "20.11.2019"
+output:
+  html_document:
+    df_print: paged
+    toc: true
+    toc_float: true
+    code_folding: hide
+    number_sections: true
+    theme: spacelab
+---
+
+```{r setup, include=FALSE,message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+# Wstęp
+
+W tym krótkim, acz związyłm raporcie pochylę się nad NSE. Przedstawię 3 różne rozwiązania zadania domowego, a więc funkcji tworzących z funkcji wejściowych takie same funkcje, tylko, że działające na NSE. Dużo słów "funkcja" w poprzednim zdaniu ale wiadomo o co chodzi, zadanie proste łatwe przyjemne i kształcące. Do Wykonania zadania użyją różnej wielkości sztucznych zbiorów danych. Zapraszam!
+
+
+# Przykładowe rozwiązania
+
+```{r}
+
+# Rozwiązanie ładne schludne i fajne (jak na NSE oczywiście)
+NSE_1 <- function(fun) {
+  function(input, object, ...) {
+    fun(eval(substitute(object), input), ...)
+  }
+}
+
+# Rozwiązanie wybitnie głupie. Tylko dla celów pokazowych
+NSE_2 <- function(fun) {
+  function(input, object, ...) {
+    attach(input)
+    ret <- fun(object, ...)
+    detach(input)
+    ret
+  }
+}
+
+# Rozwiązanie takio
+NSE_3 <- function(fun) {
+  function(input, object, ...) {
+    s <- substitute(object)
+    fun(with(input, eval(s)), ...)
+  }
+}
+
+```
+
+# Zbiory
+
+
+Zrobimy kilka ławkaocena, każdy na innym zbiorze danych tak by przekonać się, czy wynik uzyskiwany przez sposoby niestandardowej ewaluacji zależą od tego jak bardzo jest niestandardowaNa początek dwa zbiorki zawierające dane mające jakikolwiek znany nam sens.
+
+```{r}
+library(DALEX)
+head(titanic)
+dim(titanic)
+```
+
+Wytworzmy też kilka różnego rodzaju zbioróW
+
+```{r}
+list2 <- list()
+for (i in 1:10000) {
+  l <- as.list(runif(1000))
+  names(l) <- 1:1000
+  list2[[paste0("zmienna", i)]] <- l
+}
+data3 <- list(a = runif(100000, min = -100, max = 100),
+              b = runif(100000, min = -100, max = 100),
+              c = rnorm(100000, mean = 0, sd = 30),
+              d = rnorm(100000, mean = 0, sd = 30),
+              e = rt(100000, df = 7),
+              f = rt(100000, df = 7))
+data4 <- list(a = runif(2000000, min = -100, max = 100),
+              b = runif(2000000, min = -100, max = 100),
+              c = rnorm(2000000, mean = 0, sd = 30),
+              d = rnorm(2000000, mean = 0, sd = 30),
+              e = rt(2000000, df = 7),
+              f = rt(2000000, df = 7))
+
+```
+
+# ławkaoceny
+
+Przejdźmy teraz do faktycznych porównań. Będźemy to robić z podziałem na funkcje tak by wyniki były sprawiedliwe. 
+
+## mean
+
+```{r}
+library(microbenchmark)
+
+new_mean1 <- NSE_1(mean)
+new_mean2 <- NSE_2(mean)
+new_mean3 <- NSE_3(mean)
+
+meanbm <- microbenchmark(
+  subs_maly = {
+    new_mean1(apartments, m2.price+construction.year)
+  },
+    attach_maly = {
+    new_mean2(apartments, m2.price+construction.year)
+  },
+    with_maly = {
+    new_mean3(apartments, m2.price+construction.year)
+  },  
+    subs_sredni = {
+    new_mean1(data3, a+c)
+  },
+    attach_sredni = {
+    new_mean2(data3, a+c)
+  },
+    with_sredni = {
+    new_mean3(data3, a+c)
+  },
+      subs_duzy = {
+    new_mean1(data4, a+c)
+  },
+    attach_duzy = {
+    new_mean2(data4, a+c)
+  },
+    with_duzy = {
+    new_mean3(data4, a+c)
+  }
+  
+)
+
+microbenchmark:::autoplot.microbenchmark(meanbm)
+
+```
+
+## min
+
+```{r}
+library(microbenchmark)
+
+new_min1 <- NSE_1(min)
+new_min2 <- NSE_2(min)
+new_min3 <- NSE_3(min)
+
+minbm <- microbenchmark(
+  subs_maly = {
+    new_min1(apartments, m2.price+construction.year)
+  },
+    attach_maly = {
+    new_min2(apartments, m2.price+construction.year)
+  },
+    with_maly = {
+    new_min3(apartments, m2.price+construction.year)
+  },  
+    subs_sredni = {
+    new_min1(data3, a+c)
+  },
+    attach_sredni = {
+    new_min2(data3, a+c)
+  },
+    with_sredni = {
+    new_min3(data3, a+c)
+  },
+      subs_duzy = {
+    new_min1(data4, a+c)
+  },
+    attach_duzy = {
+    new_min2(data4, a+c)
+  },
+    with_duzy = {
+    new_min3(data4, a+c)
+  }
+  
+)
+
+microbenchmark:::autoplot.microbenchmark(minbm)
+
+```
+
+## unlist
+
+### use.names = TRUE
+
+```{r}
+new_unlist1 <- NSE_1(unlist)
+new_unlist2 <- NSE_2(unlist)
+new_unlist3 <- NSE_3(unlist)
+
+unlistnames <- microbenchmark(
+
+  subs = {
+    new_unlist1(list2, zmienna4, use.names = TRUE)
+  },
+    attach = {
+    new_unlist2(list2, zmienna4, use.names = TRUE)
+  },
+    with = {
+    new_unlist3(list2, zmienna4, use.names = TRUE)
+  }
+  
+)
+
+microbenchmark:::autoplot.microbenchmark(unlistnames)
+```
+
+### use.names = FALSE
+
+```{r}
+new_unlist1 <- NSE_1(unlist)
+new_unlist2 <- NSE_2(unlist)
+new_unlist3 <- NSE_3(unlist)
+
+unlistnotnames <- microbenchmark(
+
+  subs = {
+    new_unlist1(list2, zmienna4, use.names = FALSE)
+  },
+    attach = {
+    new_unlist2(list2, zmienna4, use.names = FALSE)
+  },
+    with = {
+    new_unlist3(list2, zmienna4, use.names = FALSE)
+  }
+  
+)
+
+microbenchmark:::autoplot.microbenchmark(unlistnotnames)
+```
+
+## lm
+
+```{r}
+library(microbenchmark)
+
+new_lm1 <- NSE_1(lm)
+new_lm2 <- NSE_2(lm)
+new_lm3 <- NSE_3(lm)
+
+lmbm <- microbenchmark(
+  subs_maly = {
+    new_lm1(apartments, m2.price~construction.year)
+  },
+    attach_maly = {
+    new_lm2(apartments, m2.price~construction.year)
+  },
+    with_maly = {
+    new_lm3(apartments, m2.price~construction.year)
+  },  
+    subs_sredni = {
+    new_lm1(data3, a~c)
+  },
+    attach_sredni = {
+    new_lm2(data3, a~c)
+  },
+    with_sredni = {
+    new_lm3(data3, a~c)
+  },
+      subs_duzy = {
+    new_lm1(data4, a~c)
+  },
+    attach_duzy = {
+    new_lm2(data4, a~c)
+  },
+    with_duzy = {
+    new_lm3(data4, a~c)
+  }
+  
+)
+
+microbenchmark:::autoplot.microbenchmark(lmbm)
+
+```
+
+## summary
+
+```{r}
+library(microbenchmark)
+
+new_summary1 <- NSE_1(summary)
+new_summary2 <- NSE_2(summary)
+new_summary3 <- NSE_3(summary)
+
+summarybm <- microbenchmark(
+  subs_maly = {
+    new_summary1(apartments, m2.price)
+  },
+    attach_maly = {
+    new_summary2(apartments, m2.price)
+  },
+    with_maly = {
+    new_summary3(apartments, m2.price)
+  },  
+    subs_sredni = {
+    new_summary1(data3, a)
+  },
+    attach_sredni = {
+    new_summary2(data3, a)
+  },
+    with_sredni = {
+    new_summary3(data3, a)
+  },
+      subs_duzy = {
+    new_summary1(data4, a)
+  },
+    attach_duzy = {
+    new_summary2(data4, a)
+  },
+    with_duzy = {
+    new_summary3(data4, a)
+  }
+  
+)
+
+microbenchmark:::autoplot.microbenchmark(summarybm)
+
+```
+
+# Podsumowanie
+
+Jak łatwo dostrzec, rozwiązanie numer jeden, a więc wykorzystujące jedynie eval oraz substitute jest najlepsze, co szczególnie widać na małym zbiorze danych. Zgodnie z przewidywaniami, rozwiązanie, które w kodzie oznaczyłem jako wybitnie głupie, faktycznie takim się okazało. Ciekawostką jest, że dla bardzo dużych zbiorów danych różnice między rozwiązaniami nie są zauważalne. Moja teoria na ten temat jest taka, że rozwiązania gorsze na małym zbiorze bardzo dużo operacji tracą przed faktycznymi obliczeniami, stąd gdy jest ich dużo różnica się zaciera.  
