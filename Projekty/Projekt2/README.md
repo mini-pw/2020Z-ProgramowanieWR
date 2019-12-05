@@ -13,6 +13,8 @@ Rezultaty projektu są prezentowane przez studentów podczas wykładu 23.01. Ka�
 
 ### deepdep
 
+Konsultacje: +
+
 Zadania:
 
  - dodać popularność pakietów,
@@ -26,6 +28,8 @@ Zadanie specjalne:
 
 ### kolejkeR 
 
+Konsultacje: +
+
 Zadania:
 
  - stworzenie aplikacji Shiny, która prezentuje aktualny stan kolejek w Warszawie,
@@ -37,10 +41,12 @@ Zadanie specjalne:
 
 ### QuickchartR
  
+Konsultacje: + 
+ 
 Zadania:
 
  - uproszczenie kodu.
- - porównać z innymi interaktywnymi wykresami w R w postaci drugiej vignette.
+ - porównać z innymi wykresami w R w postaci drugiej vignette.
 
 
 Zadanie specjalne:
@@ -48,6 +54,8 @@ Zadanie specjalne:
  - konwersja wykresów z ggplot2 na quickchart.
 
 ### hackeRnews
+
+Konsultacje: +
 
 Zadania:
 
@@ -59,6 +67,8 @@ Zadanie specjalne:
  - porównanie wypowiedzi na kilka tematów z twittera, reddita i hackernews
  
 ### miniBeamer
+ 
+Konsultacje: + 
  
 Zadania:
 
