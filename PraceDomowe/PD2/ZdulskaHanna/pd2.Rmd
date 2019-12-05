@@ -1,0 +1,203 @@
+---
+title: "PD2"
+author: "Hanna Zdulska"
+date: "11/19/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(microbenchmark)
+library(ggplot2)
+library(patchwork)
+```
+
+# Funkcje
+```{r}
+nse_1 <- function(fun){
+  function(in_args, ...){
+    eval(substitute(fun(...)),in_args)
+  }}
+
+nse_2 <- function(fun) {
+  function(in_args, arg, ...) {
+    fun(eval(substitute(arg), in_args), ...)
+  }
+}
+
+nse_3 <- function(fun) {
+  function(in_args, arg, ...) {
+    nse <- substitute(arg)
+    with(in_args, do.call(fun, list(nse, ...)))
+  }
+}
+
+```
+
+
+# Benchmarki
+## Min
+```{r}
+#mały zbiór
+data(sleep)
+
+min_1 <- nse_1(min)
+min_2 <- nse_2(min)
+min_3 <- nse_3(min)
+
+# czy działają poprawnie funkcje?
+min(sleep$extra) == min_1(sleep,extra) & 
+  min(sleep$extra) == min_2(sleep,extra) &
+  min(sleep$extra) == min_3(sleep,extra)
+
+benchmark_sleep <- microbenchmark(
+  min = min(sleep$extra),
+  min_1 = min_1(sleep,extra),
+  min_2 = min_2(sleep,extra),
+  min_3 = min_3(sleep,extra)
+)
+p1 <- ggplot(summary(benchmark_sleep), aes(x = expr, y = mean)) + geom_col() + ggtitle("Min - zbiór mały")
+
+#wiekszy zbior
+data(diamonds)
+
+benchmark_diam <- microbenchmark(
+  min = min(diamonds$price),
+  min_1 = min_1(diamonds,price),
+  min_2 = min_2(diamonds,price),
+  min_3 = min_3(diamonds,price)
+)
+p2 <- ggplot(summary(benchmark_diam), aes(x = expr, y = mean)) + geom_col() + ggtitle("Min - zbiór duży")
+p1 + p2
+```
+
+## Mean
+
+```{r}
+#mniejszy zbiór
+
+mean_1 <- nse_1(mean)
+mean_2 <- nse_2(mean)
+mean_3 <- nse_3(mean)
+
+# czy działają poprawnie funkcje?
+mean(sleep$extra) == mean_1(sleep,extra) &
+  mean(sleep$extra) == mean_2(sleep,extra) &
+  mean(sleep$extra) == mean_3(sleep,extra)
+
+benchmark_sleep <- microbenchmark(
+  mean = mean(sleep$extra),
+  mean_1 = mean_1(sleep,extra),
+  mean_2 = mean_2(sleep,extra),
+  mean_3 = mean_3(sleep,extra)
+)
+p1 <- ggplot(summary(benchmark_sleep), aes(x = expr, y = mean)) + geom_col() + ggtitle("Mean - zbiór mały")
+
+#wiekszy zbior
+
+benchmark_diam <- microbenchmark(
+  mean = mean(diamonds$price),
+  mean_1 = mean_1(diamonds,price),
+  mean_2 = mean_2(diamonds,price),
+  mean_3 = mean_3(diamonds,price)
+)
+p2 <- ggplot(summary(benchmark_diam), aes(x = expr, y = mean)) + geom_col() + ggtitle("Mean - biór duży")
+p1 + p2
+```
+
+## Unlist
+
+```{r}
+#mniejszy zbiór
+
+unlist_1 <- nse_1(unlist)
+unlist_2 <- nse_2(unlist)
+unlist_3 <- nse_3(unlist)
+
+# czy działają poprawnie funkcje?
+unlist(sleep$extra, use.names = TRUE) == unlist_1(sleep,extra, use.names = TRUE) & 
+  unlist(sleep$extra, use.names = TRUE) == unlist_2(sleep,extra, use.names = TRUE) &
+  unlist(sleep$extra, use.names = TRUE) == unlist_3(sleep,extra, use.names = TRUE)
+
+benchmark_sleep <- microbenchmark(
+  unlist = unlist(sleep$extra, use.names = TRUE),
+  unlist_1 = unlist_1(sleep,extra, use.names = TRUE),
+  unlist_2 = unlist_2(sleep,extra, use.names = TRUE),
+  unlist_3 = unlist_3(sleep,extra, use.names = TRUE)
+)
+p1 <- ggplot(summary(benchmark_sleep), aes(x = expr, y = mean)) + geom_col() + ggtitle("Unlist (use.names = TRUE) - zbiór mały")
+
+#wiekszy zbior
+
+benchmark_diam <- microbenchmark(
+  unlist = unlist(diamonds$price, use.names = TRUE),
+  unlist_1 = unlist_1(diamonds,price, use.names = TRUE),
+  unlist_2 = unlist_2(diamonds,price, use.names = TRUE),
+  unlist_3 = unlist_3(diamonds,price, use.names = TRUE)
+)
+p2 <- ggplot(summary(benchmark_diam), aes(x = expr, y = mean)) + geom_col() + ggtitle("Unlist (use.names = TRUE) - zbiór duży")
+
+
+# mały zbiór
+benchmark_sleep <- microbenchmark(
+  unlist = unlist(sleep$extra, use.names = FALSE),
+  unlist_1 = unlist_1(sleep,extra, use.names = FALSE),
+  unlist_2 = unlist_2(sleep,extra, use.names = FALSE),
+  unlist_3 = unlist_3(sleep,extra, use.names = FALSE)
+)
+p3 <- ggplot(summary(benchmark_sleep), aes(x = expr, y = mean)) + geom_col() + ggtitle("Unlist (use.names = FALSE) - zbiór mały")
+
+#wiekszy zbior
+
+benchmark_diam <- microbenchmark(
+  unlist = unlist(diamonds$price, use.names = FALSE),
+  unlist_1 = unlist_1(diamonds,price, use.names = FALSE),
+  unlist_2 = unlist_2(diamonds,price, use.names = FALSE),
+  unlist_3 = unlist_3(diamonds,price, use.names = FALSE)
+)
+p4 <- ggplot(summary(benchmark_diam), aes(x = expr, y = mean)) + geom_col() + ggtitle("Unlist (use.names = FALSE) - zbiór duży")
+
+(p1 + p2) / (p3 + p4)
+
+```
+
+## Lm
+
+```{r}
+#mniejszy zbiór
+
+lm_1 <- nse_1(lm)
+lm_2 <- nse_2(lm)
+lm_3 <- nse_3(lm)
+
+# czy działają poprawnie funkcje?
+lm(extra ~ group,sleep)[['coefficients']] == lm_1(sleep,extra ~ group)[['coefficients']] &
+  lm(extra ~ group,sleep)[['coefficients']] == lm_2(sleep,extra ~ group)[['coefficients']] &
+  lm(extra ~ group,sleep)[['coefficients']] == lm_3(sleep,extra ~ group)[['coefficients']]
+
+benchmark_sleep <- microbenchmark(
+  lm = lm(extra ~ group,sleep),
+  lm_1 = lm_1(sleep,extra ~ group),
+  lm_2 = lm_2(sleep,extra ~ group),
+  lm_3 = lm_3(sleep,extra ~ group)
+)
+p1 <- ggplot(summary(benchmark_sleep), aes(x = expr, y = mean)) + geom_col() + ggtitle("Lm - zbiór mały")
+
+#wiekszy zbior
+
+benchmark_diam <- microbenchmark(
+  lm = lm(depth ~ price, diamonds),
+  lm_1 = lm_1(diamonds,depth ~ price),
+  lm_2 = lm_2(diamonds,depth ~ price),
+  lm_3 = lm_3(diamonds,depth ~ price)
+  )
+p2 <- ggplot(summary(benchmark_diam), aes(x = expr, y = mean)) + geom_col() + ggtitle("Lm - Zbiór duży")
+p1 + p2
+```
+
+# Podsumowanie
+
+Jak widać z wykresów trudno jednozacznie powiedzieć, która funkcja jest najszybsza, nie mniej jednak
+
+ * najwolniej wypada nse_3
+ * nse_1 i nse_2 wypadają podobnie w porównaniu do funkcji bazowej - zarówno na zbiorach dużych jak i małych.

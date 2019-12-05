@@ -21,8 +21,8 @@ Strona przedmiotu Zaawansowane programowanie w R na wydziale MiNI PW.
 | 14.11 | Prezentacje wyników projektu 1.                                         |                                                                    |         |    |            |
 | 21.11 | R jako interfejs do obliczeń rozproszonych.                             | ShinyJS. shinyproxy.                                               |         | 3  | 3          |
 | 28.11 | Prezentacje studentów.                                                  | Programowanie równoległe w R.                                      | 2       |    |            |
-| 05.12 | Prezentacje studentów.                                                  | Tworzenie aplikacji REST z użyciem plumber lub OpenCPU.            | 2       |    | 4          |
-| 12.12 | Narzędzia do reprodukowalności analizy danych, knitr, archivist, drake. | Reprodukowalne analizy w R (drake, archivist).                     | 2       | 4  |            |
+| 05.12 | Prezentacje studentów.                                                  | Reprodukowalne analizy w R (drake, archivist).                     | 2       |    | 4          |
+| 12.12 | Prezentacje studentów.                                                  | Tworzenie aplikacji REST z użyciem plumber lub OpenCPU.            | 2       | 4  |            |
 | 19.12 | Znajomość pakietów z rodziny DrWhy.AI.                                  | XAI w R.                                                           | 2       |    | 5          |
 | 16.01 | Praca z bazami danych w R.                                              |                                                                    | 2       |    |            |
 | 23.01 | Prezentacje wyników projektu 2.                                         |                                                                    |         |    |            |

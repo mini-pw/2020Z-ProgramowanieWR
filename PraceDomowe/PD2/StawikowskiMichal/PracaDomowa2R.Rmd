@@ -1,0 +1,365 @@
+---
+title: "Praca domowa 2"
+author: "Michał Stawikowski"
+date: "`r format(Sys.time(), '%d - %m - %Y')`"
+output:
+  html_document:
+    df_print: paged
+    toc: true
+    toc_float: true
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Wstęp
+Celem tego raportu, będzie przedstawienie trzech różnych funkcji, których zadaniem jest przyjęcie jako argument zwykłej funkcji i zwrócenie jej wersji działającej w `NSE` - Non-standard evaluation. Na koniec porównamy szybkości działania różnych implementacji dla zróżnicowanych rozmiarów danych.
+
+# Implementacje
+
+## Implementacja pierwsza
+
+Na początku napiszemy najprostszą funkcję wspierającą `NSE` i przetestujemy jej działanie.
+
+Implementacja 
+```{r}
+zadanieDomowe1 <- function(f){
+  function(x, ...) {
+    values_call <- as.list(substitute(list(...)))[-1]
+    arg_list <- lapply(values_call, function(arg) {
+      eval(arg, x)
+    })
+    
+    do.call(f, arg_list)
+  }  
+}
+
+```
+oraz test:
+```{r}
+example_df <- data.frame(a = 1, b = c(1:5), c = list(a=1,b=2,c=3), f = 1:10)
+
+minNSE <- zadanieDomowe1(min)
+
+minNSE(example_df, b)
+
+```
+
+Wygląda na to, że wszystko jest ok. Sprawdźmy jednak jeszcze raz na innym przykładzie:
+
+```{r message = FALSE, results='hide'}
+example_list <- list(a = 1, b = c(1:5), c = list(a=1,b=2,c=3), f = 1:10)
+y <- 4
+x <- 4
+
+
+lmNSE <- zadanieDomowe1(lm)
+
+lmNSE(example_list, a~y)
+```
+
+Umieszczam obciętą wiadomość jako komentarz w kodzie, w celu uniknięcia wyświetlania długiej wiadomości Call, która towarzyszy wywołaniu.
+
+```{r}
+## Coefficients:
+## (Intercept)            y  
+##           1           NA
+```
+
+
+Nadal dobrze, ale teraz sprawdźmy dla `x`:
+
+```{r error=TRUE}
+lmNSE(example_list, a~x) #Ups
+```
+
+
+Żeby dowiedzieć się co poszło nie tak, musimy bliżej przyjrzeć się nazwom użytych zmiennych w funkcji `zadanieDomowe1`.
+
+```{r}
+zadanieDomowe1 <- function(f){
+  function(x, ...) { #<-------- Jak widać tutaj też 
+    #siedzi nasz nieszczęsny 'x'
+    values_call <- as.list(substitute(list(...)))[-1]
+    arg_list <- lapply(values_call, function(arg) {
+      eval(arg, x)
+    })
+    
+    do.call(f, arg_list)
+  }  
+}
+
+```
+
+Możemy się łatwo domyślić co się popsuło. Nasza funkcja szukając zmiennej `x` na początku sprawdziła środowisko tej funkcji, niestety nasz `x` siedzi poza funkcją. Nie ma jednak co się załamywać, bo z pomocą przychodzi nam druga implementacja.
+
+## Implementacja druga
+
+```{r}
+zadanieDomowe2 <- function(f){
+  function(x, ...) {
+    values_call <- as.list(substitute(list(...)))[-1]
+    env <- list2env(x, parent = parent.frame()) # <--nowa linijka
+    arg_list <- lapply(values_call, function(arg) {
+      eval(arg, env)
+    })
+    do.call(f, arg_list)
+  }  
+}
+
+```
+
+W celu uniknięcia błędu z poprzedniej funkcji tym razem będziemy trochę sprytniejsie i jako argument do funkcji `eval`
+przekażemy też środowisko rodzica jako `parent.frame()`.
+Sprawdźmy czy to pomoże.
+
+```{r results='hide'}
+meanNSE <- zadanieDomowe2(mean)
+lmNSE <- zadanieDomowe2(lm)
+
+
+lmNSE(example_list, a~x)
+```
+
+```{r}
+## Coefficients:
+## (Intercept)            y  
+##           1           NA
+```
+
+```{r}
+meanNSE(example_list, x)
+```
+
+Tym razem wszystko poszło tak jak powinno. Możemy przejść do ostatnie implementacji.
+
+## Ostatnia Implementacja
+
+```{r warning=FALSE}
+library(rlang)
+zadanieDomowe3 <- function(f){
+  function(x, ...) {
+    values_call <- enquos(...) #<---- coś nowego
+    arg_list <- lapply(values_call, function(arg) {
+      eval_tidy(arg, x) #<---- też coś nowego
+    }) 
+    do.call(f,arg_list)
+  }  
+}
+
+```
+
+W tej implementacji skorzystaliśmy z pakietu `rlang` i zamiast funkcji `substitute` oraz `eval` skorzystaliśmy z `enquos` oraz `eval_tidy`. W uproszczeniu główną różnicą między enquo a substitute jest to, że pierwsza funkcja dodatkowo tworzy odniesienie do całego środowiska swojego argumentu, które może być zinterpetowane przez eval_tidy.
+
+Sprawdźmy czy ta funkcja poradzi sobie z naszym podstępnym `x`-em.
+
+```{r results='hide'}
+meanNSE <- zadanieDomowe3(mean)
+lmNSE <- zadanieDomowe3(lm)
+
+
+lmNSE(example_list, a~x)
+```
+
+```{r}
+## Coefficients:
+## (Intercept)            y  
+##           1           NA
+```
+
+```{r}
+meanNSE(example_list, x)
+```
+Udało się. Zatem teraz możemy przejść do porównywania szybkości naszych funkcji.
+
+# Benchmark
+
+
+```{r warning=FALSE, message=FALSE, echo=FALSE, results="hide", message=FALSE, warning=FALSE, fig.show="hide", include=FALSE, fig.keep="none"}
+library(hrbrthemes)
+library(viridis)
+library(microbenchmark)
+library(ggplot2)
+library(gridExtra)
+library(cowplot)
+library(ggpubr)
+options(microbenchmark.unit="ms")
+### MIN
+
+funkcja = min
+n = 100
+example_list = list(a = rnorm(n,0,1))
+
+wyniki = data.frame()
+NSEf <- zadanieDomowe1(funkcja)
+wyniki = rbind(wyniki, microbenchmark(
+  Pierwsza = NSEf(example_list, a)
+))
+NSEf <- zadanieDomowe2(funkcja)
+wyniki = rbind(wyniki, microbenchmark(
+  Druga = NSEf(example_list, a)
+))
+NSEf <- zadanieDomowe3(funkcja)
+wyniki = rbind(wyniki, microbenchmark(
+  Trzecia = NSEf(example_list, a)
+))
+wyniki = rbind(wyniki, microbenchmark(
+  Normalna_funkcja = funkcja(example_list$a)
+))
+
+p1 <- ggplot(data = summary(wyniki), aes(x = expr, y = mean, fill = expr))+
+  geom_bar(stat = "identity") + 
+  geom_text(aes(x=expr,y=mean,label=mean),vjust=-.5) +
+  scale_fill_viridis(discrete = T) +
+  theme(legend.position = "none") +
+  xlab("Funkcja") + 
+  ylab("Sredni czas [ms]") +
+  ggtitle("min - 100 obserwacji")
+
+### MEAN
+
+funkcja = mean
+n = 1000
+example_list = list(a = rnorm(n,0,1))
+
+wyniki = data.frame()
+NSEf <- zadanieDomowe1(funkcja)
+wyniki = rbind(wyniki, microbenchmark(
+  Pierwsza = NSEf(example_list, a)
+))
+NSEf <- zadanieDomowe2(funkcja)
+wyniki = rbind(wyniki, microbenchmark(
+  Druga = NSEf(example_list, a)
+))
+NSEf <- zadanieDomowe3(funkcja)
+wyniki = rbind(wyniki, microbenchmark(
+  Trzecia = NSEf(example_list, a)
+))
+wyniki = rbind(wyniki, microbenchmark(
+  Normalna_funkcja = funkcja(example_list$a)
+))
+
+p2 <- ggplot(data = summary(wyniki), aes(x = expr, y = mean, fill = expr))+
+  geom_bar(stat = "identity") + 
+  geom_text(aes(x=expr,y=mean,label=mean),vjust=-.5) +
+  scale_fill_viridis(discrete = T) +
+  theme(legend.position = "none") +
+  xlab("Funkcja") + 
+  ylab("Sredni czas [ms]") +
+  ggtitle("mean - 1000 obserwacji")
+
+#lm
+
+funkcja = lm
+n = 100000
+example_list = list(a = rnorm(n,0,1), b = runif(n,0,1))
+
+wyniki = data.frame()
+NSEf <- zadanieDomowe1(funkcja)
+wyniki = rbind(wyniki, microbenchmark(
+  Pierwsza = NSEf(example_list, a~b)
+))
+NSEf <- zadanieDomowe2(funkcja)
+wyniki = rbind(wyniki, microbenchmark(
+  Druga = NSEf(example_list, a~b)
+))
+NSEf <- zadanieDomowe3(funkcja)
+wyniki = rbind(wyniki, microbenchmark(
+  Trzecia = NSEf(example_list, a~b)
+))
+wyniki = rbind(wyniki, microbenchmark(
+  Normalna_funkcja = lm(a~b, data = example_list)
+))
+
+p3 <- ggplot(data = summary(wyniki), aes(x = expr, y = mean, fill = expr))+
+  geom_bar(stat = "identity") + 
+  geom_text(aes(x=expr,y=mean,label=mean),vjust=-.5) +
+  scale_fill_viridis(discrete = T) +
+  theme(legend.position = "none") +
+  xlab("Funkcja") + 
+  ylab("Sredni czas [ms]") +
+  ggtitle("lm - 100000 obserwacji")
+
+
+#unlist
+
+funkcja = unlist
+n = 10000
+example_list = list(a = list(rozklad1 = rnorm(n,0,1), rozklad2 = runif(n,0,1)))
+
+wyniki = data.frame()
+NSEf <- zadanieDomowe1(funkcja)
+wyniki = rbind(wyniki, microbenchmark(
+  Pierwsza = NSEf(example_list, a)
+))
+NSEf <- zadanieDomowe2(funkcja)
+wyniki = rbind(wyniki, microbenchmark(
+  Druga = NSEf(example_list, a)
+))
+NSEf <- zadanieDomowe3(funkcja)
+wyniki = rbind(wyniki, microbenchmark(
+  Trzecia = NSEf(example_list, a)
+))
+wyniki = rbind(wyniki, microbenchmark(
+  Normalna_funkcja = funkcja(example_list$a)
+))
+
+p4 <- ggplot(data = summary(wyniki), aes(x = expr, y = mean, fill = expr))+
+  geom_bar(stat = "identity") + 
+  geom_text(aes(x=expr,y=mean,label=mean),vjust=-.5) +
+  scale_fill_viridis(discrete = T) +
+  theme(legend.position = "none") +
+  xlab("Funkcja") + 
+  ylab("Sredni czas [ms]") +
+  ggtitle("unlist - 20000 obserwacji")
+
+# unlist use.names = FALSE
+
+funkcja <- unlist
+n = 50000
+example_list = list(a = list(rozklad1 = rnorm(n,0,1), rozklad2 = runif(n,0,1)))
+
+wyniki = data.frame()
+NSEf <- zadanieDomowe1(funkcja)
+wyniki = rbind(wyniki, microbenchmark(
+  Pierwsza = NSEf(example_list, a, use.names = FALSE)
+))
+NSEf <- zadanieDomowe2(funkcja)
+wyniki = rbind(wyniki, microbenchmark(
+  Druga = NSEf(example_list, a, use.names = FALSE)
+))
+NSEf <- zadanieDomowe3(funkcja)
+wyniki = rbind(wyniki, microbenchmark(
+  Trzecia = NSEf(example_list, a, use.names = FALSE)
+))
+wyniki = rbind(wyniki, microbenchmark(
+  Normalna_funkcja = funkcja(example_list$a,use.names = FALSE)
+))
+
+p5 <- ggplot(data = summary(wyniki), aes(x = expr, y = mean, fill = expr))+
+  geom_bar(stat = "identity") + 
+  geom_text(aes(x=expr,y=mean,label=mean),vjust=-.5) +
+  scale_fill_viridis(discrete = T) +
+  theme(legend.position = "none") +
+  xlab("Funkcja") + 
+  ylab("Sredni czas [ms]") +
+  ggtitle("unlist z use.names = FALSE - 100000 obserwacji")
+
+
+
+
+```
+```{r, echo=FALSE}
+p1
+p2
+p3
+p4
+p5
+```
+
+# Wnioski
+
+Dla funkcji `min` i `mean` i małej liczby obserwacji bez zaskoczenia zwykła funkcja radzi sobie najlepiej, zaś funckja używająca funkcji z biblioteki `rlang` najgorzej. Sytuacja zmienia się dopiero przy dużej ilości danych, kiedy różnice czasowe się zacierają. Interesujące jest też to, że czasami pierwsza funkcja jest szybsza od drugiej, ale prawdopodobnie jest to spodwodowane przez różne czynniki niezwiązane z implementacją.
