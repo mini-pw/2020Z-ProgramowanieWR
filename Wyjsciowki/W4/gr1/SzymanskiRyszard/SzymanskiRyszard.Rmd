@@ -1,5 +1,5 @@
 ---
-title: "Wyjsciowka3"
+title: "Wyjsciowka4"
 author: "Ryszard Szymański"
 date: "12/5/2019"
 output: html_document
