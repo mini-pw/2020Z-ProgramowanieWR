@@ -1,4 +1,4 @@
-Praca Domowa 3: czas do pierwszej gwiazdki 23.12
+Praca Domowa 3: czas do pierwszej gwiazdki (18:00) 24.12
 
 Przygotuj aplikację Shiny, która:
  - pozwala wczytać dowolny zbiór danych w formacie .csv
