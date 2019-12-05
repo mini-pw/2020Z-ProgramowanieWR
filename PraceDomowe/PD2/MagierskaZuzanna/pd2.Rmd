@@ -1,0 +1,170 @@
+---
+title: "2nd Homework"
+author: "Zuzanna Magierska"
+date: "21/11/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(rlang)
+library(microbenchmark)
+library(ggplot2)
+```
+
+# Methods
+
+## 1st method
+Implementation with base R functions inspired by lecture.
+```{r}
+NSE_1 <- function(f) {
+  function(x, ...) {
+    eval(substitute(f(...)), x)
+  }
+}
+```
+
+## 2nd method
+Implementation using `rlang` package.
+```{r}
+NSE_2 <- function(f) {
+  function(x, ...) {
+    rlang::eval_tidy(rlang::expr(f(!!!rlang::exprs(...))), x)
+  }
+}
+```
+
+# Datasets
+```{r}
+set.seed(1410)
+generate_df <- function(n_row) {
+  n_col <- 2
+  data.frame(replicate(n_col,sample(0:1000,n_col*n_row,rep=TRUE)))
+}
+small_df <- generate_df(10)
+medium_df <- generate_df(1e5)
+large_df <- generate_df(1e6)
+```
+
+# Benchmark with visualization
+
+```{r}
+visualize <- function(mb) {
+  size_levels <- c("small (10 rows)", "medium (1e5 rows)", "large (1e6 rows)")
+  mb <- summary(mb) %>% mutate(
+    size = rep(size_levels, each=3),
+    method = rep(c("original", "1st method", "2nd method"), times=3)
+  )
+  mb$size = factor(mb$size, levels=size_levels)
+  ggplot(mb, aes(fill=method, y=mean, x=size)) + 
+    geom_bar(position="dodge", stat="identity")
+}
+```
+
+## `min` function
+```{r}
+min_1 <- NSE_1(min)
+min_2 <- NSE_2(min)
+
+min_mb <- microbenchmark(
+  min(small_df$X1),
+  min_1(small_df, X1),
+  min_2(small_df, X1),
+  min(medium_df$X1),
+  min_1(medium_df, X1),
+  min_2(medium_df, X1),
+  min(large_df$X1),
+  min_1(large_df, X1),
+  min_2(large_df, X1)
+)
+
+visualize(min_mb)
+```
+
+## `mean` function
+```{r}
+
+mean_1 <- NSE_1(mean)
+mean_2 <- NSE_2(mean)
+
+mean_mb <- microbenchmark(
+  mean(small_df$X1),
+  mean_1(small_df, X1),
+  mean_2(small_df, X1),
+  mean(medium_df$X1),
+  mean_1(medium_df, X1),
+  mean_2(medium_df, X1),
+  mean(large_df$X1),
+  mean_1(large_df, X1),
+  mean_2(large_df, X1)
+)
+
+visualize(mean_mb)
+```
+
+## `unlist` function
+```{r}
+
+unlist_1 <- NSE_1(unlist)
+unlist_2 <- NSE_2(unlist)
+```
+
+Two version of `unlist` functions where testes. First one was with parameter `use.names` set to default (`TRUE`).
+```{r}
+unlistT_mb <- microbenchmark(
+  unlist(small_df$X1),
+  unlist_1(small_df, X1),
+  unlist_2(small_df, X1),
+  unlist(medium_df$X1),
+  unlist_1(medium_df, X1),
+  unlist_2(medium_df, X1),
+  unlist(large_df$X1),
+  unlist_1(large_df, X1),
+  unlist_2(large_df, X1)
+)
+
+visualize(unlistT_mb)
+```
+
+Second version was with parameter `use.names` set to `FALSE`.
+```{r}
+unlistF_mb <- microbenchmark(
+  unlist(small_df$X1, use.names = FALSE),
+  unlist_1(small_df, X1, use.names = FALSE),
+  unlist_2(small_df, X1, use.names = FALSE),
+  unlist(medium_df$X1, use.names = FALSE),
+  unlist_1(medium_df, X1, use.names = FALSE),
+  unlist_2(medium_df, X1, use.names = FALSE),
+  unlist(large_df$X1, use.names = FALSE),
+  unlist_1(large_df, X1, use.names = FALSE),
+  unlist_2(large_df, X1, use.names = FALSE)
+)
+
+visualize(unlistF_mb)
+```
+
+## `lm` function
+```{r}
+lm_1 <- NSE_1(lm)
+lm_2 <- NSE_2(lm)
+
+lm_mb <- microbenchmark(
+  lm(small_df, formula=X1~X2),
+  lm_1(small_df, formula=X1~X2),
+  lm_2(small_df, formula=X1~X2),
+  lm(medium_df, formula=X1~X2),
+  lm_1(medium_df, formula=X1~X2),
+  lm_2(medium_df, formula=X1~X2),
+  lm(large_df, formula=X1~X2),
+  lm_1(large_df, formula=X1~X2),
+  lm_2(large_df, formula=X1~X2)
+)
+
+visualize(lm_mb)
+```
+
+# Wnioski
+* For smaller datasets normal function call is the fastest, but 1st approach is only sligthly worse. 2nd approach is much worse, but when dataset gets bigger, the difference between three methods is fading away. Sometimes for large datasets 2nd method managed to work faster than 1st and original method.
+* For most of the functions there is a huge differnce in execution time for all 3 approaches between medium dataset (1e5 rows and 2 columns) and large dataset (1e6 rows and 2 columns).
+* Function unlist has different execution time distribution than others. Regardless of `use.names` parameter value and size of dataset, 1st approach and original function work similar, but 2nd method is much slower. this can be caused by rlang `!!!` operator.
