@@ -1,0 +1,139 @@
+---
+title: "NonStandardNSE"
+author: "Rafał Muszyński"
+date: "11/21/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Simple NSE
+
+```{r}
+
+simple_nse <- function(func){
+  function(input_list, ...){
+    eval(
+      substitute(func(...)), 
+      input_list
+    )
+  }
+}
+
+```
+
+
+# Advanced NSE
+
+```{r}
+# improved version of simple nse, allows arguments from parent scope
+advanced_nse <- function(func){
+  function(input_list, ...){
+    do.call(func, 
+      eval(
+        substitute(list(...)), 
+        input_list,
+        parent.frame()
+      )
+    )
+  }
+}
+
+```
+
+# Rlang NSE
+
+```{r}
+library(rlang)
+
+rlang_nse <- function(func){
+  function(input_list, ...){
+    args <- lapply(exprs(...), function(expr){
+      rlang::eval_tidy(expr, input_list)
+    })
+    
+    do.call(
+      func, 
+      args
+    )
+  }
+}
+
+```
+
+# Benchmarking function
+
+```{r}
+# define benchmark function
+library(microbenchmark)
+
+benchmark_function <- function(nse_constructor){
+  # yet another nse
+  nse_constructor_name <- deparse(substitute(nse_constructor))
+  min_nse <- nse_constructor(min)
+  mean_nse <- nse_constructor(mean)
+  data(iris)
+  lm_nse <- nse_constructor(lm)
+  unlist_nse <- nse_constructor(unlist)
+
+  long_dataframe <- as.data.frame(matrix(1, ncol = 1000, nrow = 2))
+  
+  results <- microbenchmark(
+    min_nse(long_dataframe, V1000),
+    mean_nse(long_dataframe, V1000),
+    lm_nse(iris, formula = Sepal.Length~Sepal.Width - 1),
+    unlist_nse(list( x=list(x = 1, y = 2, z = 3, w = c('aa', 'bb'))), x, use.names=FALSE),
+    unlist_nse(list( x=list(x = 1, y = 2, z = 3, w = c('aa', 'bb'))), x, use.names=TRUE),
+    times=1000L
+  )
+  results <- summary(results)
+  test_names <- c('min', 'mean', 'lm', 'unlist_names', 'unlist_no_names')
+  cbind(results, data.frame(method=nse_constructor_name), data.frame(tests = test_names))
+}
+
+```
+
+
+```{r, echo=FALSE}
+
+library(ggplot2)
+
+results <- rbind(
+  benchmark_function(simple_nse),
+  benchmark_function(advanced_nse),
+  benchmark_function(rlang_nse)
+)
+
+ggplot(results, aes(x=tests, y=mean, fill=method)) +
+  geom_bar(stat='identity', position='dodge') +
+  scale_y_log10()
+
+```
+
+```{r, echo=FALSE, include=FALSE}
+# tests if this even works
+test_function <- function(nse_constructor){
+
+  min_nse <- nse_constructor(min)
+  mean_nse <- nse_constructor(mean)
+  data(iris)
+  lm_nse <- nse_constructor(lm)
+  unlist_nse <- nse_constructor(unlist)
+
+  long_dataframe <- as.data.frame(matrix(1, ncol = 1000, nrow = 2))
+
+  print(min_nse(long_dataframe, V1000))
+  print(mean_nse(long_dataframe, V1000))
+  print(lm_nse(iris, formula = Sepal.Length~Sepal.Width - 1))
+  print(unlist_nse(list( x=list(x = 1, y = 2, z = 3, w = c('aa', 'bb'))), x, use.names=FALSE))
+  print(unlist_nse(list( x=list(x = 1, y = 2, z = 3, w = c('aa', 'bb'))), x, use.names=TRUE))
+  
+}
+test_function(simple_nse)
+test_function(advanced_nse)
+test_function(rlang_nse)
+
+```
