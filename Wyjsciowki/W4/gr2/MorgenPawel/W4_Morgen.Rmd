@@ -23,4 +23,7 @@ plan <- drake_plan(dat = mutate(iris, SetosaYesNo = (Species == "setosa")),
            save = write.csv(dat)
 )
 vis_drake_graph(drake_config(plan))
+
+# make(plan)
+# readd("plot")
 ```
