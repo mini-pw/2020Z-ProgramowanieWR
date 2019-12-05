@@ -34,3 +34,18 @@ dat <- read.csv("https://raw.githubusercontent.com/mini-pw/2020Z-ProgramowanieWR
 task <- makeClassifTask(id = "drake_test", data = dat, target = "variety")
 bench <- benchmark(learners = makeLearner("classif.ksvm"), tasks = task)
 preds <- data.frame(getBMRPredictions(bench))
+
+# ls()
+# mean(x <- 1L:5)
+# ls()
+
+my_first_plan <- drake_plan(
+  dat = read.csv("https://raw.githubusercontent.com/mini-pw/2020Z-ProgramowanieWR/master/Wyjsciowki/W2/gr1/SawickiJan/ShinyIris/iris.csv"),
+  task = makeClassifTask(id = "drake_test", data = dat, target = "variety"),
+  bench = benchmark(learners = makeLearner("classif.randomForest"), tasks = task),
+  preds = data.frame(getBMRPredictions(bench))
+)
+
+make(my_first_plan)
+readd("bench")
+
