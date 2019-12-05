@@ -1,0 +1,13 @@
+name: Homework3
+title: Homework3
+username:
+account: jansawicki
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1566249
+bundleId: 2643929
+url: https://jansawicki.shinyapps.io/Homework3/
+when: 1575559226.53388
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: deploy.R|iris.csv|README.html|README.rmd

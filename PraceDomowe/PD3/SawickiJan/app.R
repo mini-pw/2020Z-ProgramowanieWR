@@ -3,26 +3,31 @@ library(ggplot2)
 library(plotly)
 
 ui <- basicPage(
+  selectInput(
+    "graphType",
+    "Make a graph of type",
+    choices = c("Bar",
+                "Scatter",
+                "Heatmap",
+                "Jitter"),
+    selected = "Bar"
+  ),
   fileInput(
     "mainFile",
-    "Choose CSV File",
+    "from file",
     accept = c("text/csv",
                "text/comma-separated-values,text/plain",
                ".csv")
   ),
-  selectInput(
-    "graphType",
-    "From this family",
-    choices = c("Bar",
-                "Scatter",
-                "Heatmap"),
-    selected = "Bar"
+  selectInput("x", "put on a x axis", choices = c()),
+  conditionalPanel(condition = "input.graphType != \"Bar\"",
+                   selectInput("y", "put on a y axis", choices = c())),
+  selectInput("fill", "fill it with (factors only)", choices = c()),
+  conditionalPanel(
+    condition = "input.graphType == \"Bar\"",
+    selectInput("line", "to draw line use (factors only)", choices = c())
   ),
-  selectInput("x", "what", choices = c()),
-  selectInput("y", "of what", choices = c()),
-  selectInput("fill", "fill", choices = c()),
-  selectInput("line", "line", choices = c()),
-  selectInput("facet", "facet", choices = c()),
+  selectInput("facet", "facet everything by (factors only)", choices = c()),
   plotlyOutput("graph")
 )
 
@@ -31,17 +36,29 @@ server <- function(input, output, session) {
   
   updateSelectInputs = function(session, inputIds, dataset) {
     for (inputId in inputIds) {
-      updateSelectInput(
-        session = session,
-        inputId = inputId,
-        selected = input[[inputId]],
-        choices = colnames(dataset)
-      )
+      if (inputId == "x" || inputId == "y") {
+        updateSelectInput(
+          session = session,
+          inputId = inputId,
+          selected = input[[inputId]],
+          choices = colnames(dataset)
+        )
+      }
+      else{
+        updateSelectInput(
+          session = session,
+          inputId = inputId,
+          selected = input[[inputId]],
+          choices = colnames(Filter(is.factor, dataset))
+        )
+      }
     }
   }
   
   output$graph = renderPlotly({
     if (!is.null(input[["mainFile"]])) {
+      plot = NULL
+      
       filename = input[["mainFile"]]$datapath
       dataset = read.csv(filename)
       
@@ -49,9 +66,20 @@ server <- function(input, output, session) {
       
       updateSelectInputs(session, inputIds, dataset)
       
+      validate(need(input[["x"]], "Please select data for x axis"))
+      
+      if (input[["graphType"]] != "Bar") {
+        validate(need(input[["y"]], "Please select data for y axis"))
+      }
+      
       x = dataset[[input[["x"]]]]
       y = dataset[[input[["y"]]]]
-      fill =  dataset[[input[["fill"]]]]
+      fill = dataset[[input[["fill"]]]]
+      # https://github.com/ropensci/plotly/issues/1562
+      if (input[["graphType"]] == "Heatmap") {
+        if (is.null(dataset[[input[["fill"]]]]))
+          fill = rep("data", length(x))
+      }
       line =  dataset[[input[["line"]]]]
       
       if (input[["graphType"]] == "Bar") {
@@ -59,81 +87,53 @@ server <- function(input, output, session) {
                       aes(
                         x = x,
                         fill = fill,
-                        col = line,
-                        text = paste0(
-                          unique(input[["x"]]),
-                          ": ",
-                          unique(x),
-                          "\r\n",
-                          "count",
-                          ": ",
-                          ..count..
-                        )
+                        col = line
                       )) +
-          xlab(input[["x"]]) +
-          ylab(input[["y"]]) +
-          guides(fill = guide_legend(title = input[["fill"]]),
-                 col = guide_legend(title = input[["line"]])) +
           geom_bar(stat = "count",
-                   mapping = aes(linetype = line)) +
-          facet_wrap( ~ dataset[[input[["facet"]]]])
-      }
-      else if (input[["graphType"]] == "Scatter") {
-        plot = ggplot(data = dataset,
-                      aes(
-                        x = x,
-                        y = y,
-                        fill = fill,
-                        text = paste0(
-                          input[["x"]],
-                          ": ",
-                          x,
-                          "\r\n",
-                          input[["y"]],
-                          ": ",
-                          y,
-                          "\r\n",
-                          input[["fill"]],
-                          ": ",
-                          fill
-                        )
-                      )) +
-          xlab(input[["x"]]) +
-          ylab(input[["y"]]) +
-          guides(fill = guide_legend(title = input[["fill"]]),
-                 col = guide_legend(title = input[["line"]])) +
-          geom_point() +
-          facet_wrap( ~ facet)
+                   mapping = aes(linetype = line))
       }
       else if (input[["graphType"]] == "Heatmap") {
         plot = ggplot(data = dataset,
                       aes(
                         x = x,
                         y = y,
-                        fill = fill,
-                        text = paste0(
-                          input[["x"]],
-                          ": ",
-                          x,
-                          "\r\n",
-                          input[["y"]],
-                          ": ",
-                          y,
-                          "\r\n",
-                          input[["fill"]],
-                          ": ",
-                          fill
-                        )
+                        fill = fill
                       )) +
-          xlab(input[["x"]]) +
-          ylab(input[["y"]]) +
-          guides(fill = guide_legend(title = input[["fill"]]),
-                 col = guide_legend(title = input[["line"]])) +
-          geom_tile() +
-          facet_wrap( ~ facet)
+          geom_tile()
+      }
+      else if (input[["graphType"]] == "Scatter") {
+        plot = ggplot(data = dataset,
+                      aes(
+                        x = x,
+                        y = y,
+                        fill = fill
+                      )) +
+          geom_point()
+      }
+      else if (input[["graphType"]] == "Jitter") {
+        plot = ggplot(data = dataset,
+                      aes(
+                        x = x,
+                        y = y,
+                        fill = fill,
+                        colour = fill
+                      )) +
+          geom_jitter()
       }
       
-      print(ggplotly(p = plot, tooltip = "text"))
+      
+      plot = plot +
+        xlab(input[["x"]]) +
+        ylab(input[["y"]]) +
+        guides(fill = guide_legend(title = input[["fill"]]),
+               col = guide_legend(title = input[["line"]]))
+      
+      if (input[["facet"]] != "") {
+        plot = plot +
+          facet_wrap(~ dataset[[input[["facet"]]]])
+      }
+      
+      print(ggplotly(p = plot))
     }
   })
 }
