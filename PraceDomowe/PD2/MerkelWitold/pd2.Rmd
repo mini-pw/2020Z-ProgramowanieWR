@@ -1,0 +1,296 @@
+---
+title: "PD3"
+author: "Witold Merkel"
+date: "20 11 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(microbenchmark)
+```
+
+# Funkcje zmieniające standardowe funkcje na *NSE*
+
+Funkcje *NSE* będę tworzył na dwa sposoby różne, aby porównać ich szybkość. Dwa te sposoby różnią się tylko metodą wyciągania parametrów, sprawdzimy w tej pracy domowej czy ma to wpływ na ich działanie, a jeżeli ma to jak duży. Szybkość działania funkcji porównamy mikrobenchmarkami. Poniżej zamiszczam kod tych funkcji zmieniających na nse oraz przygotowanie pozostalych funkcji oraz duże i małe dane. Jedne dane są ponad 5 razy większe niż drugie, może dalej nie są duże, ale są wystarczająco dużo, aby różnica była zauważalna.
+
+```{r}
+do_nse_1 <- function(funkcjon) {
+  function(data, ...) {
+    argument_list <- as.list(substitute(list(...)))[-1]
+    argument_vals <- lapply(argument_list, function(x) {
+      eval(x, data)
+    })
+    do.call(funkcjon, argument_vals)
+  }
+}
+
+do_nse_2 <- function(funkcjon) {
+  function(data, ...) {
+    argument_list <- match.call(expand.dots = FALSE)$`...`
+    argument_vals <- lapply(argument_list, function(x) {
+      eval(x, data)
+    })
+    do.call(funkcjon, argument_vals)
+  }
+}
+
+min_nse1 <- do_nse_1(min)
+min_nse2 <- do_nse_2(min)
+
+mean_nse1 <- do_nse_1(mean)
+mean_nse2 <- do_nse_2(mean)
+
+unlist_nse1 <- do_nse_1(unlist)
+unlist_nse2 <- do_nse_2(unlist)
+
+lm_nse1 <- do_nse_1(lm)
+lm_nse2 <- do_nse_2(lm)
+
+max_nse1 <- do_nse_1(max)
+max_nse2 <- do_nse_2(max)
+
+small_data <- Puromycin
+big_data <- DNase
+```
+
+# Porównanie dla różnych rozmiarów danych i różnych wywołań funkcji
+
+W tej sekcji dokonamy porównania dla różnych parametrów
+
+## Małe dane
+
+Najpierw przyjżymy się małej ramce danych i każdej funcji po kolei.
+
+### **min**
+
+Idąc kolejnościa ż treści zadania domowego najpierw sprawdźmy znajdowanie minimum.
+
+```{r}
+min_results <- summary(microbenchmark::microbenchmark(
+  "R function" = min(small_data$conc),
+  "First NSE" = min_nse1(small_data, conc),
+  "Second NSE" = min_nse2(small_data, conc),
+  unit = 'us'
+))[, c('expr', 'mean')]
+
+ggplot(data = min_results) +
+  geom_col(aes(x = expr, y = mean, fill = c("blue", "red", "green"))) +
+  labs(y = "Sredni czas wykonania [ms]", x = "", title = "Porownanie funkcji min dla malych danych") + theme(legend.position = 0)+
+  geom_text(aes(label = as.character(round(mean, 2)), y = as.numeric(mean) + 0.5, x = expr))
+```
+
+### **mean**
+
+Naturalnie teraz sprawdzmy mean, zrobimy to dla innej kolumny.
+
+```{r}
+mean_results <- summary(microbenchmark::microbenchmark(
+  "R function" = mean(small_data$rate),
+  "First NSE" = mean_nse1(small_data, rate),
+  "Second NSE" = mean_nse2(small_data, rate),
+  unit = 'us'
+))[, c('expr', 'mean')]
+
+ggplot(data = mean_results) +
+  geom_col(aes(x = expr, y = mean, fill = c("blue", "red", "green"))) +
+  labs(y = "Sredni czas wykonania [ms]", x = "", title = "Porownanie funkcji mean dla malych danych") + theme(legend.position = 0) +
+  geom_text(aes(label = as.character(round(mean, 2)), y = as.numeric(mean) + 0.5, x = expr))
+```
+
+### **unlist** z use.names = TRUE
+
+Kolejny podpunkt z listy.
+
+```{r}
+small_list <- split(small_data, seq(nrow(small_data)))
+unlist_t_results <- summary(microbenchmark::microbenchmark(
+  "R function" = unlist(small_list$`1`, use.names = TRUE),
+  "First NSE" = unlist_nse1(small_list, `1`, use.names = TRUE),
+  "Second NSE" = unlist_nse2(small_list, `1`, use.names = TRUE),
+  unit = 'us'
+))[, c('expr', 'mean')]
+
+ggplot(data = unlist_t_results) +
+  geom_col(aes(x = expr, y = mean, fill = c("blue", "red", "green"))) +
+  labs(y = "Sredni czas wykonania [ms]", x = "", title = "Porownanie funkcji unlist z use.names = TRUE dla malych danych") +
+  theme(legend.position = 0) +
+  geom_text(aes(label = as.character(round(mean, 2)), y = as.numeric(mean) + 0.5, x = expr))
+```
+
+### **unlist** z use.names = FALSE
+
+I następny.
+
+```{r}
+unlist_f_results <- summary(microbenchmark::microbenchmark(
+  "R function" = unlist(small_list$`1`, use.names = FALSE),
+  "First NSE" = unlist_nse1(small_list, `1`, use.names = FALSE),
+  "Second NSE" = unlist_nse2(small_list, `1`, use.names = FALSE),
+  unit = 'us'
+))[, c('expr', 'mean')]
+
+ggplot(data = unlist_f_results) +
+  geom_col(aes(x = expr, y = mean, fill = c("blue", "red", "green"))) +
+  labs(y = "Sredni czas wykonania [ms]", x = "", title = "Porownanie funkcji unlist z use.names = FALSE dla malych danych") +
+  theme(legend.position = 0) +
+  geom_text(aes(label = as.character(round(mean, 2)), y = as.numeric(mean) + 0.5, x = expr))
+```
+
+### **lm**
+
+Kolejny.
+
+```{r}
+lm_results <- summary(microbenchmark::microbenchmark(
+  "R function" = lm(conc ~ rate + state, data = small_data),
+  "First NSE" = lm_nse1(small_data, conc ~ rate + state),
+  "Second NSE" = lm_nse2(small_data, conc ~ rate + state),
+  unit = 'us'
+))[, c('expr', 'mean')]
+
+ggplot(data = lm_results) +
+  geom_col(aes(x = expr, y = mean, fill = c("blue", "red", "green"))) +
+  labs(y = "Sredni czas wykonania [ms]", x = "", title = "Porownanie funkcji lm dla malych danych") +
+  theme(legend.position = 0) +
+  geom_text(aes(label = as.character(round(mean, 2)), y = as.numeric(mean) + 25, x = expr))
+```
+
+### **max**
+
+Tu poszalejemy i wyjdziemy poza podstawowe wymagania i sprawdzimy jeszcze zachowanie dla funkcjij *max*.
+
+```{r}
+max_results <- summary(microbenchmark::microbenchmark(
+  "R function" = max(small_data$conc),
+  "First NSE" = max_nse1(small_data, conc),
+  "Second NSE" = max_nse2(small_data, conc),
+  unit = 'us'
+))[, c('expr', 'mean')]
+
+ggplot(data = max_results) +
+  geom_col(aes(x = expr, y = mean, fill = c("blue", "red", "green"))) +
+  labs(y = "Sredni czas wykonania [ms]", x = "", title = "Porownanie funkcji max dla malych danych") + theme(legend.position = 0)+
+  geom_text(aes(label = as.character(round(mean, 2)), y = as.numeric(mean) + 0.5, x = expr))
+```
+
+## Duże dane
+
+Teraz przyjrzymy się większej ramce danych i każdej funcji po kolei.
+
+### **min**
+
+Idąc kolejnościa ż treści zadania domowego najpierw sprawdźmy znajdowanie minimum.
+
+```{r}
+min_results <- summary(microbenchmark::microbenchmark(
+  "R function" = min(big_data$conc),
+  "First NSE" = min_nse1(big_data, conc),
+  "Second NSE" = min_nse2(big_data, conc),
+  unit = 'us'
+))[, c('expr', 'mean')]
+
+ggplot(data = min_results) +
+  geom_col(aes(x = expr, y = mean, fill = c("blue", "red", "green"))) +
+  labs(y = "Sredni czas wykonania [ms]", x = "", title = "Porownanie funkcji min dla duzych danych") + theme(legend.position = 0)+
+  geom_text(aes(label = as.character(round(mean, 2)), y = as.numeric(mean) + 0.5, x = expr))
+```
+
+### **mean**
+
+Naturalnie teraz sprawdzmy mean, zrobimy to dla innej kolumny.
+
+```{r}
+mean_results <- summary(microbenchmark::microbenchmark(
+  "R function" = mean(big_data$conc),
+  "First NSE" = mean_nse1(big_data, conc),
+  "Second NSE" = mean_nse2(big_data, conc),
+  unit = 'us'
+))[, c('expr', 'mean')]
+
+ggplot(data = mean_results) +
+  geom_col(aes(x = expr, y = mean, fill = c("blue", "red", "green"))) +
+  labs(y = "Sredni czas wykonania [ms]", x = "", title = "Porownanie funkcji mean dla duzych danych") + theme(legend.position = 0) +
+  geom_text(aes(label = as.character(round(mean, 2)), y = as.numeric(mean) + 3, x = expr))
+```
+
+### **unlist** z use.names = TRUE
+
+Kolejny podpunkt z listy.
+
+```{r}
+big_list <- split(big_data, seq(nrow(big_data)))
+unlist_t_results <- summary(microbenchmark::microbenchmark(
+  "R function" = unlist(big_list$`1`, use.names = TRUE),
+  "First NSE" = unlist_nse1(big_list, `1`, use.names = TRUE),
+  "Second NSE" = unlist_nse2(big_list, `1`, use.names = TRUE),
+  unit = 'us'
+))[, c('expr', 'mean')]
+
+ggplot(data = unlist_t_results) +
+  geom_col(aes(x = expr, y = mean, fill = c("blue", "red", "green"))) +
+  labs(y = "Sredni czas wykonania [ms]", x = "", title = "Porownanie funkcji unlist z use.names = TRUE dla duzych danych") +
+  theme(legend.position = 0) +
+  geom_text(aes(label = as.character(round(mean, 2)), y = as.numeric(mean) + 3, x = expr))
+```
+
+### **unlist** z use.names = FALSE
+
+I następny.
+
+```{r}
+unlist_f_results <- summary(microbenchmark::microbenchmark(
+  "R function" = unlist(big_list$`1`, use.names = FALSE),
+  "First NSE" = unlist_nse1(big_list, `1`, use.names = FALSE),
+  "Second NSE" = unlist_nse2(big_list, `1`, use.names = FALSE),
+  unit = 'us'
+))[, c('expr', 'mean')]
+
+ggplot(data = unlist_f_results) +
+  geom_col(aes(x = expr, y = mean, fill = c("blue", "red", "green"))) +
+  labs(y = "Sredni czas wykonania [ms]", x = "", title = "Porownanie funkcji unlist z use.names = FALSE dla duzych danych") +
+  theme(legend.position = 0) +
+  geom_text(aes(label = as.character(round(mean, 2)), y = as.numeric(mean) + 3, x = expr))
+```
+
+### **lm**
+
+Kolejny.
+
+```{r}
+lm_results <- summary(microbenchmark::microbenchmark(
+  "R function" = lm(density ~ conc + Run, data = big_data),
+  "First NSE" = lm_nse1(big_data, density ~ conc + Run),
+  "Second NSE" = lm_nse2(big_data, density ~ conc + Run),
+  unit = 'us'
+))[, c('expr', 'mean')]
+
+ggplot(data = lm_results) +
+  geom_col(aes(x = expr, y = mean, fill = c("blue", "red", "green"))) +
+  labs(y = "Sredni czas wykonania [ms]", x = "", title = "Porownanie funkcji lm dla duzych danych") +
+  theme(legend.position = 0) +
+  geom_text(aes(label = as.character(round(mean, 2)), y = as.numeric(mean) + 75, x = expr))
+```
+
+### **max**
+
+Tu poszalejemy i wyjdziemy poza podstawowe wymagania i sprawdzimy jeszcze zachowanie dla funkcjij *max*.
+
+```{r}
+max_results <- summary(microbenchmark::microbenchmark(
+  "R function" = max(big_data$conc),
+  "First NSE" = max_nse1(big_data, conc),
+  "Second NSE" = max_nse2(big_data, conc),
+  unit = 'us'
+))[, c('expr', 'mean')]
+
+ggplot(data = max_results) +
+  geom_col(aes(x = expr, y = mean, fill = c("blue", "red", "green"))) +
+  labs(y = "Sredni czas wykonania [ms]", x = "", title = "Porownanie funkcji max dla duzych danych") + theme(legend.position = 0)+
+  geom_text(aes(label = as.character(round(mean, 2)), y = as.numeric(mean) + 0.5, x = expr))
+```
+
+# Podsumowanie
+
+Widzimy, że tak napisane funkcje są zdecydowanie wolniejsze od tych napisanych przez świetnych deweloperów R'a. Jedyny przykład kiedy fukncje są konkurencyjne pod względem szybkości są warianty funkcji *lm*. W porównaniu funkcje NSE mają podobne osiągi, raz jedna jest szybsza, a raz druga.

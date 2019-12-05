@@ -4,16 +4,17 @@ library(shiny)
 library(shinycssloaders)
 library(shinyhelper)
 
-func_vec <- c("numericInput", "selectInput", "sliderInput")
-func_list <- lapply(func_vec, function(ith_fun) 
-    function(inputId, ...) {
-        helper(getFromNamespace(ith_fun, ns = "shiny")(inputId = inputId, ...),  
+f_names <- c("numericInput", "selectInput", "sliderInput")
+l <- lapply(f_names, function(ith_f_name) 
+    function(inputId, ...) 
+        helper(getFromNamespace(ith_f_name, ns = "shiny")(inputId = inputId, ...),  
                content = inputId, type = "markdown")
-    })
+    )
 
-for(ith_fun_id in 1L:length(func_list)) {
-    assign(x = paste0(func_vec[ith_fun_id], "Helper"), value = func_list[[ith_fun_id]])
+for(i in 1L:length(f_names)) {
+    assign(x = paste0(f_names[i], "Helper"), value = l[[i]])
 }
+
 
 ui <- pageWithSidebar(
     headerPanel("Interactive Histogram"),
@@ -25,17 +26,18 @@ ui <- pageWithSidebar(
                                 "Uniform",
                                 "Exponential"),
                     selected = "normal"),
-        sliderInput("bins", "number of bins", 
+        sliderInputHelper("bins", "number of bins", 
                     min = 1, max = 100, value = 50)
     ),
     mainPanel(
-        helper(withSpinner(plotOutput("histogram")), content = "example-file", type = "markdown")
+        withSpinner(helper(plotOutput("histogram"), content = "plot", type = "markdown"))
     )
 )
 
 
 server <- function(input, output) {
-    observe_helpers(help_dir = "help_mds")
+    
+    observe_helpers(withMathJax = TRUE, help_dir = "markdowny_pomocowe")
     
     data <- reactive({ 
         FUN <- switch(input[["family"]],
