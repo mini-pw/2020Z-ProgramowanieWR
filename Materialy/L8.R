@@ -1,10 +1,14 @@
 library(archivist)
 
+# tylko do celów demonstracyjnych
 cacheRepo <- tempfile()
 createLocalRepo(cacheRepo)
+# https://github.com/ropensci/git2r
 
 library(ggplot2)
 # objects of class ggplot for which the session_info was archvied
+# https://github.com/pbiecek/graphGallery
+
 md5plots <- searchInRemoteRepo(
   pattern = c("class:ggplot", "session_info"), 
   intersect = TRUE, repo = "graphGallery", 
@@ -21,4 +25,12 @@ plots <- lapply(md5plots, function(pl) {
     ggtitle(pl)
 })
 
-aread('MarcinKosinski/Museum/3374db20ecaf2fa0d070d')
+aread('pbiecek/graphGallery/5e9558aed86ab3d6657f52441d0f9b5a')
+
+library(drake)
+library(mlr)
+library(kernlab)
+dat <- read.csv("https://raw.githubusercontent.com/mini-pw/2020Z-ProgramowanieWR/master/Wyjsciowki/W2/gr1/SawickiJan/ShinyIris/iris.csv")
+task <- makeClassifTask(id = "drake_test", data = dat, target = "variety")
+bench <- benchmark(learners = makeLearner("classif.ksvm"), tasks = task)
+preds <- data.frame(getBMRPredictions(bench))
