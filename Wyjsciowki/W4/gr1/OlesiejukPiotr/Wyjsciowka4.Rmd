@@ -1,0 +1,34 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+Wyjsciowka nr 4
+
+Piotr Olesiejuk
+(nie dodałem random.forest, bo nie miałem zainstalowanego pakietu randomForest i bałem się, że będzie się długo instalował)
+
+
+```{r}
+library(drake)
+library(mlr)
+library(visNetwork)
+
+make_iris <- function() {
+  dat <- iris
+  dat$Species <- ifelse(dat$Species == "setosa", TRUE, FALSE)
+  dat
+}
+
+myplan <- drake_plan(
+  dat = make_iris(),
+  task = makeClassifTask(id = paste0("drake_test"), data = dat, target = "Species"),
+  bench = benchmark(learners = makeLearners(c("ksvm", "nnet"), type = "classif"), tasks = task),
+  plot = plotBMRBoxplots(bench),
+  saving = write.csv(dat, file = "iris_bin.csv")
+)
+
+make(myplan)
+
+vis_drake_graph(drake_config(myplan))
+```
