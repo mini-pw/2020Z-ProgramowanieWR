@@ -1,6 +1,5 @@
 library(archivist)
 
-library(archivist)
 cacheRepo <- tempfile()
 createLocalRepo(cacheRepo)
 
