@@ -33,7 +33,7 @@ Zadania:
  
 Zadanie specjalne:
 
- - opracować model przewidujący zajętość danego urzędu w zależości od dnia tygodnia i opisać go w vignette.
+ - opracować model przewidujący zajętość danego urzędu w zależości od godziny i dnia tygodnia i opisać go w vignette, a potem go wyjaśnić.
 
 ### QuickchartR
  
