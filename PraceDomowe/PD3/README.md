@@ -6,3 +6,5 @@ Przygotuj aplikację Shiny, która:
  - generowane wykresy będą interaktywne (przybliżanie/oddalanie, tooltipy).
  
 Prace należy zgłaszać w tym folderze w folderze NazwiskoImie oraz z linkiem do aplikacji zahostowanej na shinyapps.
+
+Za wykonanie pracy bez plotly dodatkowy punkt.
