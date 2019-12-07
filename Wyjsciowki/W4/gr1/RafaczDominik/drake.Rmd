@@ -1,0 +1,60 @@
+---
+title: "drake"
+author: "Dominik Rafacz"
+date: "December 5, 2019"
+output: html_document
+---
+
+# Planning
+
+```{r}
+library(drake)
+library(mlr)
+library(ggplot2)
+drake_cache(".drake")
+
+binarize <- function(iris) {
+  iris$Species <- as.factor(iris$Species == "setosa")
+  iris
+}
+
+plotBMRBoxplots <- function(bmrk) {
+  res <- rbind(
+    data.frame(mdl = "ksvm", auc = bmrk$results$anytask$classif.ksvm$measures.test$auc),
+    data.frame(mdl = "ranger", auc = bmrk$results$anytask$classif.ranger$measures.test$auc),
+    data.frame(mdl = "logreg", auc = bmrk$results$anytask$classif.logreg$measures.test$auc)
+  )
+  ggplot(data = res, aes(x = mdl, y = auc)) +
+    geom_boxplot()
+}
+
+pln <- drake_plan(
+  iris = read.csv("iris.csv"),
+  iris_bin = binarize(iris),
+  tsk = makeClassifTask("anytask", data = iris_bin, target = "Species"),
+  m1 = makeLearner("classif.ksvm", predict.type = "prob"),
+  m2 = makeLearner("classif.ranger", predict.type = "prob"),
+  m3 = makeLearner("classif.logreg", predict.type = "prob"),
+  bmrk = benchmark(list(m1, m2, m3), tsk, measures = auc),
+  bmrkplt = plotBMRBoxplots(bmrk),
+  write = write.csv(iris_bin, "iris_bin.csv")
+)
+```
+
+# Making
+
+```{r}
+make(pln)
+```
+
+# Resulting
+
+```{r}
+readd(bmrkplt)
+```
+
+# Visualizing
+ 
+```{r}
+vis_drake_graph(drake_config(pln))
+```
