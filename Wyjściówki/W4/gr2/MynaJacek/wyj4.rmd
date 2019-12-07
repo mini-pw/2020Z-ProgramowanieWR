@@ -1,0 +1,28 @@
+output: html_notebook
+---
+
+Wyjsciowka nr 4
+
+Jacek Myna
+
+
+```{r}
+library(drake)
+library(mlr)
+library(visNetwork)
+preprocess_iris <- function() {
+  temp <- iris
+  temp$Species <- ifelse(temp$Species == "setosa", TRUE, FALSE)
+  temp
+}
+myplan <- drake_plan(
+  dat = preprocess_iris(),
+  task = makeClassifTask(id = "drake_test", data = dat, target = "Species"),
+  learners_list = makeLearners(c("classif.randomForest", "classif.ksvm", "classif.nnet")),
+  bench = benchmark(learners = learners_list, tasks = task),
+  plot_bench = plotBMRBoxplots(bench),
+  saving = write.csv(dat)
+)
+make(myplan)
+vis_drake_graph(drake_config(myplan))
+```
