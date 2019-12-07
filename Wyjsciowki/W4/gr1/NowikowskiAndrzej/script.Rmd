@@ -1,0 +1,45 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(mlr)
+library(drake)
+library(dplyr)
+```
+
+## Wyjsciowka 4
+
+Wykorzystując pakiet drake napisz plan prostej analizy danych, gdzie:  
+1) wczytane są dane z iris i binaryzowane (setosa lub nie-setosa),  
+2) budowane są trzy dowolne modele klasyfikacyjne (listLearners()),  
+3) modele są porównywane porównywane względem siebie za pomocą funkcji benchmark,  
+4) tworzony jest wykres porównujący modele względem siebie.  
+5) zapisywane są do pliku csv dane wejściowe modelu  
+
+Rozwiązanie powinno być w pliku Rmd i zawierać zarówno plan w drake jak i wykres zależności elementów planu od siebie. 
+
+## Plan
+
+```{r cars}
+my_second_plan <- drake_plan(
+  data = iris,
+  second_data = data %>% mutate(target= Species == 'setosa'),
+  task = makeClassifTask(id = "drake_test", data = second_data, target = "target"),
+  bench = benchmark(learners = list(makeLearner("classif.randomForest"), makeLearner("classif.nnet"), 
+    makeLearner("classif.ksvm")), tasks = task),
+  csv = write.csv(second_data, file="./model.data"),
+  bench_plot = plotBMRBoxplots(bench),
+  
+)
+make(my_second_plan)
+```
+
+## Wykres zależności elementów planu od siebie
+
+```{r pressure, echo=FALSE}
+# plot(my_second_plan)
+vis_drake_graph(drake_config(my_second_plan))
+```
