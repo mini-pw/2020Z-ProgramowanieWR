@@ -1,0 +1,83 @@
+.cheatsheet-page {
+  background-color: white;
+  margin: 0px;
+  padding-bottom: 0px;
+}
+
+.header {
+  background-color: white;
+}
+
+.header-title {
+  color: #4CAF50;
+}
+
+.header-title-name {
+  font-style: italic;
+}
+
+.header-description {
+  color: #4CAF50;
+}
+
+.logo {
+  transform: rotate(180deg);
+}
+
+.card {
+  border: 1px solid rgba(22, 102, 0);
+  margin-left: 0px;
+  margin-right: 0px;
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
+.card-header {
+  padding: 1px;
+  text-align: center;
+  color: white;
+  border: none;
+  background-color: #4CAF50;
+  
+}
+
+.card-body {
+  background-color: white;
+}
+
+.method {
+  border-top: 1px dotted black;
+}
+
+.method-name {
+  color: black;
+  font-family: "Plex Mono Thin";
+  font-size: 11px;
+}
+
+.method-parameter {
+  font-size: x-small;
+}
+
+.method-description {
+  font-style: italic;
+}
+
+.parameter {
+  border-left: 2px solid rgba(0, 200, 0);
+}
+
+.parameter-name {
+  text-decoration: underline;
+}
+
+.parameter-description {
+  text-align: right;
+}
+
+.footer {
+  font-weight: italic;
+  margin: 0px
+  padding: 0px;
+}
+
