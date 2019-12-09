@@ -79,7 +79,7 @@ Zadania specjalne:
  
  - dodać template dla prac dyplomowych.
  
-### sendeR 
+### sendeR +
 
 Zadania:
 
@@ -89,4 +89,16 @@ Zadania:
 Zadania specjalne:
 
  - dodać wariant https://github.com/r-lib/progress i wariant funkcji pbapply i podobnych.
+ 
+ 
+### seqR +
+
+Zadania 
+ 
+ - przyśpieszenie algorytmu
+ - opisać w vignette algorytm
+ 
+Zadanie specjalne:
+
+ - integracja z tidysq
  
