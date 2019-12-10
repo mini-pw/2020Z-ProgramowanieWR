@@ -144,7 +144,7 @@ drake_ggraph(config)
 ## Cheat sheet 
 
 <center>
-![](./images/cheatsheet.png)
+![](./images/cheatsheet.pdf)
 </center>
 
 ## Podsumowanie
