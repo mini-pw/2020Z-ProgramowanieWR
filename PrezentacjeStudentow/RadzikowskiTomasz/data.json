@@ -1,0 +1,181 @@
+{
+	"name": "rayshader",
+	"description": "R Package for 2D and 3D mapping and data visualization",
+	
+	"footer": " ",
+	"pages": [{
+    "cards": [{
+      "title": "ggplot charts in 3D",
+      "methods": [{
+        "name": "gg_plot",
+        "description": "Creates 3-D ggplot chart",
+        "withoutBrackets": true,
+        "params": [{
+          "name": "data",
+          "description": "created ggplot chart"},
+          {"name": "width = 3",
+          "description": "Width of ggplot, in `units`."},
+		  {"name": "scale = 150",
+		  "description": "affects the height of the 3D transformation."},
+          {"name": "multicore = FALSE",
+          "description": "allow to use multicore"},
+          {"name": "windowsize",
+          "description": "Two-dimensional vector of window size "},
+          {"name": "sunangle = 315",
+          "description": "If raytracing:the angle of light source."},
+          {"name": "zoom",
+          "description": "objects size in a window"},
+          {"name": "phi",
+          "description": "An angle with Z-axis"},
+          {"name": "theta",
+          "description": "An angle with X-axis"},
+          {"name": "..."
+
+        }],
+        "examples": [
+          "plot_gg(mtplot, phi = 30, theta = 45)"
+        ]
+      }]
+    }, {
+	"title": "Creating Hillshades and Color Mappings",
+      "methods": [{
+        "name": "sphere_shade",
+        "description": "Creates a 3-D terrain model",
+        "withoutBrackets": true,
+        "params": [{
+          "name": "heightmap",
+          "description": "A 2-D matrix, where each number is the elevation at that point."},
+          {"name": "sunangle = 315",
+			"description": "The direction of the main highlight color "},
+          {"name": "texture",
+			"description": "sq. matrix of the spherical texture or string indicating built-in palette"},
+          {"name": "normalvectors  = NULL",
+			"description": " Cache of the normal vectors"},
+          {"name": "colorintensity = 1",
+			"description": "The intensity of the color mapping. Higher values increase the intensity."},
+          {"name": "zscale = 1",
+			"description": "The ratio between the x and y spacing"},
+          {"name": "progbar = interactive()",
+			"description": "activates progress bar"}
+	],
+        "examples": [
+          "sphere_shade(montereybay, texture='desert') "
+        ]}]
+    }
+	, {
+	"title": "Adding Shadows and Overlays to Maps",
+      "methods": [{
+        "name": "add_water",
+        "description": "Adds a water layer",
+        "params": [{
+          "name": "hillshade",
+          "description": "A three-dimensional RGB array."},
+          {"name": "watermap",
+			"description": "Matrix indicating whether water was detected at that point. 1/0 - water/no water."},
+		  {"name": "color = 'imhof1'",
+			"description": "A hexcode, recognized color string or palettes included in sphere_shade"}
+	],
+        "examples": [
+          "add_water(montereybay, where_is_water_matrix)"
+        ]
+      }]
+    }, {
+	"title": "Get data",
+      "methods": [{
+        "name": "load data 'montereybay' in R",
+        "withoutBrackets": true,
+        "examples": [
+          "data <- montereybay"
+        ]
+        }]
+      }
+]
+    },
+	{
+    "cards": [{
+      "title": "Plotting and Saving 2D and 3D Visualizations",
+      "methods": [{
+        "name": "plot_3d(...)",
+        "description": "Plot 3D",
+		"withoutBrackets": true},
+		{
+        "name": "plot_map(...)",
+        "description": "Plot Map",
+		"withoutBrackets": true},
+		{
+        "name": "save_3dprint(...)",
+        "description": "Save 3D Print",
+		"withoutBrackets": true},{
+        "name": "save_obj(...)",
+        "description": "Save OBJ",
+		"withoutBrackets": true},{
+        "name": "save_png(...)",
+        "description": "Save PNG",
+		"withoutBrackets": true}]
+    }, {
+	"title": "Adding Shadows and Overlays to Maps",
+      "methods": [{
+        "name": "add_overlay(...)",
+        "description": "Add Overlay",
+		"withoutBrackets": true},
+		{
+        "name": "add_shadow(...)",
+        "description": "Add Shadow",
+		"withoutBrackets": true},
+		{
+        "name": "detect_water(...)",
+        "description": "Detect water",
+		"withoutBrackets": true}]
+    },{
+	"title": "Creating Hillshades and Color Mappings",
+      "methods": [{
+        "name": "ambient_shade(...)",
+        "description": "Calculate Ambient Occlusion Map",
+		"withoutBrackets": true},
+		{
+        "name": "height_shade(...)",
+        "description": "Calculate Terrain Color Map",
+		"withoutBrackets": true},
+		{
+        "name": "lamb_shade(...)",
+        "description": "Calculate Lambert Shading Map",
+		"withoutBrackets": true},{
+        "name": "ray_shade(...)",
+        "description": "Calculate Raytraced Shadow Map",
+		"withoutBrackets": true},{
+        "name": "calculate_normal(...)",
+        "description": "Calculate Normal",
+		"withoutBrackets": true},{
+        "name": "create_texture(...)",
+        "description": "Create Texture",
+		"withoutBrackets": true}]
+    }
+	,  {
+	"title": "Manipulate and Capture 3D Maps",
+      "methods": [{
+        "name": "render_camera(...)",
+        "description": "Render Camera",
+		"withoutBrackets": true},
+		{
+        "name": "render_depth(...)",
+        "description": "Render Depth of Field",
+		"withoutBrackets": true},
+		{
+        "name": "render_highquality(...)",
+        "description": "Render High Quality",
+		"withoutBrackets": true},{
+        "name": "render_label(...)",
+        "description": "Render Label",
+		"withoutBrackets": true},{
+        "name": "render_movie(...)",
+        "description": "Render Movie",
+		"withoutBrackets": true},{
+        "name": "render_water(...)",
+        "description": "Render Water Laye",
+		"withoutBrackets": true}]
+    }
+]
+    }
+	]
+ 
+}
