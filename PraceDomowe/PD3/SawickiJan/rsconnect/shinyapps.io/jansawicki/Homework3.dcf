@@ -5,9 +5,9 @@ account: jansawicki
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 1566249
-bundleId: 2643929
+bundleId: 2661826
 url: https://jansawicki.shinyapps.io/Homework3/
-when: 1575559226.53388
+when: 1576156335.67495
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: deploy.R|iris.csv|README.html|README.rmd
+ignoredFiles: deploy.R|iris.csv|README.rmd

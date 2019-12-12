@@ -1,5 +1,6 @@
 library(shiny)
 library(ggplot2)
+library(ggbeeswarm)
 library(plotly)
 
 ui <- basicPage(
@@ -9,7 +10,8 @@ ui <- basicPage(
     choices = c("Bar",
                 "Scatter",
                 "Heatmap",
-                "Jitter"),
+                "Jitter",
+                "Beeswarm"),
     selected = "Bar"
   ),
   fileInput(
@@ -82,45 +84,61 @@ server <- function(input, output, session) {
       }
       line =  dataset[[input[["line"]]]]
       
-      if (input[["graphType"]] == "Bar") {
-        plot = ggplot(data = dataset,
-                      aes(
-                        x = x,
-                        fill = fill,
-                        col = line
-                      )) +
-          geom_bar(stat = "count",
-                   mapping = aes(linetype = line))
-      }
-      else if (input[["graphType"]] == "Heatmap") {
-        plot = ggplot(data = dataset,
-                      aes(
-                        x = x,
-                        y = y,
-                        fill = fill
-                      )) +
-          geom_tile()
-      }
-      else if (input[["graphType"]] == "Scatter") {
-        plot = ggplot(data = dataset,
-                      aes(
-                        x = x,
-                        y = y,
-                        fill = fill
-                      )) +
-          geom_point()
-      }
-      else if (input[["graphType"]] == "Jitter") {
-        plot = ggplot(data = dataset,
-                      aes(
-                        x = x,
-                        y = y,
-                        fill = fill,
-                        colour = fill
-                      )) +
-          geom_jitter()
-      }
       
+      switch(
+        input[["graphType"]],
+        Bar = {
+          plot = ggplot(data = dataset,
+                        aes(
+                          x = x,
+                          fill = fill,
+                          col = line
+                        )) +
+            geom_bar(stat = "count",
+                     mapping = aes(linetype = line))
+        },
+        Heatmap = {
+          plot = ggplot(data = dataset,
+                        aes(
+                          x = x,
+                          y = y,
+                          fill = fill
+                        )) +
+            geom_tile()
+        },
+        Scatter = {
+          plot = ggplot(data = dataset,
+                        aes(
+                          x = x,
+                          y = y,
+                          fill = fill
+                        )) +
+            geom_point()
+        },
+        Jitter = {
+          plot = ggplot(data = dataset,
+                        aes(
+                          x = x,
+                          y = y,
+                          fill = fill,
+                          colour = fill
+                        )) +
+            geom_jitter()
+        },
+        Beeswarm = {
+          plot = ggplot(data = dataset,
+                        aes(
+                          x = x,
+                          y = y,
+                          fill = fill,
+                          colour = fill
+                        )) +
+            geom_quasirandom(grouponX = TRUE)
+        },
+        {
+          
+        }
+      )
       
       plot = plot +
         xlab(input[["x"]]) +
