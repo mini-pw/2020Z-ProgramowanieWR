@@ -4,3 +4,4 @@ output: html_document
 ---
 
 [App on ShinyApps](https://jansawicki.shinyapps.io/Homework3/)
+Please note that that deployment on ShinyApp causes performance issues sometimes.
