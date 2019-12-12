@@ -1,0 +1,51 @@
+---
+title: "wyj4"
+author: "Tomasz Radzikowski"
+date: "12/5/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+
+```{r cars}
+library(mlr)
+library(kernlab)
+library(drake)
+library(visNetwork)
+dane<-read.csv("https://raw.githubusercontent.com/mini-pw/2020Z-ProgramowanieWR/master/Wyjsciowki/W2/gr1/SawickiJan/ShinyIris/iris.csv")
+
+prepare_data<-function (dane) {
+  dane$variety <- dane$variety=="Setosa"
+  dane
+}
+prepare_tasks<-function(dane){
+  task<-list()
+  tsk<-makeClassifTask(id="drake_test", data=dat, target="variety")
+  task<-rep(tsk,3)  
+  task
+}
+
+prepare_bench<-function(task){
+  benchmark(learners = makeLearners(c("classif.randomForest", "classif.ksvm", "classif.nnet")), tasks=task)
+
+}
+
+#prepare_data(dane)
+
+plan<-drake_plan(
+  dt=prepare_data(dane),
+  task=makeClassifTask(id="drake_test", data=dt, target="variety"),
+  bench=prepare_bench(task),
+  preds=data.frame(getBMRPredictions(bench))
+)
+make(plan)
+vis_drake_graph(drake_config(plan))
+
+
+```
+
