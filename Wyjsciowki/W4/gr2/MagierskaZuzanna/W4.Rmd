@@ -1,0 +1,31 @@
+---
+title: "W4"
+author: "Zuzanna Magierska"
+date: "12/5/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(drake)
+library(mlr)
+library(kernlab)
+library(dplyr)
+```
+
+```{r, warning=FALSE, message=FALSE}
+my_first_plan <- drake_plan(
+  dat = iris %>% mutate(Species = ifelse(Species == 'setosa', 's', 'ns')),
+  task = makeClassifTask(id = "drake_test", data = dat, target = "Species"),
+  bench = benchmark(learners = list(makeLearner("classif.ksvm"), makeLearner("classif.nnet"), makeLearner("classif.randomForest")), tasks = task),
+  preds = data.frame(getBMRPredictions(bench)),
+  res = plotBMRBoxplots(bench),
+  writer = write.csv(dat, "./input.csv")
+)
+
+make(my_first_plan)
+readd("res")
+
+config <- drake_config(my_first_plan)
+drake::vis_drake_graph(config = config)
+```

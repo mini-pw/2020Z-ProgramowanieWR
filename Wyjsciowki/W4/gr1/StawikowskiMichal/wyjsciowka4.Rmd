@@ -1,0 +1,46 @@
+---
+title: "Wyjsciowka"
+author: "Michal"
+date: "12/5/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Plan
+
+
+
+```{r}
+library(drake)
+library(mlr)
+library(kernlab)
+library(randomForest)
+library(visNetwork)
+nasz_plan <- drake_plan(
+  dane = read.csv("iris.csv"),
+  newcolumn = ifelse(dane$variety == "Setosa",1,0),
+  newcolumnFac = as.factor(newcolumn),
+  newDane = cbind(dane[,-5], newcolumnFac),
+  task = makeClassifTask(id = "drake_test", data = newDane, target="newcolumnFac"),
+  bench = benchmark(learners = list(makeLearner("classif.randomForest"), makeLearner("classif.ksvm"), makeLearner("classif.binomial")), tasks = task, measures = list(acc, mmce)),
+  wykres = plotBMRBoxplots(bench),
+  zapis = write.csv(x = newDane, file = "noweDane.csv")
+)
+
+```
+
+
+## Wykresy
+
+
+```{r}
+make(nasz_plan)
+readd("wykres") 
+
+plot(nasz_plan) 
+
+```
+

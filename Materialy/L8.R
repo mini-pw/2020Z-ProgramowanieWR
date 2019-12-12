@@ -35,6 +35,16 @@ task <- makeClassifTask(id = "drake_test", data = dat, target = "variety")
 bench <- benchmark(learners = makeLearner("classif.ksvm"), tasks = task)
 preds <- data.frame(getBMRPredictions(bench))
 
+plan <- drake_plan(
+  dat = read.csv("https://raw.githubusercontent.com/mini-pw/2020Z-ProgramowanieWR/master/Wyjsciowki/W2/gr1/SawickiJan/ShinyIris/iris.csv"),
+  task = makeClassifTask(id = "drake_test", data = dat, target = "variety"),
+  bench = benchmark(learners = makeLearner("classif.randomForest"), tasks = task),
+  preds = data.frame(getBMRPredictions(bench))
+)
+
+make(plan)
+readd(bench)
+
 # ls()
 # mean(x <- 1L:5)
 # ls()
@@ -42,10 +52,21 @@ preds <- data.frame(getBMRPredictions(bench))
 my_first_plan <- drake_plan(
   dat = read.csv("https://raw.githubusercontent.com/mini-pw/2020Z-ProgramowanieWR/master/Wyjsciowki/W2/gr1/SawickiJan/ShinyIris/iris.csv"),
   task = makeClassifTask(id = "drake_test", data = dat, target = "variety"),
-  bench = benchmark(learners = makeLearner("classif.randomForest"), tasks = task),
+  bench = benchmark(learners = makeLearner("classif.ksvm"), tasks = task),
+  preds = data.frame(getBMRPredictions(bench)),
+  save_bench = save(bench, file = "bench.RData")
+)
+
+my_second_plan <- drake_plan(
+  dat1 = read.csv("https://raw.githubusercontent.com/mini-pw/2020Z-ProgramowanieWR/master/Wyjsciowki/W2/gr1/SawickiJan/ShinyIris/iris.csv"),
+  task = makeClassifTask(id = "drake_test", data = dat1, target = "variety"),
+  bench = benchmark(learners = makeLearner("classif.ksvm"), tasks = task),
   preds = data.frame(getBMRPredictions(bench))
 )
 
-make(my_first_plan)
+(my_first_plan)
 readd("bench")
 
+make(my_first_plan)
+make(my_second_plan)
+vis_drake_graph(drake_config(my_first_plan))

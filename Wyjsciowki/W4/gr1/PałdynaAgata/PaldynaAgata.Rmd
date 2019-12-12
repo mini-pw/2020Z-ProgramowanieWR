@@ -1,0 +1,36 @@
+---
+title: "Wyjsciowka4"
+author: "Agata Pałdyna"
+date: "12/5/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(drake)
+library(mlr)
+library(kernlab)
+library(dplyr)
+library(visNetwork)
+library(randomForest)
+```
+
+## Plan z drake-a
+
+```{R}
+w4_plan <- drake_plan(
+  dat = read.csv("https://raw.githubusercontent.com/mini-pw/2020Z-ProgramowanieWR/master/Wyjsciowki/W2/gr1/SawickiJan/ShinyIris/iris.csv") %>% mutate(variety = as.factor(ifelse(variety == "Setosa", 1, 0))),
+  task = makeClassifTask(id = "drake_test", data = dat, target = "variety"),
+  learners_list = makeLearners(c("classif.randomForest", "classif.ksvm", "classif.nnet")),
+  bench = benchmark(learners = learners_list, tasks = task),
+  plot_bench = plotBMRBoxplots(bench),
+  input_data = write.csv(dat)
+)
+```
+
+## Wykres zależności elementów planu od siebie
+
+```{R}
+config <- drake_config(w4_plan)
+vis_drake_graph(config)
+```
+

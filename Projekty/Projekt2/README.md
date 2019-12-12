@@ -13,6 +13,8 @@ Rezultaty projektu są prezentowane przez studentów podczas wykładu 23.01. Ka�
 
 ### deepdep
 
+Konsultacje: +
+
 Zadania:
 
  - dodać popularność pakietów,
@@ -26,6 +28,8 @@ Zadanie specjalne:
 
 ### kolejkeR 
 
+Konsultacje: +
+
 Zadania:
 
  - stworzenie aplikacji Shiny, która prezentuje aktualny stan kolejek w Warszawie,
@@ -33,14 +37,16 @@ Zadania:
  
 Zadanie specjalne:
 
- - opracować model przewidujący zajętość danego urzędu w zależości od dnia tygodnia i opisać go w vignette.
+ - opracować model przewidujący zajętość danego urzędu w zależości od godziny i dnia tygodnia i opisać go w vignette, a potem go wyjaśnić.
 
 ### QuickchartR
+ 
+Konsultacje: + 
  
 Zadania:
 
  - uproszczenie kodu.
- - porównać z innymi interaktywnymi wykresami w R w postaci drugiej vignette.
+ - porównać z innymi wykresami w R w postaci drugiej vignette.
 
 
 Zadanie specjalne:
@@ -48,6 +54,8 @@ Zadanie specjalne:
  - konwersja wykresów z ggplot2 na quickchart.
 
 ### hackeRnews
+
+Konsultacje: +
 
 Zadania:
 
@@ -60,6 +68,8 @@ Zadanie specjalne:
  
 ### miniBeamer
  
+Konsultacje: + 
+ 
 Zadania:
 
  - dodać przy instalacji sprawdzanie czy perl jest już zainstalowany,
@@ -69,7 +79,7 @@ Zadania specjalne:
  
  - dodać template dla prac dyplomowych.
  
-### sendeR 
+### sendeR +
 
 Zadania:
 
@@ -79,4 +89,16 @@ Zadania:
 Zadania specjalne:
 
  - dodać wariant https://github.com/r-lib/progress i wariant funkcji pbapply i podobnych.
+ 
+ 
+### seqR +
+
+Zadania 
+ 
+ - przyśpieszenie algorytmu
+ - opisać w vignette algorytm
+ 
+Zadanie specjalne:
+
+ - integracja z tidysq
  
