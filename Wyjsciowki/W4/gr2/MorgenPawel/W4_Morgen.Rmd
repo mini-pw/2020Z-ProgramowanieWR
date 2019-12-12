@@ -1,0 +1,29 @@
+---
+title: "W4"
+author: "MrDomani"
+date: "12/5/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(drake)
+library(mlr)
+library(dplyr)
+```
+
+
+```{r}
+set.seed(2019)
+plan <- drake_plan(dat = mutate(iris, SetosaYesNo = (Species == "setosa")),
+           task = makeClassifTask(id = "drake_test", data = dat, target = "SetosaYesNo"), # Przewidujemy variety
+           bench = benchmark(learners = makeLearners(c("classif.ksvm", "classif.randomForest", "classif.nnet")), 
+                             tasks = task),
+           plot = plotBMRBoxplots(bench),
+           save = write.csv(dat)
+)
+vis_drake_graph(drake_config(plan))
+
+# make(plan)
+# readd("plot")
+```

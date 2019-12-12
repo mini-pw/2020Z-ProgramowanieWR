@@ -1,0 +1,33 @@
+---
+title: "w4"
+author: "HZ"
+date: "12/5/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(drake)
+library(kernlab)
+library(mlr)
+library(randomForest)
+library(dplyr)
+```
+# W4
+
+```{r warning = FALSE}
+
+my_plan <- drake_plan(
+  dat = read.csv("https://raw.githubusercontent.com/mini-pw/2020Z-ProgramowanieWR/master/Wyjsciowki/W2/gr1/SawickiJan/ShinyIris/iris.csv"),
+  dat_bin = dat %>% mutate(variety = ifelse(variety == 'Setosa', 'Setosa', 'Non-setosa')),
+  task = makeClassifTask(id = "drake_test", data = dat, target = "variety"),
+  bench = benchmark(learners = list(makeLearner('classif.randomForest'),makeLearner('classif.ksvm'),makeLearner('classif.nnet')), tasks = task),
+  preds = data.frame(getBMRPredictions(bench)),
+  wykres = plotBMRBoxplots(bench),
+  zapis = write.csv(dat_bin, "iris_binary.csv")
+)
+
+make(my_plan)
+
+vis_drake_graph(drake_config(my_plan))
+```

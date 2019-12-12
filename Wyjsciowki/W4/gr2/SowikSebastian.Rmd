@@ -1,0 +1,37 @@
+---
+title: "SebastianSowik"
+author: "Sebastian Sowik"
+date: "December 5, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(mlr)
+library(dplyr)
+```
+
+```{r cars}
+
+set.seed()
+plan <- drake_plan(
+  iris_bin = iris %>% mutate(IsSetosa = (Species == "setosa")),
+  task_iris = makeClassifTask(id = "Pierwsze spotkanie z mlr", data = iris_bin, target = "IsSetosa"),
+  lrn = makeLearners(c("classif.randomForest","classif.ksvm","classif.nnet"), predict.type = "prob"),
+  simple_bench = benchmark(lrn, task_iris, measures = multiclass.aunp, 
+                            resamplings = makeResampleDesc(method = "CV", iters = 3)),
+  
+  bench_plot = plotBMRBoxplots(simple_bench),
+  save_input = save(iris_bin, file = "iris_bin.RData")
+)
+
+make(plan)
+
+readd(bench)
+```
+
+
+```{r graph, echo=FALSE}
+vis_drake_graph(drake_config(my_first_plan))
+```
+
