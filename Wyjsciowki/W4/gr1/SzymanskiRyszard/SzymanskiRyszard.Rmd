@@ -1,0 +1,46 @@
+---
+title: "Wyjsciowka4"
+author: "Ryszard Szymański"
+date: "12/5/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Plan
+```{r}
+library(dplyr)
+library(drake)
+library(mlr)
+
+plan <- drake_plan(
+  iris_data = read.csv(
+    "https://raw.githubusercontent.com/mini-pw/2020Z-ProgramowanieWR/master/Wyjsciowki/W2/gr1/SawickiJan/ShinyIris/iris.csv") %>% 
+     mutate(variety = factor(ifelse(variety == "Setosa", 1, 0))),
+  task = makeClassifTask(id = "drake_test", data = iris_data, target = "variety"),
+  bench = benchmark(
+      learners = list(
+      makeLearner("classif.randomForest"),
+      makeLearner("classif.ksvm"),
+      makeLearner("classif.nnet")
+    ),
+    tasks = task
+  ),
+  preds = data.frame(getBMRPredictions(bench)),
+  bench_plot = plotBMRBoxplots(bmr = bench),
+  models_input_data = write.csv(iris_data, file = "./models_input_data.csv")
+)
+
+make(plan)
+
+readd(bench_plot)
+```
+
+# Plan visualization
+```{r}
+config <- drake_config(plan)
+vis_drake_graph(config)
+```

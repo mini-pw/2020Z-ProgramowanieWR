@@ -1,0 +1,36 @@
+---
+title: "Wyjsciowka 4"
+author: "Adam Rydelek"
+date: "5 grudnia 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(drake)
+library(mlr)
+library(dplyr)
+```
+
+## Plan
+
+```{r}
+plan1 <- drake_plan(
+  dat = iris,
+  newSpecies = if_else(dat$Species == "setosa", 1, 0),
+  newFactor = as.factor(newSpecies),
+  newDat = cbind(dat[,-5],newFactor),
+  task = makeClassifTask(id = "task1", data = newDat, target = "newFactor"),
+  bmark = benchmark(learners = list(makeLearner("classif.randomForest"), makeLearner("classif.ksvm"), makeLearner("classif.binomial")), tasks = task, measures = list(acc, mmce)),
+  bmarkPlot = plotBMRBoxplots(bmark),
+  fileToSave = write.csv(newDat, file = "newDat.csv")
+)
+make(plan1)
+```
+
+## Wykresy
+
+```{r echo=FALSE}
+plot(plan1)
+readd("bmarkPlot")
+```
+
