@@ -1,0 +1,36 @@
+---
+title: "Wyjsciowka nr 4"
+author: "Mateusz Polakowski"
+date: "December 5, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Plan
+```{r message=FALSE, warning=FALSE}
+library(drake)
+library(dplyr)
+
+my_wyjsciowka_plan <- drake_plan(
+  dat = read.csv("https://raw.githubusercontent.com/mini-pw/2020Z-ProgramowanieWR/master/Wyjsciowki/W2/gr1/SawickiJan/ShinyIris/iris.csv"),
+  processed_dat = dat %>% mutate(variety = as.factor(as.numeric(dat$variety == 'Setosa'))),
+  task = makeClassifTask(id = "drake_test", data = processed_dat, target = "variety"),
+  bench = benchmark(learners = list("randomForest" = makeLearner('classif.randomForest'),
+                                    "nnet" = makeLearner('classif.nnet'),
+                                    "ksvm" = makeLearner('classif.ksvm')),
+                    tasks = task, measures = list(acc)),
+  my_plot = plotBMRBoxplots(bench),
+  my_file = write.csv(processed_dat, 'processed_dat.csv')
+)
+
+make(my_wyjsciowka_plan)
+```
+
+## Tworzenie wykresu
+
+```{r message=FALSE}
+plot(my_wyjsciowka_plan)
+```

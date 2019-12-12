@@ -1,0 +1,68 @@
+.cheatsheet-page {
+  background-color: rgba(213, 178, 247);
+}
+
+.header {
+  background-color: rgba(230, 140, 174);
+}
+
+.header-title {
+  color: rgba(92, 21, 48);
+}
+
+.header-title-name {
+  font-style: italic;
+}
+
+.header-description {
+  color: white;
+}
+
+.logo {
+  transform: rotate(0deg);
+}
+
+.card {
+  border: 3px solid rgba(92, 21, 48);
+}
+
+.card-header {
+  border: none;
+  background-color: white;
+}
+
+.card-body {
+  background-color: rgba(189, 220, 255);
+}
+
+.method {
+  border-top: 0px dotted black;
+}
+
+.method-name {
+  color: rgba(92, 21, 48);
+}
+
+.method-parameter {
+  font-size: x-small;
+}
+
+.method-description {
+  font-style: italic;
+}
+
+.parameter {
+  border-left: 2px solid rgba(255, 102, 0);
+}
+
+.parameter-name {
+  text-decoration: underline;
+}
+
+.parameter-description {
+  text-align: right;
+}
+
+.footer {
+  font-weight: bold;
+}

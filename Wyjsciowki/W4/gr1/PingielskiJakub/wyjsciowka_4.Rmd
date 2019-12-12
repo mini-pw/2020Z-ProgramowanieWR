@@ -1,0 +1,33 @@
+---
+title: "Wyjsciowka4"
+author: "Jakub Pingielski"
+output: html_document
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(drake)
+library(mlr)
+```
+
+```{r}
+my_plan <- drake_plan(
+  
+  dat = read.csv("https://raw.githubusercontent.com/mini-pw/2020Z-ProgramowanieWR/master/Wyjsciowki/W2/gr1/SawickiJan/ShinyIris/iris.csv"),
+  dat$is_setosa <- ifelse(dat$variety == "Setosa", "yes", "no"),
+  dat$variety <- NULL,
+  task = makeClassifTask(id = "drake_test", data = dat, target = "variety"),
+  bench = benchmark(learners = list(makeLearner("classif.ksvm"), makeLearner("classif.randomForest"), makeLearner("classif.nnet")), tasks = task),
+
+  preds = data.frame(getBMRPredictions(bench)),
+  
+  write.csv(dat, "data.csv"),
+  
+  plotBMRBoxplots(bench)
+)
+make(my_plan)
+vis_drake_graph(drake_config(my_plan))
+
+```
+
+
