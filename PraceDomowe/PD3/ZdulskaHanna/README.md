@@ -1,3 +1,3 @@
 # PD3
 
-Niniejszą aplikację można również zobaczyć ![tutaj](https://hazdula.shinyapps.io/zdulskahanna/)
+Tą aplikację będzie można zobaczyć jak tylko shinyapps wstanie
