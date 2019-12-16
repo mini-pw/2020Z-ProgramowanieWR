@@ -29,12 +29,10 @@ ui <- fluidPage(
             ),
             
             conditionalPanel( condition = "!input.type.localeCompare(\"Scatter plot\")",
-                              sliderInput(
+                              selectInput(
                                   "shape",
                                   "Select scatter shape",
-                                  min = 0,
-                                  max = 25,
-                                  value = 16
+                                  choices = 0:25L
                               )),
             conditionalPanel( condition = "!input.type.localeCompare(\"Bar plot\")",
                               checkboxInput("dodge", "Position dodge")),
