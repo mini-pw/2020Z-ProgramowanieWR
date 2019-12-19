@@ -1,0 +1,41 @@
+---
+title: "Wyjście 4"
+author: "Witold Merkel"
+date: "5 12 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(mlr)
+library(drake)
+```
+
+# Kod do rozwiązania:
+
+Potwornie potężne modele o acc = 1
+
+## Robienie planu
+
+```{r message=FALSE}
+my_first_plan <- drake_plan(
+  dat = read.csv("https://raw.githubusercontent.com/mini-pw/2020Z-ProgramowanieWR/master/Wyjsciowki/W2/gr1/PaldynaAgata/Wyjsciowka2/iris.csv"),
+  newDat = dat %>% mutate(variety = as.factor(ifelse(dat$variety == "Setosa", 1, 0))),
+  task1 = makeClassifTask(id = "task1", dat = newDat, target = "variety"),
+  benczmarek = benchmark(learners = list("ksvm" = makeLearner("classif.ksvm"),
+                                   "randomForest" = makeLearner("classif.randomForest"),
+                                   "nnet" = makeLearner("classif.nnet"))
+                    , task = task1, measures = list(acc)),
+  boksplot = plotBMRBoxplots(benczmarek),
+  pliczek = write.csv(newDat, file = "newdata.csv")
+)
+make(my_first_plan)
+```
+
+## Wykres planu
+
+```{r message=FALSE}
+plot(my_first_plan)
+```
+

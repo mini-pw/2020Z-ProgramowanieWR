@@ -1,0 +1,54 @@
+---
+title: "Wyjsciówka 4"
+author: "Szymon Maksymiuk"
+date: "5 12 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# plot_drake
+
+```{r}
+
+plot_drake <- function(benchmark) {
+  plot_data <- rbind(
+    data.frame(model = benchmark$learners$classif.ksvm$name, Measure = benchmark$results$Iris$classif.ksvm$measures.test$auc),
+    data.frame(model = benchmark$learners$classif.randomForest$name, 
+               Measure = benchmark$results$Iris$classif.randomForest$measures.test$auc),
+    data.frame(model = benchmark$learners$classif.gbm$name, Measure = benchmark$results$Iris$classif.gbm$measures.test$auc)
+    )
+    ggplot(data = plot_data, aes(x = model, y = Measure)) +
+    geom_boxplot()
+}
+
+```
+
+# Drake
+
+```{r}
+library(drake)
+library(mlr)
+library(ggplot2)
+
+plan <- drake_plan(
+  data = cbind(iris[,1:4], Species = as.factor(as.numeric(iris$Species == "setosa"))),
+  task = makeClassifTask("Iris", data = data, target = "Species"),
+  learners = list(makeLearner("classif.ksvm", predict.type = "prob"),
+                  makeLearner("classif.randomForest", predict.type = "prob"),
+                  makeLearner("classif.gbm", predict.type = "prob", par.vals = list(distribution = "bernoulli"))),
+  bench = benchmark(learners, task, measures = auc),
+  plot_bench = plot_drake(bench),
+  write = write.csv(data, "iris_binarized.csv")
+)
+
+```
+
+# Ewaluacja
+
+```{r}
+make(plan)
+readd(plot_bench)
+```

@@ -1,0 +1,54 @@
+---
+title: "Wyjściówka 4"
+author: "Mateusz Bąkała"
+date: "5 grudnia 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(drake)
+library(mlr)
+```
+
+## Funkcja pomocnicza
+
+```{r fun}
+binarized_data <- function(data, target, true_value) {
+  data[[target]] <- data[[target]] == true_value
+  data
+}
+```
+
+## Plan
+
+Warningi są zagadką stringów.
+
+```{r plan}
+iris_plan <- drake_plan(
+  trinary_data = iris,
+  binary_data = binarized_data(trinary_data, "Species", "setosa"),
+  learner1 = makeLearner("classif.randomForest", predict.type = "prob"),
+  learner2 = makeLearner("classif.ksvm", predict.type = "prob"),
+  learner3 = makeLearner("classif.nnet", predict.type = "prob"),
+  bench = benchmark(
+    learners = list(learner1, learner2, learner3),
+    tasks = makeClassifTask(data = binary_data, target = "Species")
+  ),
+  plots = plotBMRBoxplots(bench),
+  csv = write.csv(binary_data, file_out("biniris.csv"), row.names = FALSE)
+)
+# let's run it
+config <- drake_config(iris_plan)
+outdated(config)
+make(iris_plan)
+```
+
+## Wykres
+
+Niechaj wykres ten zilustruje szczytową myśl technologiczną cośtam cośtam.
+
+```{r plot, echo=FALSE}
+vis_drake_graph(config)
+```
+
