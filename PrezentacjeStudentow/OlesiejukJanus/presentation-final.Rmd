@@ -1,0 +1,185 @@
+---
+title: "pipeR"
+author: "Piotr Olesiejuk, Piotr Janus"
+date: "5 grudnia 2019"
+output: ioslides_presentation
+logo: cheatsheet/logo2.png
+css: style.css
+---
+
+
+```{r setup, include=FALSE}
+library(pipeR)
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE, error = TRUE)
+```
+
+## Functionalities
+
+- Pipe operator: `%>>%`
+- Object: `Pipe()`, 
+- Function: `pipeline()`
+
+## Pipe to first argument
+
+```{r, eval = TRUE, echo = FALSE}
+tab <- data.frame(Syntax = c("x %>>% f", "x %>>% f(...)"),
+                  Evaluation = c("f(x)", "f(x, ...)"))
+knitr::kable(
+  tab
+)
+```
+
+<br><br>
+Example:
+```{r, eval=TRUE, echo=TRUE}
+iris$Sepal.Length %>>% mean
+```
+
+## Why is it interesting?
+
+- Less coding effort
+- Making code more readable
+
+Classic:
+```{r, eval=FALSE, echo=TRUE}
+plot(density(sample(mtcars$mpg, size = 10000, replace = TRUE),
+  kernel = "gaussian"), col = "red", main = "density of mpg")
+```
+Pipe:
+```{r, eval=FALSE, echo=TRUE}
+mtcars$mpg %>>%
+  sample(size = 10000, replace = TRUE) %>>%
+  density(kernel = "gaussian") %>>%
+  plot(col = "red", main = "density of mpg")
+```
+
+## Some issues
+- Referencing pipe input with a dot
+```{r, eval = FALSE, echo = TRUE}
+mtcars$mpg %>>%
+  plot(col = "red", main = sprintf("number of points: %d", length(.)))
+```
+- Using functions with namespace reference
+```{r, eval = TRUE, echo = TRUE}
+iris$Sepal.Length %>>% base::mean
+```
+```{r, eval = TRUE, echo = TRUE}
+iris$Sepal.Length %>>% base::mean()
+```
+
+## When data is not a first argument...
+```{r}
+lm(formula, data, subset, weights, na.action,
+   method = "qr", model = TRUE, x = FALSE, y = FALSE, qr = TRUE,
+   singular.ok = TRUE, contrasts = NULL, offset, ...)
+```
+```{r, eval = TRUE}
+mtcars %>>%
+  lm(mpg ~ cyl + wt)
+```
+Solution:
+```{r}
+mtcars %>>%
+  lm(formula = mpg ~ cyl + wt)
+```
+
+## Getting middle values
+```{r}
+data %>>% (~ variable_name) %>>% data
+```
+```{r}
+data %>>% (~ var <- some_code) %>>% data
+```
+
+Example:
+```{r, eval = TRUE}
+head(iris$Sepal.Length) %>>%
+  (~ m <- mean(.)) %>>%
+  print
+
+m
+```
+
+## Objects extraction
+- Getting columns from dataframes
+- Getting named elements from lists
+- () operator
+
+Usage:
+```{r}
+l <- list(..., x = something, ...)
+l %>>% (x) # Returns l[[x]]
+```
+Example:
+```{r, eval = TRUE}
+l <- list(a = c(1, 2, 3), b = c(4, 5))
+l %>>% (a)
+```
+
+## Debugging and Stopping
+```{r}
+USArrests %>>%
+  (~ browser()) %>>%
+  lm(formula = Murder ~ Assault)
+```
+<br>
+```{r}
+iris %>>%
+  subset(Species == "setosa") %>>%
+  (~ stopifnot(all(.$Species == "setosa"))) %>>%
+  head
+```
+
+## Similarly: Pipe()
+- $ operator
+- Similar to classic %>>%
+
+Example:
+```{r, eval = TRUE}
+Pipe(rnorm(100, mean = 10))$
+  log()$
+  diff()$
+  sample(size = 10000, replace = TRUE)$
+  summary()
+```
+
+
+
+## Alternative: pipeline()
+```{r}
+iris %>>% (Sepal.Length) %>>% mean
+```
+```{r}
+pipeline(iris,
+  (Sepal.Length),
+  mean)
+```
+
+```{r}
+pipeline({
+  iris
+  (Sepal.Length)
+  mean
+})
+```
+
+## Cheat sheet
+
+![](cheatsheet/cheatsheet.png){#id .class width=90% height=80%}
+
+## Dziękujemy za uwagę
+
+- Dokumentacja:
+
+https://renkun-ken.github.io/pipeR-tutorial/index.html
+
+
+- Strona pakietu:
+
+
+https://github.com/renkun-ken/pipeR
+
+
+- Przykłady:
+
+Własne oraz zaczerpnięte z dokumentacji

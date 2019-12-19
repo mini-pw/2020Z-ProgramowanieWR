@@ -1,0 +1,1 @@
+pipeR: prezentacja + cheetshet
