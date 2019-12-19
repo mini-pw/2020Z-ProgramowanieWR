@@ -1,0 +1,35 @@
+---
+title: "W5"
+author: "Zuzanna Magierska"
+date: "12/19/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(mlr)
+library(kernlab)
+library(dplyr)
+library(ggplot2)
+```
+
+```{r, warning=FALSE, message=FALSE}
+data(ticdata)
+task <- makeClassifTask(data = ticdata, target = "CARAVAN")
+
+outer <- makeResampleDesc(method = "CV", iters = 3)
+inner <- makeResampleDesc(method = "CV", iters = 5)
+
+ranger_wrapper1 <- makeTuneWrapper(learner = makeLearner("classif.ranger", predict.type = "prob"), 
+                                  resampling = inner, 
+                                  par.set = makeParamSet(makeIntegerParam(id = "num.trees", lower = 50, upper = 1000)),
+                                  control = makeTuneControlGrid(resolution = 5))
+
+ranger_wrapper2 <- makeTuneWrapper(learner = makeLearner("classif.rpart", predict.type = "prob"),
+                                  resampling = inner,
+                                  par.set = makeParamSet(makeDiscreteParam("cp", values = c(0.05, 0.1)), makeDiscreteParam("minsplit", values = c(10, 20))),
+                                  control = makeTuneControlGrid())
+
+bench <- benchmark(learners = list(ranger_wrapper1, ranger_wrapper2), task, resamplings = outer, measures = auc)
+bench
+```
