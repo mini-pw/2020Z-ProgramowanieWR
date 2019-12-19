@@ -1,0 +1,38 @@
+---
+title: "Wyjściówka 4"
+author: "Hubert Baniecki"
+date: "5 12 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(mlr)
+library(drake)
+```
+
+## Rozwiązanie:
+
+Wykres boxplot tak wygląda, bo dla binarnej klasyfikacji na iris mamy praktycznie 100% acc.
+
+```{r message=FALSE}
+p <- drake_plan(
+  data = read.csv("https://raw.githubusercontent.com/mini-pw/2020Z-ProgramowanieWR/master/Wyjsciowki/W2/gr1/PaldynaAgata/Wyjsciowka2/iris.csv"),
+  newdata = data %>% mutate(variety = as.factor(ifelse(data$variety == "Setosa", 1, 0))),
+  task = makeClassifTask(id = "drake_task", data = newdata, target = "variety"),
+  bench = benchmark(learners = list("ksvm" = makeLearner("classif.ksvm"),
+                                   "randomForest" = makeLearner("classif.randomForest"),
+                                   "knn" = makeLearner("classif.knn"))
+                    , task = task),
+  plot = plotBMRBoxplots(bench),
+  file = write.csv(newdata, file = "newdata.csv")
+)
+
+make(p)
+
+readd("plot") # stworzy wykres benchmarku
+readd("file") # zapisze csv
+plot(p) # stworzy wykres planu
+```
+

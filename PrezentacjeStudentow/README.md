@@ -52,3 +52,4 @@ Porządek prezentacji:
 1. Adam Rydelek, Mateusz Polakowski
 2. Jakub Pingielski
 3. Szymon Maksymiuk, Michał Stawikowski.
+4. Bartek Granat.
