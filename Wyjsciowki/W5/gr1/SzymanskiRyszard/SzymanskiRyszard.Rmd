@@ -1,0 +1,42 @@
+---
+title: "SzymanskiRyszard"
+author: "Ryszard Szymański"
+date: "12/19/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(kernlab)
+library(mlr)
+
+set.seed(2137)
+data(spam)
+task_spam <- makeClassifTask(data = spam, target = "type",)
+
+rangerLearner <- makeLearner("classif.ranger", predict.type = "prob")
+logregLearner <-  makeLearner("classif.logreg", predict.type = "prob")
+
+learners <- list(
+  rangerLearner,
+  logregLearner
+)
+
+benchmark_results <- benchmark(
+  learners,
+  task_spam,
+  measures = auc,
+  resamplings = cv5
+)
+```
+
+The random forest implementation of ranger managed to achieve an auc score of 0.9860985. However, I wanted to cite a point from the AI manifesto `Explainability and Accountability over Accuracy`, so let's look at the coefficients of a simple logistic regression model.
+
+```{r}
+logregModel <- train(logregLearner, task_spam)
+summary(getLearnerModel(logregModel, more.unwrap = TRUE))
+```
+
