@@ -1,0 +1,47 @@
+---
+title: "Wyjściówka 5"
+author: "Adam Rydelek"
+date: "19 grudnia 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Pakiet tuneRanger
+
+```{r echo=FALSE, message=FALSE, error=FALSE}
+library(mlr)
+library(kernlab)
+library(tuneRanger)
+#devtools::install_github("PhilippPro/tuneRanger")
+set.seed(777, kind = "L'Ecuyer-CMRG")
+configureMlr(show.info = TRUE)
+data(spam)
+mod1 <- makeLearner("classif.ranger", id = "ranger",
+                      predict.type = "prob")
+task1 <- makeClassifTask(id = "1", data = spam, target = "type")
+
+estimateTimeTuneRanger(task1, num.threads = 4, iters = 70, num.trees = 1000)
+
+```
+```{r eval=FALSE}
+res = tuneRanger(task1, measure = list(auc), num.trees = 1000, 
+                 num.threads = 4, iters = 70, save.file.path = NULL)
+
+res$model
+```
+```{r}
+
+finalModel <- makeLearner("classif.ranger", id = "final",
+                          predict.type = "prob", par.vals = list("mtry"=5,"min.node.size"=4,"num.threads"=4, "num.trees"=1000,"sample.fraction"=0.8105127))
+
+
+bench_res <- benchmark(learners = finalModel,
+                       tasks = task1, 
+                       resamplings = cv5,
+                       measures = auc, models = TRUE)
+
+```
+
