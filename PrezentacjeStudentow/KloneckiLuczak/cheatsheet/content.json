@@ -1,0 +1,107 @@
+{
+	"name": "DALEX",
+	"description": "The DALEX package (Descriptive mAchine Learning EXplanations) helps to understand how complex models are working. ",
+	"footer": "Install the package with install_packages('DALEX')",
+	"pages": [
+		{
+			"cards": [
+				{
+					"title": "Main wrapper",
+					"methods": [
+						{
+							"name": "explain",
+							"description": "Function turns models into explainers - wrappers with uniform structure. Then we can use various functions to turn explainers to explanations.",
+							"params": [{
+								"name": "model",
+								"description" : "Object - a model to be explained"
+							},
+							{
+								"name": "data",
+								"description" : "Data.frame or matrix - data that was used for fitting."
+							},
+							{
+								"name": "y",
+								"description" : "Numeric vector with outputs. If provided then it shall have the same size as data."
+							},
+							{
+								"name": "predict_function",
+								"description": "Function that takes two arguments: model and new data and returns numeric vector with predictions."
+							},
+							{
+								"name": "residual_function",
+								"description": "Function that takes three arguments: model, data and response vector y. It should return a numeric vector."
+							}]
+						}
+					]
+				},
+				{
+					"title": "Model understanding",
+					"methods": [
+						{
+							"name": "model_performance",
+							"description": "Prepare a data frame with model residuals.",
+							"params": [{
+								"name": "explainer",
+								"description" : "Object - a model to be explained, preprocessed by the explain function."
+							}]
+						},
+						{
+							"name": "variable_importance",
+							"description": "Calculate model agnostic variable importance.",
+							"params": [{
+								"name": "explainer"
+							},
+							{
+								"name": "loss_function",
+								"description" : "Function that will be used to assess variable importance."
+							}]
+						},
+						{
+							"name": "single_variable",
+							"description": "Calculates the average model response as a function of a single selected variable.",
+							"params": [
+							{
+							  "name": "explainer"  
+							},
+							{
+								"name": "variable",
+								"description" : "character - name of a single variable"
+							},
+							{
+								"name": "type",
+								"description" : "'pdp' for Partial Dependency and 'ale' for Accumulated Local Effects"
+							}]
+						}
+					]
+				},
+				{
+					"title": "Prediction analysis",
+					"methods": [
+						{
+							"name": "prediction_breakdown",
+							"description": "Calculate Break Down Explanations.",
+							"params": [{
+								"name": "explainer"
+							},
+							{
+							    "name": "observation",
+							    "description": "A a new observarvation for which predictions need to be explained"
+							}]
+						},
+						{
+							"name": "ceteris_paribus",
+							"description": "This function calculate ceteris paribus profiles for selected data points.",
+							"params": [{
+								"name": "explainer"
+							},
+							{
+							    "name": "observations",
+							    "description": "set of observarvation for which profiles are to be calculated"
+							}]
+						}
+					]
+				}
+					]
+				}
+			]
+}

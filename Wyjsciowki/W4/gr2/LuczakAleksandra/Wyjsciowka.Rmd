@@ -1,0 +1,34 @@
+---
+title: "Wyjsciowka 4"
+author: "Aleksandra Łuczak"
+date: "12/5/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+library(drake)
+library(mlr)
+library(kernlab)
+```
+
+## Wyjściówka 4
+
+```{r drake_plan}
+my_first_plan <- drake_plan(
+  dat = read.csv("https://raw.githubusercontent.com/mini-pw/2020Z-ProgramowanieWR/master/Wyjsciowki/W2/gr1/SawickiJan/ShinyIris/iris.csv"),
+  data = dat %>% mutate(variety = as.factor(ifelse(variety=='Setosa', 1, 0))),
+  task = makeClassifTask(id = "drake_test", data = data, target = "variety"),
+  bench = benchmark(learners = makeLearners(c("classif.randomForest", "classif.ksvm", "classif.nnet"))
+                    , tasks = task),
+  plots = plotBMRBoxplots(bench),
+  write.csv(data, file='changed_data.csv')
+)
+```
+
+## Including Plots
+
+
+```{r pressure, echo=FALSE}
+vis_drake_graph(drake_config(my_first_plan))
+```

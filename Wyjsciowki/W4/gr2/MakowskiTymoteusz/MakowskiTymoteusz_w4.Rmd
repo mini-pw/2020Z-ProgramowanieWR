@@ -1,0 +1,22 @@
+```{r, message = FALSE, results = FALSE}
+library("drake")
+library("mlr")
+library("kernlab")
+library("randomForest")
+library("visNetwork")
+
+plan <- drake_plan(
+	dat = { df <- iris; df$Species <- as.factor(as.numeric(df$Species == "setosa")); df },
+	task = makeClassifTask(id = "drake_test", data = dat, target = "Species"),
+	bench = benchmark(learners = lapply(c("classif.randomForest", "classif.ksvm", "classif.nnet"),
+										makeLearner), tasks = task),
+	preds = data.frame(getBMRPredictions(bench)),
+	plot = plotBMRBoxplots(bench),
+	save_bench = save(bench, file = "bench.Rdata"))
+
+make(plan)
+```
+
+```{r}
+vis_drake_graph(drake_config(plan))
+```
