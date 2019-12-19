@@ -1,0 +1,42 @@
+---
+title: "Wyjsciowka 5"
+author: "Rafał Muszyński"
+date: "12/19/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(mlr)
+library(kernlab)
+library(dplyr)
+
+data(ticdata)
+```
+
+## R Task definition
+```{r}
+
+outer <- makeResampleDesc(method = "CV", iters = 3)
+inner <- makeResampleDesc(method = "CV", iters = 5)
+task <- makeClassifTask(data = ticdata, target = "CARAVAN")
+```
+# Define learners
+```{r}
+
+ranger_wrapper <- makeTuneWrapper(learner = makeLearner("classif.ranger", predict.type = "prob"), 
+                                  resampling = inner, 
+                                  par.set = makeParamSet(makeIntegerParam(id = "num.trees", lower = 50, upper = 500)),
+                                  control = makeTuneControlGrid(resolution = 10))
+
+rpart_wrapper <- makeTuneWrapper(learner = makeLearner("classif.rpart", predict.type = "prob"), 
+                                  resampling = inner, 
+                                  par.set = makeParamSet(makeNumericParam(id = "cp", lower = 0.01, upper = 0.5)),
+                                  control = makeTuneControlGrid(resolution = 10))
+```
+# Benchmark
+```{r}
+benchmark(learners = list(ranger_wrapper, rpart_wrapper), task, resamplings = outer, measures = auc)
+```
+
