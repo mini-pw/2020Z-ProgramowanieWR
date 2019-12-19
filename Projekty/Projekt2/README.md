@@ -28,7 +28,7 @@ Zadanie specjalne:
 
 ### kolejkeR 
 
-Konsultacje: +
+Konsultacje: ++
 
 Zadania:
 
@@ -41,7 +41,7 @@ Zadanie specjalne:
 
 ### QuickchartR
  
-Konsultacje: + 
+Konsultacje: ++
  
 Zadania:
 
@@ -55,7 +55,7 @@ Zadanie specjalne:
 
 ### hackeRnews
 
-Konsultacje: +
+Konsultacje: ++
 
 Zadania:
 
@@ -68,7 +68,7 @@ Zadanie specjalne:
  
 ### miniBeamer
  
-Konsultacje: + 
+Konsultacje: ++
  
 Zadania:
 
