@@ -1,0 +1,32 @@
+---
+title: "Wyjsciowka nr 4"
+author: "Jadwiga Słowik"
+date: "12/5/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(mlr)
+library(drake)
+library(dplyr)
+```
+
+```{r}
+my_plan <- drake_plan(
+  dat = iris %>% mutate(isSetosa = as.factor(ifelse(Species == "setosa", 1, 0))),
+  task = makeClassifTask(id = "task_1", data=dat, target="isSetosa"),
+  bench = benchmark(
+    learners=sapply(c("classif.randomForest", "classif.ksvm", "classif.nnet"),
+                    function(x) makeLearner(x, predict.type = "prob")), tasks=task),
+  save_input=write.csv(dat, file="input.csv"),
+  plot=plotBMRBoxplots(bench)
+)
+
+make(my_plan)
+
+vis_drake_graph(drake_config(my_plan))
+
+readd(bench)
+readd(plot)
+```
