@@ -1,7 +1,7 @@
 library(mlr)
 library(titanic)
 library(ggplot2)
-
+library(xg)
 #set.seed()
 set.seed(1, kind = "L'Ecuyer-CMRG")
 configureMlr(show.info = TRUE)
