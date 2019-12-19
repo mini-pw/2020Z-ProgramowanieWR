@@ -1,0 +1,46 @@
+---
+title: "Raport"
+author: "Piotr Olesiejuk"
+output: html_notebook
+---
+
+Były testowane również modele: ranger, deepnet, kknn, nnet, Liblinear, natomiast osiągnęły gorsze wyniki niż xgboost.
+```{r}
+library(xgboost)
+library(nnet)
+library(LiblineaR)
+library(kknn)
+library(deepnet)
+library(ranger)
+
+data(spam)
+head(spam)
+dat <- spam
+table(dat$type)
+
+task <- makeClassifTask(id = "spam", data = dat, target = "type")
+
+# nested cross-validation ----
+
+outer <- makeResampleDesc(method = "CV", iters = 3)
+inner <- makeResampleDesc(method = "CV", iters = 5)
+
+# testowalem kknn, deepnet, nnet, LiblineaR, xgboost, ranger
+
+ranger_wrapper <- makeTuneWrapper(learner = makeLearner("classif.xgboost", predict.type = "prob"), 
+                                  resampling = inner, 
+                                  par.set = makeParamSet(makeIntegerParam(id = "nrounds", lower = 1, upper = 100)),
+                                  control = makeTuneControlGrid(resolution = 5))
+
+bench <- benchmark(ranger_wrapper, task, resamplings = outer, measures = auc)
+
+rsp <- resample(learner = ranger_wrapper, task = task, resampling = outer, measures = auc, 
+                extract = getTuneResult)
+
+res <- getNestedTuneResultsOptPathDf(rsp)
+res
+
+getBMRAggrPerformances(bench)
+```
+
+
