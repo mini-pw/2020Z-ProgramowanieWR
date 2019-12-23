@@ -7,6 +7,9 @@
 #    http://shiny.rstudio.com/
 #
 
+# Interactive zoom taken from: 
+# https://shiny.rstudio.com/gallery/plot-interaction-zoom.html
+
 library(shiny)
 library(ggplot2)
 
@@ -32,7 +35,12 @@ ui <- fluidPage(
       ),
       
       mainPanel(
-         plotOutput("plot")
+        plotOutput("plot",
+                   dblclick = "dblclick",
+                   brush = brushOpts(
+                     id = "brush",
+                     resetOnNew = TRUE
+                   ))
       )
    )
 )
@@ -45,6 +53,20 @@ server <- function(input, output) {
     )
     as.data.frame(read.csv(input$csv_file$datapath))
   })
+  
+  observeEvent(input$dblclick, {
+    brush <- input$brush
+    if (!is.null(brush)) {
+      ranges$x <- c(brush$xmin, brush$xmax)
+      ranges$y <- c(brush$ymin, brush$ymax)
+      
+    } else {
+      ranges$x <- NULL
+      ranges$y <- NULL
+    }
+  })
+  
+  ranges <- reactiveValues(x = NULL, y = NULL)
   
   output$plot_controls <- renderUI({
     required_variables <- colnames(csv())
@@ -96,7 +118,7 @@ server <- function(input, output) {
       if (input$color == 'None') {
         aes$colour <- NULL
       }
-      plot <- plot + geom_point(aes)
+      plot <- plot + geom_point(aes) + coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE)
     }
     
 
