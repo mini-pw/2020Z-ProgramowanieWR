@@ -57,29 +57,55 @@ server <- function(input, output) {
         selectInput("facet", "Facet", choices=optional_variables)
       )
     }
+    else if (input$plot_type == "barplot") {
+      tagList(
+        selectInput("x_variable", "X-axis", choices=required_variables),
+        # selectInput("y_variable", "Y-axis", choices=required_variables),
+        selectInput("weight", "Weight", choices=optional_variables),
+        selectInput("fill", "Fill", choices=optional_variables),
+        selectInput("facet", "Facet", choices=optional_variables)
+      )
+    }
   })
   
   output$plot <- renderPlot({
     df <- csv()
 
-    aes <- aes_string(
-      x=input$x_variable, 
-      y=input$y_variable,
-      color=input$color
-    )
-    if (input$color == 'None') {
-      aes$colour <- NULL
-    }
-  
-    plot <- ggplot(df, aes)
+    plot <- ggplot(df)
     
     if (input$plot_type == 'scatterplot') {
-      plot <- plot + geom_point()
+      aes <- aes_string(
+        x=input$x_variable, 
+        y=input$y_variable,
+        color=input$color
+      )
+      if (input$color == 'None') {
+        aes$colour <- NULL
+      }
+      plot <- plot + geom_point(aes)
+    }
+    
+
+    if (input$plot_type == 'barplot') {
+      aes <- aes_string(
+        x=input$x_variable,
+        fill=input$fill,
+        weight=input$weight
+      )
+      if (input$fill == 'None') {
+        aes$fill <- NULL
+      }
+      if (input$weight == 'None') {
+        aes$weight <- NULL
+      }
+      
+      plot <- plot + geom_bar(aes)
     }
     
     if (input$facet != 'None') {
       plot <- plot + facet_wrap(c(input$facet))
     }
+    
     plot
   })
 }
