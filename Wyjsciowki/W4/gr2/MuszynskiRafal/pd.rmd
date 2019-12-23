@@ -1,0 +1,51 @@
+---
+title: "W4"
+author: "Rafał Muszyński"
+date: "12/5/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(drake)
+library(mlr)
+library(kernlab)
+library(dplyr)
+
+data(iris)
+```
+
+
+```{r, messages=FALSE}
+
+my_first_plan <- drake_plan(
+  binary_dat = mutate(iris, Species = ifelse(Species=='setosa', 'setosa', 'notsetosa')),
+  
+  task = makeClassifTask(id = "classif_test", data = binary_dat, target = "Species"),
+  learners = lapply(c("classif.randomForest", "classif.ksvm", "classif.nnet"), makeLearner),
+  bench = benchmark(learners = learners, tasks = task),
+  preds = data.frame(getBMRPredictions(bench)),
+  plot = plotBMRBoxplots(bench),
+  write.csv(binary_dat, 'input.csv')
+)
+
+make(my_first_plan)
+
+my_first_plan
+
+```
+
+
+# Results
+
+```{r}
+readd(plot)
+
+```
+
+# Graph
+```{r}
+vis_drake_graph(drake_config(my_first_plan))
+```
+

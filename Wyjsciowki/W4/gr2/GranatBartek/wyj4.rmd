@@ -1,0 +1,26 @@
+---
+title: "Wyjsciowka 4"
+author: "Bartlomiej Granat"
+output: html_document
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+plan_jak_plan <- drake::drake_plan(
+  processed = mutate(iris, Species = Species == "setosa"),
+  task = makeClassifTask(id = "drake_test", data = processed, target = "Species"),
+  bench = benchmark(learners = list("randomForest" = makeLearner('classif.randomForest'),
+                                    "bartMachine" = makeLearner('classif.bartMachine'),
+                                    "glmnet" = makeLearner('classif.glmnet')),
+                    tasks = task, measures = list(acc)),
+  plot_bench = plotBMRBoxplots(bench),
+  file_data = write.csv(processed, 'dane.csv')
+)
+
+#make(plan_jak_plan)
+
+plot(plan_jak_plan)
+```
