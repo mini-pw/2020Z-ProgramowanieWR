@@ -60,8 +60,15 @@ server <- function(input, output) {
     else if (input$plot_type == "barplot") {
       tagList(
         selectInput("x_variable", "X-axis", choices=required_variables),
-        # selectInput("y_variable", "Y-axis", choices=required_variables),
         selectInput("weight", "Weight", choices=optional_variables),
+        selectInput("fill", "Fill", choices=optional_variables),
+        selectInput("facet", "Facet", choices=optional_variables)
+      )
+    }
+    else if (input$plot_type == "heatmap") {
+      tagList(
+        selectInput("x_variable", "X-axis", choices=required_variables),
+        selectInput("y_variable", "Y-axis", choices=required_variables),
         selectInput("fill", "Fill", choices=optional_variables),
         selectInput("facet", "Facet", choices=optional_variables)
       )
@@ -70,15 +77,22 @@ server <- function(input, output) {
   
   output$plot <- renderPlot({
     df <- csv()
-
+    validate(
+      need(input$plot_type, "Please select plot type")
+    )
     plot <- ggplot(df)
     
     if (input$plot_type == 'scatterplot') {
+      validate(
+        need(input$x_variable, "Please select x variable"),
+        need(input$y_variable, "Please select y variable")
+      )
       aes <- aes_string(
         x=input$x_variable, 
         y=input$y_variable,
         color=input$color
       )
+      
       if (input$color == 'None') {
         aes$colour <- NULL
       }
@@ -87,6 +101,9 @@ server <- function(input, output) {
     
 
     if (input$plot_type == 'barplot') {
+      validate(
+        need(input$x_variable, "Please select x variable")
+      )
       aes <- aes_string(
         x=input$x_variable,
         fill=input$fill,
@@ -100,6 +117,22 @@ server <- function(input, output) {
       }
       
       plot <- plot + geom_bar(aes)
+    }
+    
+    if (input$plot_type == 'heatmap') {
+      validate(
+        need(input$x_variable, "Please select x variable"),
+        need(input$y_variable, "Please select y variable")
+      )
+      aes <- aes_string(
+        x=input$x_variable, 
+        y=input$y_variable,
+        fill=input$fill
+      )
+      if (input$fill == 'None') {
+        aes$fill <- NULL
+      }
+      plot <- plot + geom_tile(aes)
     }
     
     if (input$facet != 'None') {
