@@ -183,7 +183,7 @@ create_plot <- function(input, datapath, shortname, title, plot_type, ranges) {
         theme_fivethirtyeight() +
         ggtitle(title) +
         xlab(input[[v("x", shortname)]]) +
-        ylab(input[[v("x", shortname)]]) +
+        ylab(input[[v("y", shortname)]]) +
         theme(plot.title = element_text(hjust = 0.5), 
               axis.title = element_text(),
               panel.background = element_blank(),
