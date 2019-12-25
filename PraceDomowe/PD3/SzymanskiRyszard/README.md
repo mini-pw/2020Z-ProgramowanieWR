@@ -1,0 +1,1 @@
+shinyapps link: https://ryszard-szymaski.shinyapps.io/szymanskiryszard/
