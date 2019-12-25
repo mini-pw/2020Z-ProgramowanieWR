@@ -1,0 +1,213 @@
+{
+	"name": "drake",
+	"description": "A computational engine for data analysis that skips computing up to date results with support for distributed computing",
+	"footer": "https://github.com/ropensci/drake",
+	"pages": [
+		{
+			"cards": [
+				{
+					"title": "build and plans",
+					"methods": [
+						{
+							"name": "make",
+							"description": "Run your project (build the outdated targets)",
+							"params": [
+								{
+									"name": "plan"
+								    
+								},
+								{
+								    "name": "..."
+								}
+							]
+						},
+						{
+							"name": "drake_config",
+							"description": "does all the preprocessing for make()",
+						    "params": [
+								{
+									"name": "plan",
+									"description": "Workflow plan data frame."
+								},
+								{
+								    "name": "..."
+								}
+							]
+						    
+						},
+						{
+							"name": "drake_build",
+							"description": "Build/process a single target or import.",
+							"params": [
+							    {
+							        "name": "target"
+							    },
+								{
+								    "name": "..."
+								}   
+							 ]
+						},
+						{
+							"name": "drake_plan",
+							"description": "A data frame with columns target and command",
+							"params": [
+								{
+									"name": "...",
+									"description": "A collection of symbols/targets with commands assigned to them"
+								}
+							]
+						},
+						{
+							"name": "drake_slice",
+							"description": "Take a strategic subset of a dataset.",
+							"params": [
+								{
+									"name": "data"
+								},
+								{
+									"name": "slices"
+								},
+								{
+								    "name": "index"
+								},
+								{
+								    "name": "margin"
+								},
+								{
+								    "name": "drop"
+								}
+							]
+						}
+					]
+				},
+				{
+					"title": "drake plan keywords",
+					"methods": [
+						{
+							"name": "target",
+							"description": "Must be called inside drake_plan(). Invalid otherwise.",
+							"params": [
+								{
+									"name": "command"
+								},
+								{
+									"name": "transform",
+									"description": "A call to map(), etc. to apply a static transformation"
+								}
+							]
+						},
+						{
+							"name": "trigger",
+							"description": "Customize the decision rules for rebuilding targets",
+							"params": [
+								{
+									"name": "command"
+								},
+								{
+									"name": "depend"
+								},
+								{
+									"name": "file"
+								},
+								{
+									"name": "seed"
+								}
+							]
+						},
+						{
+							"name": "file_in",
+							"description": "Declare input files and directories",
+							"params": [
+								{
+									"name": "...",
+									"description": "Character vector, paths to files and directories."
+								}
+							]
+						},
+						{
+							"name": "file_out",
+							"description": "Declare output files and directories",
+							"params": [
+								{
+									"name": "..."}
+							]
+						},
+						{
+							"name": "knitr_in",
+							"description": "Declare knitr/rmarkdown source files as dependencies",
+							"params": [
+								{
+									"name": "..."
+								}
+							]
+						},
+						{
+							"name": "ignore",
+							"description": "Ignore sections of commands and imported functions",
+							"params": [
+								{
+									"name": "x"
+								}
+							]
+						}
+					]
+					
+				},
+				{
+					"title": "visualization",
+					"methods": [
+						{
+							"name": "vis_drake_graph",
+							"description": "Show an interactive visual network representation of your drake project",
+							"params": [
+								{
+									"name": "config",
+									"description": "A drake_config() configuration list"
+								},
+								{
+									"name": "..."
+								}
+							]
+						},
+						{
+							"name": "drake_ggraph",
+							"description": "Visualize the workflow with ggraph/ggplot2",
+							"params": [
+								{
+									"name": "config"
+								},
+								{
+									"name": "..."
+								}
+							]
+						}
+					]
+				},
+				{
+					"title": "target status",
+					"methods": [
+						{
+							"name": "drake_history",
+							"description": "See the history and provenance of your targets: what you ran, when you ran it, the function arguments you used, and how to get old data back.",
+							"params": [
+								{
+									"name": "cache"
+								},
+								{
+									"name": "history",
+									"description": "Logical, whether to record the build history of your targets. Must be TRUE for drake_history() to work later."
+								},
+								{
+									"name": "analyze"
+								},
+								{
+									"name": "..."
+								}
+							]
+						}
+					]
+				}
+			]
+		}
+	]
+}
