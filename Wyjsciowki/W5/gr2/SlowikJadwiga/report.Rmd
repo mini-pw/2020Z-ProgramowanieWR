@@ -1,0 +1,68 @@
+---
+title: "Wyjściówka nr 5"
+author: "Jadwiga Słowik"
+date: "12/19/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(mlr)
+library(kernlab)
+library(dplyr)
+```
+
+```{r}
+data("ticdata")
+set.seed(1, kind = "L'Ecuyer-CMRG")
+configureMlr(show.info = TRUE)
+```
+
+# Rozkład klas
+```{r}
+balances <- ticdata %>% group_by(CARAVAN) %>% summarize(n=n()) %>% as.data.frame()
+balances
+```
+Wnioskujemy, że dane nie są zbalansowane.
+
+# Budowanie modeli
+
+```{r}
+ranger_learner <- makeLearner("classif.ranger", predict.type="prob", id="ranger")
+naive_learner <- makeLearner("classif.naiveBayes", predict.type="prob", id="naive")
+```
+
+```{r}
+classif_task <- makeClassifTask(id="camp task", data=ticdata, target="CARAVAN")
+classif_task <- smote(classif_task, rate=15, nn=5, standardize=TRUE)
+
+bench_res <- benchmark(learners=list(ranger_learner, naive_learner),
+          tasks=list(classif_task),
+          resamplings=list(makeResampleDesc(method="CV", iters=5)),
+          measures=auc,
+          models=TRUE
+)
+getBMRPerformances(bench_res)
+```
+
+# Tuning
+
+Tuning zostanie wykonany dla `random Forest` (`ranger`).
+
+```{r}
+outer <- makeResampleDesc(method = "CV", iters = 3)
+inner <- makeResampleDesc(method = "CV", iters = 5)
+ranger_wrapper <- makeTuneWrapper(learner=ranger_learner,
+                                  resampling=inner,
+                                  par.set = makeParamSet(makeIntegerParam(id="num.trees", lower=50, upper=1000)),
+                                  control=makeTuneControlGrid(resolution=5),
+                                  measures = auc
+                                  )
+rsp <- resample(learner=ranger_wrapper, task=classif_task,
+                resampling = outer,
+                measures=auc,
+                extract=getTuneResult)
+
+res <- getNestedTuneResultsOptPathDf(rsp)
+res
+```
