@@ -1,0 +1,83 @@
+---
+title: "wyjsc"
+author: "Piotr Janus"
+date: "12/19/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(kernlab)
+library(mlr)
+library(DT)
+data(spam)
+set.seed(997, kind = "L'Ecuyer-CMRG")
+configureMlr(show.info = TRUE)
+
+```
+
+```{r, echo=FALSE, message=FALSE}
+
+spam_task <- makeClassifTask(id = "spam", data = spam, target = "type")
+
+```
+
+```{r, echo=FALSE, message=FALSE}
+
+rf <- makeLearner("classif.ranger", id = "ranger", predict.type = "prob")
+
+svm <- makeLearner("classif.ksvm", predict.type = "prob")
+
+```
+
+## Porównanie modeli
+
+SVM i las losowy
+
+```{r, echo=FALSE, message=FALSE}
+
+cv5 <- makeResampleDesc(method = "CV", iters = 5)
+bench_res <- benchmark(learners = list(rf, svm),
+                       tasks = list(spam_task), 
+                       resamplings = list(cv5),
+                       measures = auc, models = TRUE)
+
+
+plotBMRBoxplots(bench_res, pretty.names = FALSE)
+```
+
+## Strojenie
+
+Tak generalnie to najwięcej wyszło mi 0.9867 na AUC
+
+```{r, echo=FALSE, message=FALSE}
+
+xgb_learner <- makeLearner("classif.xgboost", predict.type = "prob")
+
+
+outer <- makeResampleDesc(method = "CV", iters = 5)
+inner <- makeResampleDesc(method = "CV", iters = 7)
+
+control <- makeTuneControlRandom(maxit = 10)
+
+xgb_params <- makeParamSet(
+  makeIntegerParam("nrounds", lower = 300, upper = 1000),
+  makeIntegerParam("max_depth", lower = 1, upper = 10),
+  makeNumericParam("eta", lower = .1, upper = .5),
+  makeNumericParam("lambda", lower = -1, upper = 0, trafo = function(x) 10^x)
+)
+
+xgb_wrapper <- makeTuneWrapper(
+  learner = xgb_learner,
+  resampling = inner,
+  par.set = xgb_params,
+  control = control,
+  measures = auc
+)
+
+rsp <- resample(learner = xgb_wrapper, task = spam_task, resampling = outer, measures = auc,
+                extract = getTuneResult)
+
+res <- getNestedTuneResultsOptPathDf(rsp)
+DT::datatable(res)
+```
