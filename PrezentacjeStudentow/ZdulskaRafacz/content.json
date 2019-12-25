@@ -1,0 +1,410 @@
+{
+	"name": "RcppArmadillo",
+	"description": "Combine power of Rcpp, C++ and Armadillo to achieve efficiency! Cheatsheet for arma functions.",
+	"footer": "Armadillo - http://arma.sourceforge.net/; RcppArdmadillo - https://CRAN.R-project.org/package=RcppArmadillo ",
+	"pages": [
+		{
+			"cards": [
+				{
+					"title": "Generating",
+					"methods": [
+						{
+							"name": "linspace",
+							"description": "Generate vector with linearly spaced elements",
+							"params": [
+								{
+									"name": "start"
+								},
+								{
+									"name": "end"
+								},
+								{
+								    "name":"n"
+								}
+							]
+						},
+						{
+							"name": "eye",
+							"description": "Generate identity matrix",
+							"params": [
+								{
+									"name": "n_rows, n_cols"
+								}
+							]
+						},
+                        {
+							"name": "one",
+							"description": "Generate object filled with ones",
+						    "params": [
+								{
+									"name": "n_rows, n_cols"
+								}
+							]
+                            
+                        },
+                        {
+							"name": "zeros",
+							"description": "Generate object filled with zeros",
+							"params": [
+								{
+									"name": "n_rows, n_cols"
+								}
+							]
+						},
+                        {
+							"name": "randu / randn",
+							"description": "Generate object with random values (uniform and normal distributions)",
+							"params": [
+								{
+									"name": "n_rows",
+									"description": "number of rows"
+								},
+								{
+									"name": "n_cols",
+									"description": "number of columns"
+								}
+							]
+						}
+					]
+				},
+				{
+					"title": "Functions",
+					"methods": [
+						{
+							"name": "abs",
+							"description": "Obtain magnitude of each element",
+							"params": [
+								{
+									"name": "x"
+								}
+							]
+						},
+						{
+							"name": "all",
+							"description": "Check whether all elements are non-zero, or satisfy a relational condition",
+							"params": [
+								{
+									"name": "X",
+									"description": "Matrix"
+								}
+							]
+						},
+						{
+							"name": "any",
+							"description": "Check whether any element is non-zero, or satisfies a relational condition",
+							"params": [
+								{
+									"name": "X"
+								}
+							]
+						},
+						{
+							"name": "conv_to<type>",
+							"description": "Convert between matrix types",
+							"params": [
+								{
+									"name": "X"
+								}
+							]
+						},
+						{
+							"name": "cross",
+							"description": "Cross product",
+							"params": [
+								{
+									"name": "A,B",
+									"description": "Matrixes"
+								}
+							]
+						}
+					]
+				},
+				{
+						"title":"Functions",
+						"methods":[
+							{
+							"name": "det",
+							"description": "Determinant",
+							"params": [
+									{
+										"name": "X"
+									}
+							]
+						},
+						{
+								"name": "diagmat",
+								"description": "Diagonal matrix from given matrix or vector",
+								"params": [
+									{
+										"name": "X"
+									}
+								]
+						},
+						{
+								"name": "index_min / index_max",
+								"description": "Indices of extremum values",
+								"params": [
+									{
+										"name": "X"
+									}
+								]
+						},
+						{
+								"name": "min / max",
+								"description": "Return extremum values",
+								"params": [
+									{
+										"name": "X"
+									}
+								]
+						},
+						{
+								"name": "norm",
+								"description": "Various norms of vectors and matrices",
+								"params": [
+									{
+										"name": "X"
+									},
+									{
+										"name": "p",
+										"description": "Intiger >= 1 or '-inf', 'inf', 'fro' "
+									}
+								]
+						},
+						{
+								"name": "reshape",
+								"description": "Change size while keeping elements",
+								"params": [
+									{
+										"name": "X"
+									},
+									{
+										"name": "n_row"
+									},
+									{
+										"name": "n_col"
+									}
+								]
+						},
+						{
+								"name": "sum",
+								"description": "Return sum",
+								"params": [
+									{
+										"name": "X"
+									}
+								]
+						},
+						{
+								"name": "trace",
+								"description": "Sum of diagonal elements",
+								"params": [
+									{
+										"name": "X"
+									}
+								]
+						}
+					]
+				}
+			]
+		},
+		{
+			"cards": [{
+				"title": "Decompositions, Factorisations, Inverses and Equation Solvers ",
+				"methods": [
+					{
+						"name": "chol",
+						"description": "Cholesky decomposition",
+						"params": [
+							{
+								"name": "X",
+								"description":"Matrix"
+							}
+						]
+					},
+					{
+						"name": "inv",
+						"description": "Inverse of general square matrix",
+						"params": [
+							{
+								"name": "X"
+							}
+						]
+					},
+					{
+						"name": "pinv",
+						"description": "Pseudo-inverse",
+						"params": [
+							{
+								"name": "X"
+							}
+						]
+					},
+					{
+						"name": "lu",
+						"description": "Lower-upper decomposition",
+						"params": [
+							{
+								"name": "X"
+							}
+						]
+					},
+					{
+						"name": "solve",
+						"description": "Solve systems of linear equations",
+						"params": [
+							{
+								"name": "A,B",
+								"description": "A*X=B"
+							}
+
+						]
+					}
+				]
+			},			
+			{
+				"title": "Statistics & Clustering",
+				"methods": [
+					{
+						"name": "cov",
+						"description": "Covariance",
+						"params": [
+							{
+								"name": "X,Y"
+							}
+						]
+					},
+					{
+						"name": "cor",
+						"description": "Correlation",
+						"params": [
+							{
+								"name": "X,Y"
+							}
+						]
+					},
+					{
+						"name": "hist",
+						"description": "Histogram of counts",
+						"params": [
+							{
+								"name": "X"
+							},  
+							{
+								"name": "centers",
+								"description":"Vector of increasing values"
+							}
+						]
+					},
+					{
+						"name": "kmeans",
+						"description": "Cluster data into disjoint sets",
+						"params": [
+							{
+								"name": "X"
+							}
+						]
+					},
+					{
+						"name": "princomp",
+						"description": "Principal component analysis (PCA)",
+						"params": [
+							{
+								"name": "X",
+								"description":"Matrix"
+							}
+						]
+					}
+				]
+			},
+			{
+				"title":"Functions",
+				"methods":[
+					{
+					"name": "det",
+					"description": "Determinant",
+					"params": [
+							{
+								"name": "X"
+							}
+					]
+				},
+				{
+						"name": "diagmat",
+						"description": "Diagonal matrix from given matrix or vector",
+						"params": [
+							{
+								"name": "X"
+							}
+						]
+				},
+				{
+						"name": "index_min / index_max",
+						"description": "Indices of extremum values",
+						"params": [
+							{
+								"name": "X"
+							}
+						]
+				},
+				{
+						"name": "min / max",
+						"description": "Return extremum values",
+						"params": [
+							{
+								"name": "X"
+							}
+						]
+				},
+				{
+						"name": "norm",
+						"description": "Various norms of vectors and matrices",
+						"params": [
+							{
+								"name": "X"
+							},
+							{
+								"name": "p",
+								"description": "Intiger >= 1 or '-inf', 'inf', 'fro' "
+							}
+						]
+				},
+				{
+						"name": "reshape",
+						"description": "Change size while keeping elements",
+						"params": [
+							{
+								"name": "X"
+							},
+							{
+								"name": "n_row"
+							},
+							{
+								"name": "n_col"
+							}
+						]
+				},
+				{
+						"name": "sum",
+						"description": "Return sum",
+						"params": [
+							{
+								"name": "X"
+							}
+						]
+				},
+				{
+						"name": "trace",
+						"description": "Sum of diagonal elements",
+						"params": [
+							{
+								"name": "X"
+							}
+						]
+				}
+				]
+			}
+			]
+		}
+	]
+}
