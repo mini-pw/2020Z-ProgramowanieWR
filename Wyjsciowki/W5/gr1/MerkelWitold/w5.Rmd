@@ -1,0 +1,35 @@
+---
+title: "W5"
+author: "Witold Merkel"
+date: "12/19/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(kernlab)
+library(mlr)
+library(ranger)
+library(h2o)
+data(spam)
+dane <- spam
+set.seed(5, kind = "L'Ecuyer-CMRG")
+configureMlr(show.info = TRUE)
+
+boost <- makeLearner("classif.boosting", id = "boost", predict.type = "prob", par.vals = list(mfinal = 250))
+
+spam_task <- makeClassifTask(id = "spam", data = spam, target = "type")
+
+cv5 <- makeResampleDesc(method = "CV", iters = 5)
+
+# benchmark
+
+bench_res <- benchmark(learners = list(boost),
+                       tasks = list(spam_task), 
+                       resamplings = list(cv5),
+                       measures = auc, models = TRUE)
+```
+

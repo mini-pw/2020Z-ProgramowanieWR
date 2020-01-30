@@ -1,0 +1,65 @@
+---
+title: "Wejsciowka5"
+author: "Agata Pałdyna"
+date: "12/19/2019"
+output: html_document
+---
+
+```{R setup, include = FALSE}
+library(kernlab)
+library(dplyr)
+library(mlr)
+data("spam")
+```
+
+
+## Przygotowanie modeli, taskow, itp
+
+```{R}
+set.seed(123)
+
+spam_task <- makeClassifTask(id = "spam", data = spam, target = "type")
+
+outer <- makeResampleDesc(method = "CV", iters = 3)
+inner <- makeResampleDesc(method = "CV", iters = 5)
+
+ranger_wrapper <- makeTuneWrapper(learner = makeLearner("classif.ranger", predict.type = "prob"), 
+                                  resampling = inner,
+                                  par.set = makeParamSet(
+                                    makeIntegerParam(id = "num.trees", lower = 50, upper = 1000)
+                                    ),
+                                  control = makeTuneControlGrid(resolution = 5))
+
+lda_wrapper <- makeTuneWrapper(learner = makeLearner("classif.lda", predict.type = "prob"), 
+                               resampling = inner,
+                               par.set = makeParamSet(
+                                 makeIntegerParam(id = "nu", lower = 0, upper = 10)
+                                 ),
+                               control = makeTuneControlGrid(resolution = 5))
+```
+
+
+## Porównanie modeli
+
+```{R, message = FALSE, error = FALSE, warning = FALSE}
+bench <- benchmark(learners = list(ranger_wrapper, lda_wrapper), spam_task, resamplings = outer, measures = auc)
+bench
+```
+
+
+## Wyniki Random Forest
+
+```{R, message = FALSE, error = FALSE, warning = FALSE}
+rsp_ranger <- resample(learner = ranger_wrapper, task = spam_task, resampling = outer, measures = auc, extract = getTuneResult)
+res_ranger <- getNestedTuneResultsOptPathDf(rsp_ranger)
+res_ranger
+```
+
+
+## Wyniki LDA
+
+```{R, message = FALSE, error = FALSE, warning = FALSE}
+rsp_lda <- resample(learner = lda_wrapper, task = spam_task, resampling = outer, measures = auc, extract = getTuneResult)
+res_lda <- getNestedTuneResultsOptPathDf(rsp_lda)
+res_lda
+```

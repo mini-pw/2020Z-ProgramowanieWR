@@ -1,0 +1,43 @@
+---
+title: "Wyjściówka 5 - Tomasz Klonecki"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(kernlab)
+data(ticdata)
+library(dplyr)
+library(mlr)
+set.seed(42)
+```
+
+## Stworzenie podstawowego zadania i learnera
+
+```{r }
+lrn_ranger <- makeLearner("classif.ranger", predict.type = "prob", id = "ranger")
+caravan_task <- makeClassifTask(id = "caravan task", data = ticdata, 
+                                target = "CARAVAN")
+```
+
+## Sprawdzenie benchmarku po tuningu hiperparametrów na zagnieżdżonej CV
+
+```{r, results=FALSE}
+outer <- makeResampleDesc(method = "CV", iters = 3)
+inner <- makeResampleDesc(method = "CV", iters = 5)
+
+ranger_wrapper <- makeTuneWrapper(learner = makeLearner("classif.ranger", predict.type = "prob"), 
+                                  resampling = inner, 
+                                  par.set = makeParamSet(makeIntegerParam(id = "num.trees", lower = 50, upper = 500)),
+                                  control = makeTuneControlGrid(resolution = 5))
+
+bench <- benchmark(ranger_wrapper, caravan_task, resamplings = outer, measures = auc)
+rsp <- resample(learner = ranger_wrapper, task = caravan_task, resampling = outer, measures = auc, 
+                extract = getTuneResult)
+
+```
+
+## Rezultaty
+
+```{r}
+rsp
+```
