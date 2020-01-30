@@ -26,7 +26,7 @@ Strona przedmiotu Zaawansowane programowanie w R na wydziale MiNI PW.
 | 19.12 | Znajomość pakietów z rodziny DrWhy.AI.                                  | XAI w R.                                                           | 2       |    | 5          |
 | 16.01 | Praca z bazami danych w R.                                              |                                                                    | 2       |    |            |
 | 23.01 | Prezentacje wyników projektu 2.                                         |                                                                    |         |    |            |
-
+| 30.01 | Rozwój R.                                                               | R i API. Plumber.                                                  |         |    |            |
 
 ### Zasady zaliczenia
 

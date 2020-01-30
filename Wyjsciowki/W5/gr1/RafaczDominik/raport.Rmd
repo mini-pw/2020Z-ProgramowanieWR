@@ -1,0 +1,60 @@
+---
+title: "Wyjsciowka 5"
+author: "Dominik Rafacz"
+date: "December 19, 2019"
+output: html_document
+---
+
+```{r, cache=TRUE}
+library(kernlab)
+library(mlr)
+library(mlrMBO)
+
+data("spam")
+set.seed(123)
+```
+
+# modele
+
+Nie mam Ci ja wielu modeli, ale mam Ci ja MBO.
+
+```{r, cache=TRUE}
+tsk <- makeClassifTask("task", target = "type", data = spam)
+
+lrn1 <- makeLearner("classif.ranger", predict.type = "prob")
+
+outer <- makeResampleDesc(method = "CV", iters = 3)
+inner <- makeResampleDesc(method = "CV", iters = 5)
+
+ctrl <- makeMBOControl()
+ctrl <- setMBOControlTermination(ctrl, iters = 30)
+tunectrl <- makeTuneControlMBO(mbo.control = ctrl)
+
+lrn1w <- makeTuneWrapper(learner = lrn1, 
+                         resampling = inner, 
+                         par.set = makeParamSet(
+                           makeIntegerParam(id = "num.trees", lower = 50, upper = 1000),
+                           makeIntegerParam(id = "mtry", lower = 1, upper = 20),
+                           makeNumericParam(id = "sample.fraction", lower = 0.1, upper = 0.5),
+                           makeIntegerParam(id = "num.random.splits", lower = 1, upper = 20),
+                           makeDiscreteParam(id = "splitrule", values = c("gini", "extratrees"))
+                           ),
+                         measures = auc,
+                         control = tunectrl)
+```
+
+# strojenie
+
+```{r, cache=TRUE}
+rsp1 <- resample(learner = lrn1w, 
+                 task = tsk, 
+                 resampling = outer, 
+                 measures = auc, 
+                 extract = getTuneResult)
+```
+
+# wyniki
+```{r, cache = TRUE}
+res <- getNestedTuneResultsOptPathDf(rsp1)
+res[max(res$auc.test.mean) == res$auc.test.mean,]
+```
