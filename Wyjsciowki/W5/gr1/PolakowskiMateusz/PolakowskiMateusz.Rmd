@@ -1,0 +1,32 @@
+---
+title: "Wejsciowkowyjsciowka nr 5"
+author: "Mateusz Polakowski"
+date: "December 19, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Oto mój model:
+
+```{r}
+library(mlr)
+library(kernlab)
+library(adabag)
+data(spam)
+set.seed(997)
+
+adabag2 <- makeLearner('classif.boosting', id = 'adabag', predict.type = 'prob',
+                       par.vals = list(mfinal = 150, minsplit=10))
+
+spam_task <- makeClassifTask(id = 'spam', data = spam, target = 'type')
+
+cv5 <- makeResampleDesc(method = "CV", iters = 5)
+
+benchmark(learners = list(adabag2),
+          tasks = list(spam_task),
+          resamplings = list(cv5),
+          measures = auc)
+```

@@ -1,0 +1,81 @@
+---
+title: "W5 Raport"
+author: "Morgen"
+date: "12/19/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(mlr)
+library(kernlab)
+library(dplyr)
+library(ggplot2)
+data(ticdata)
+```
+
+## Learnery, task i resampling
+
+```{r cars}
+lrn_ranger <- makeLearner("classif.ranger", predict.type = "prob", id = "ranger")
+# lrn_ksvm <- makeLearner("classif.ksvm",predict.type = "prob", id = "ksvm")
+lrn_randomForest <- makeLearner("classif.randomForest", predict.type = "prob", id = "forest")
+
+# task ------
+
+ticdata_task <- makeClassifTask(id = "ticdata task", 
+                           data = ticdata,
+                           target = "CARAVAN")
+
+# resampling -------
+
+cv5 <- makeResampleDesc(method = "CV", iters = 5, stratify = TRUE)
+cv7 <- makeResampleDesc(method = "CV", iters = 7, stratify = TRUE)
+```
+
+## Benchmarki i porównanie learnerów
+
+```{r pressure, echo=FALSE, cache = TRUE}
+bench_2 <- lapply(list(cv5 = cv5,cv7 = cv7), function(ith_resampling) 
+  benchmark(learners = list(lrn_ranger, lrn_randomForest),
+            tasks = ticdata_task,
+            resamplings = ith_resampling, 
+            measures = auc)
+)
+
+bench_res_df <- lapply(names(bench_2), function(k)
+  lapply(names(getBMRPerformances(bench_2[[k]])), function(j) 
+    lapply(names(getBMRPerformances(bench_2[[k]])[[j]]), function(i)
+      data.frame(resampling = k, task = j, model = i, getBMRPerformances(bench_2[[k]])[[j]][[i]],
+                 stringsAsFactors = FALSE)) %>% 
+      bind_rows()
+  ) %>% 
+    bind_rows()
+) %>% 
+  bind_rows()
+
+ggplot(bench_res_df, aes(x = model, y = auc, color = resampling)) +
+  geom_boxplot() +
+  facet_wrap(~ task) +
+  theme_bw(base_size = 18)
+```
+
+`ranger` górą.
+
+## Nested cross-validation
+
+```{r nested XV}
+
+outer <- makeResampleDesc(method = "CV", iters = 3)
+inner <- makeResampleDesc(method = "CV", iters = 5)
+
+ranger_wrapper <- makeTuneWrapper(learner = makeLearner("classif.ranger", predict.type = "prob"), 
+                                  resampling = inner, 
+                                  par.set = makeParamSet(makeIntegerParam(id = "num.trees", lower = 50, upper = 1000)),
+                                  control = makeTuneControlGrid(resolution = 5))
+
+bench <- benchmark(ranger_wrapper, ticdata_task, resamplings = outer, measures = auc)
+rsp <- resample(learner = ranger_wrapper, task = ticdata_task, resampling = outer, measures = auc, 
+                extract = getTuneResult)
+rsp$aggr
+```

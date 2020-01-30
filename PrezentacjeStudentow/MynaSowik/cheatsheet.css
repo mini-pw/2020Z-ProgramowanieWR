@@ -1,0 +1,64 @@
+.cheatsheet-page {
+  background-color: lightGray;
+}
+
+.header {
+  background-color: #001140;
+}
+
+.header-title {
+  color: #ffffff;
+}
+
+.header-title-name {
+  font-style: italic;
+}
+
+.header-description {
+  color: white;
+}
+
+.card {
+  border: 3px solid #ff7543;
+}
+
+.card-header {
+  border: none;
+  background-color: white;
+}
+
+.card-body {
+  background-color: #4B688C;
+}
+
+.method {
+  border-top: 2px dotted black;
+}
+
+.method-name {
+  color: #001140;
+}
+
+.method-parameter {
+  font-size: x-small;
+}
+
+.method-description {
+  font-style: italic;
+}
+
+.parameter {
+  border-left: 2px solid #ff7543;
+}
+
+.parameter-name {
+  text-decoration: underline;
+}
+
+.parameter-description {
+  text-align: right;
+}
+
+.footer {
+  font-weight: bold;
+}

@@ -1,0 +1,160 @@
+Task: titanic task, Learner: ranger
+Resampling: cross-validation
+Measures:             auc       
+[Resample] iter 1:    0.7334921 
+[Resample] iter 2:    0.7094219 
+[Resample] iter 3:    0.7018164 
+
+
+Aggregated Result: auc.test.mean=0.7149101
+
+
+Task: ticdata task weighted, Learner: ranger
+Resampling: cross-validation
+Measures:             auc       
+[Resample] iter 1:    0.7191732 
+[Resample] iter 2:    0.7147609 
+[Resample] iter 3:    0.7328316 
+
+
+Aggregated Result: auc.test.mean=0.7222552
+
+
+Task: titanic task, Learner: xgb
+Resampling: cross-validation
+Measures:             auc       
+[Resample] iter 1:    0.7292242 
+[Resample] iter 2:    0.6894013 
+[Resample] iter 3:    0.7420055 
+
+
+Aggregated Result: auc.test.mean=0.7202103
+
+
+Task: ticdata task weighted, Learner: xgb
+Resampling: cross-validation
+Measures:             auc       
+[Resample] iter 1:    0.7218988 
+[Resample] iter 2:    0.7111487 
+[Resample] iter 3:    0.7241765 
+
+
+Aggregated Result: auc.test.mean=0.7190747
+
+Task: titanic task, Learner: classif.ranger.tuned
+Resampling: cross-validation
+Measures:             auc       
+[Tune] Started tuning learner classif.ranger for parameter set:
+             Type len Def      Constr Req Tunable Trafo
+num.trees integer   -   - 50 to 1e+03   -    TRUE     -
+With control class: TuneControlGrid
+Imputation value: 1
+[Tune-x] 1: num.trees=50
+[Tune-y] 1: mmce.test.mean=0.0595604; time: 0.0 min
+[Tune-x] 2: num.trees=118
+[Tune-y] 2: mmce.test.mean=0.0600185; time: 0.0 min
+[Tune-x] 3: num.trees=186
+[Tune-y] 3: mmce.test.mean=0.0600185; time: 0.0 min
+[Tune-x] 4: num.trees=254
+[Tune-y] 4: mmce.test.mean=0.0600185; time: 0.1 min
+[Tune-x] 5: num.trees=321
+[Tune-y] 5: mmce.test.mean=0.0600187; time: 0.1 min
+[Tune-x] 6: num.trees=389
+[Tune-y] 6: mmce.test.mean=0.0597132; time: 0.1 min
+[Tune-x] 7: num.trees=457
+[Tune-y] 7: mmce.test.mean=0.0601713; time: 0.1 min
+[Tune-x] 8: num.trees=525
+[Tune-y] 8: mmce.test.mean=0.0601713; time: 0.1 min
+[Tune-x] 9: num.trees=593
+[Tune-y] 9: mmce.test.mean=0.0601713; time: 0.1 min
+[Tune-x] 10: num.trees=661
+[Tune-y] 10: mmce.test.mean=0.0601713; time: 0.1 min
+[Tune-x] 11: num.trees=729
+[Tune-y] 11: mmce.test.mean=0.0601713; time: 0.1 min
+[Tune-x] 12: num.trees=796
+[Tune-y] 12: mmce.test.mean=0.0600185; time: 0.2 min
+[Tune-x] 13: num.trees=864
+[Tune-y] 13: mmce.test.mean=0.0601713; time: 0.2 min
+[Tune-x] 14: num.trees=932
+[Tune-y] 14: mmce.test.mean=0.0600185; time: 0.2 min
+[Tune-x] 15: num.trees=1000
+[Tune-y] 15: mmce.test.mean=0.0600185; time: 0.2 min
+[Tune] Result: num.trees=50 : mmce.test.mean=0.0595604
+[Resample] iter 1:    0.6020186 
+[Tune] Started tuning learner classif.ranger for parameter set:
+             Type len Def      Constr Req Tunable Trafo
+num.trees integer   -   - 50 to 1e+03   -    TRUE     -
+With control class: TuneControlGrid
+Imputation value: 1
+[Tune-x] 1: num.trees=50
+[Tune-y] 1: mmce.test.mean=0.0626142; time: 0.0 min
+[Tune-x] 2: num.trees=118
+[Tune-y] 2: mmce.test.mean=0.0626142; time: 0.0 min
+[Tune-x] 3: num.trees=186
+[Tune-y] 3: mmce.test.mean=0.0626142; time: 0.0 min
+[Tune-x] 4: num.trees=254
+[Tune-y] 4: mmce.test.mean=0.0626142; time: 0.1 min
+[Tune-x] 5: num.trees=321
+[Tune-y] 5: mmce.test.mean=0.0626142; time: 0.1 min
+[Tune-x] 6: num.trees=389
+[Tune-y] 6: mmce.test.mean=0.0626142; time: 0.1 min
+[Tune-x] 7: num.trees=457
+[Tune-y] 7: mmce.test.mean=0.0626142; time: 0.1 min
+[Tune-x] 8: num.trees=525
+[Tune-y] 8: mmce.test.mean=0.0626142; time: 0.1 min
+[Tune-x] 9: num.trees=593
+[Tune-y] 9: mmce.test.mean=0.0626142; time: 0.1 min
+[Tune-x] 10: num.trees=661
+[Tune-y] 10: mmce.test.mean=0.0626142; time: 0.9 min
+[Tune-x] 11: num.trees=729
+[Tune-y] 11: mmce.test.mean=0.0626142; time: 0.8 min
+[Tune-x] 12: num.trees=796
+[Tune-y] 12: mmce.test.mean=0.0626142; time: 0.2 min
+[Tune-x] 13: num.trees=864
+[Tune-y] 13: mmce.test.mean=0.0626142; time: 0.2 min
+[Tune-x] 14: num.trees=932
+[Tune-y] 14: mmce.test.mean=0.0626142; time: 0.2 min
+[Tune-x] 15: num.trees=1000
+[Tune-y] 15: mmce.test.mean=0.0626142; time: 0.2 min
+[Tune] Result: num.trees=1000 : mmce.test.mean=0.0626142
+[Resample] iter 2:    0.6103525 
+[Tune] Started tuning learner classif.ranger for parameter set:
+             Type len Def      Constr Req Tunable Trafo
+num.trees integer   -   - 50 to 1e+03   -    TRUE     -
+With control class: TuneControlGrid
+Imputation value: 1
+[Tune-x] 1: num.trees=50
+[Tune-y] 1: mmce.test.mean=0.0571153; time: 0.0 min
+[Tune-x] 2: num.trees=118
+[Tune-y] 2: mmce.test.mean=0.0569627; time: 0.0 min
+[Tune-x] 3: num.trees=186
+[Tune-y] 3: mmce.test.mean=0.0568099; time: 0.0 min
+[Tune-x] 4: num.trees=254
+[Tune-y] 4: mmce.test.mean=0.0568099; time: 0.0 min
+[Tune-x] 5: num.trees=321
+[Tune-y] 5: mmce.test.mean=0.0569627; time: 0.1 min
+[Tune-x] 6: num.trees=389
+[Tune-y] 6: mmce.test.mean=0.0568099; time: 0.1 min
+[Tune-x] 7: num.trees=457
+[Tune-y] 7: mmce.test.mean=0.0568099; time: 0.1 min
+[Tune-x] 8: num.trees=525
+[Tune-y] 8: mmce.test.mean=0.0568099; time: 0.1 min
+[Tune-x] 9: num.trees=593
+[Tune-y] 9: mmce.test.mean=0.0568099; time: 0.1 min
+[Tune-x] 10: num.trees=661
+[Tune-y] 10: mmce.test.mean=0.0568099; time: 0.1 min
+[Tune-x] 11: num.trees=729
+[Tune-y] 11: mmce.test.mean=0.0568099; time: 0.1 min
+[Tune-x] 12: num.trees=796
+[Tune-y] 12: mmce.test.mean=0.0568099; time: 0.2 min
+[Tune-x] 13: num.trees=864
+[Tune-y] 13: mmce.test.mean=0.0568099; time: 0.2 min
+[Tune-x] 14: num.trees=932
+[Tune-y] 14: mmce.test.mean=0.0568099; time: 0.2 min
+[Tune-x] 15: num.trees=1000
+[Tune-y] 15: mmce.test.mean=0.0568099; time: 0.2 min
+[Tune] Result: num.trees=254 : mmce.test.mean=0.0568099
+[Resample] iter 3:    0.5846484 
+
+
+Aggregated Result: auc.test.mean=0.5990065
