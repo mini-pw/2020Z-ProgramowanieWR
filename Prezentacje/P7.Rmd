@@ -1,0 +1,66 @@
+---
+title: "Przyszłość R"
+author: "Michał Burdukiewicz"
+output: miniBeamer::beam_this_rmd
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Przeszłość R
+
+ - 1993: R staje się dostępny publicznie.
+ - 1997: początek listy mailingowej.
+ - 2000: R 1.0.0 staje się dostępny publicznie na CRANie.
+ - 2002: Sweave jest dodany do R.
+ 
+## Przeszłość R
+
+ - 2007: powstanie Revolution Analytics.
+ - 2009: testthat trafia na CRAN.
+ - 2010: Revolution Analytics publike ScaleR.
+ - 2011: devtools trafia na CRAN.
+ - 2011: powstanie RStudio.
+ - 2012: shiny trafia na CRAN.
+ - 2015: Microsoft kupuje Revolution Analytics.
+ - 2016: RevoScaleR zastępuje ScaleR.
+ - 2017: reticulate trafia na CRAN.
+
+## Przyszłość R
+
+"Although R is still used by academics and data scientists, companies interested in data analytics are turning to Python for its scalability and ease of use. "
+
+https://insights.dice.com/2019/07/29/5-programming-languages-probably-doomed/
+
+## Przyszłość R
+
+<img src="https://www.kdnuggets.com/images/python-r-other-2016-2017-transitions.jpg" width="550px">
+
+https://www.kdnuggets.com/2017/08/python-overtakes-r-leader-analytics-data-science.html
+
+## Przyszłość R
+
+*In September 2017, Microsoft R Server was released under the new name of Microsoft Machine Learning Server. The product was renamed from R Server to Machine Learning Server to reflect the addition of Python-based analytics.*
+
+https://docs.microsoft.com/en-us/machine-learning-server/rebranding-microsoft-r-server
+
+## Przyszłość R
+
+https://www.tiobe.com/tiobe-index/r/
+
+## Przyszłość R
+
+https://rstudio.github.io/reticulate/
+
+## Przyszłość R
+
+"R melts brains: an IR for first-class environments and lazy effectful arguments"
+
+Źródło: https://dl.acm.org/doi/abs/10.1145/3359619.3359744
+
+## Podsumowanie zajęć
+
+1 pakiet na CRANie!
+
+https://CRAN.R-project.org/package=hackeRnews

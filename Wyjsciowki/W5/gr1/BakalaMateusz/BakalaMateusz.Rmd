@@ -1,0 +1,52 @@
+---
+title: "Wyjściówka 5"
+author: "Mateusz Bąkała"
+date: "19 grudnia 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(mlr)
+library(kernlab)
+```
+
+## Przygotowanie
+
+```{r}
+set.seed(31867)
+
+data(spam)
+tsk <- makeClassifTask(data = spam, target = "type")
+```
+
+## Model
+
+Wytrenowany został model typu `ranger` o parametrach `num.trees=1000` oraz `mtry=4`. Zastosowano `makeTuneControlMBO()`:
+
+```{r, eval=FALSE}
+lrn <- makeLearner("classif.ranger", predict.type = "prob")
+lrn_tune <- makeTuneWrapper(learner = lrn,
+                            resampling = makeResampleDesc(method = "CV", iters = 4),
+                            par.set = makeParamSet(
+                              makeIntegerParam("num.trees", lower = 500, upper = 1000),
+                              makeIntegerParam("mtry", lower = 2, upper = 7)
+                            ),
+                            control = makeTuneControlMBO(),
+                            measures = auc)
+res <- train(lrn_tune, tsk)
+getTuneResult(res)
+lrn <- setHyperPars(lrn, par.vals = res$learner.model$opt.result$x)
+saveRDS(lrn, "not_satisfying_ranger_model.rds")
+```
+
+## Benchmark
+
+Wyniki benchmarku:
+
+```{r}
+lrn <- readRDS("not_satisfying_ranger_model.rds")
+
+benchmark(lrn, tsk, measures = auc,
+          resamplings = makeResampleDesc(method = "CV", iters = 5))
+```

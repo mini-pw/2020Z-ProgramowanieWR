@@ -1,0 +1,84 @@
+.cheatsheet-page {
+  background-color: #fff2cc;
+  padding: 0px;
+}
+
+.header {
+  padding: 5px 10px;
+  background-color: #b2c439;
+}
+
+.header-title {
+  color: #38761d;
+}
+
+.header-title-name {
+  font-style: italic;
+}
+
+.header-description {
+  color: white;
+  font-weight: bold;
+}
+
+.logo {
+    width: 60px;
+}
+
+.card {
+  border: none;
+}
+
+.card-columns {
+    padding: 10px;
+}
+
+.card-header {
+  border-bottom: 3px solid #38761d;
+  background-color: #b2c439;
+  color: #17650c;
+}
+
+.card-body {
+  background-color: #fffddb;
+}
+
+.method {
+  margin-bottom: 5px;
+}
+
+.method-name {
+  color: #741b47;
+}
+
+.method-parameter {
+  font-size: x-small;
+  color: #e69138;
+}
+
+.method-description {
+  font-style: italic;
+}
+
+.parameter {
+  margin-left: 10px;
+  border: none;
+}
+
+.parameter-name {
+  text-decoration: underline;
+  color: #e69138;
+}
+
+.parameter-description {
+  text-align: left;
+  font-size: 10px;
+}
+
+.footer {
+  font-weight: bold;
+}
+
+.my-parameter {
+  background-color: white;
+}

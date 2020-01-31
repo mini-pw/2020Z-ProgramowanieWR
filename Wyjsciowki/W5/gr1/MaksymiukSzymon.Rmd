@@ -1,0 +1,90 @@
+---
+title: "Wyjściówka No5"
+author: "Szymon Maksymiuk"
+date: "19 12 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Wstęp
+
+Dzień dobry, zapraszam do wyjściówki.
+
+# Ranger
+
+```{r}
+set.seed(123)
+library(mlr)
+library(kernlab)
+data(spam)
+spam$type <- as.factor(as.numeric(spam$type == "spam"))
+task <- makeClassifTask("1", spam, target = "type")
+
+outer <- makeResampleDesc(method = "CV", iters = 5)
+inner <- makeResampleDesc(method = "CV", iters = 5)
+
+ps = makeParamSet(
+  makeIntegerParam("mtry", lower = 1, upper = 6),
+  makeIntegerParam("num.trees", lower = 500, upper = 1000)
+  
+)
+
+ranger_wrapper <- makeTuneWrapper(learner = makeLearner("classif.ranger", predict.type = "prob"), 
+                                  resampling = inner, 
+                                  par.set = ps,
+                                  measures = auc,
+                                  control = makeTuneControlRandom(maxit = 10L))
+
+
+rsp <- resample(learner = ranger_wrapper, task = task, resampling = outer, measures = auc, 
+                extract = getTuneResult)
+
+
+d <- getNestedTuneResultsOptPathDf(rsp)
+d[which.max(d$auc.test.mean),]
+
+```
+
+# gbm
+
+```{r}
+set.seed(123)
+library(mlr)
+library(kernlab)
+data(spam)
+spam$type <- as.factor(as.numeric(spam$type == "spam"))
+task <- makeClassifTask("1", spam, target = "type")
+
+outer <- makeResampleDesc(method = "CV", iters = 5)
+inner <- makeResampleDesc(method = "CV", iters = 5)
+
+ps = makeParamSet(
+  makeIntegerParam("n.trees", lower = 100, upper = 800),
+  makeIntegerParam("n.minobsinnode", lower = 8, upper = 21),
+  makeNumericParam("shrinkage", lower = -8, upper = -0.5, trafo = function(x) 2^x)
+  
+)
+
+ranger_wrapper <- makeTuneWrapper(learner = makeLearner("classif.gbm", predict.type = "prob"), 
+                                  resampling = inner, 
+                                  par.set = ps,
+                                  measures = auc,
+                                  control = makeTuneControlRandom(maxit = 10L))
+
+
+rsp <- resample(learner = ranger_wrapper, task = task, resampling = outer, measures = auc, 
+                extract = getTuneResult)
+
+
+d <- getNestedTuneResultsOptPathDf(rsp)
+d[which.max(d$auc.test.mean),]
+
+```
+
+
+# Podsumowanie
+
+Wyniki nie są dobre, ale przez 40min nie działał mi mlr. Ranger jest decent, ale można lepiej

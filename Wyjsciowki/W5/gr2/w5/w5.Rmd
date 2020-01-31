@@ -1,0 +1,83 @@
+---
+title: "Wyjściówka 5"
+author: "Hubert Baniecki"
+date: "19 12 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(mlr)
+library(kernlab)
+library(mlrMBO)
+```
+```{r echo=FALSE}
+data('ticdata')
+DF <- as.data.frame(ticdata)
+DF[sapply(DF, is.character)] <- lapply(DF[sapply(DF, is.character)], 
+                                       as.factor)
+DF[sapply(DF, is.ordered)] <- lapply(DF[sapply(DF, is.ordered)], 
+                                       as.integer)
+
+```
+
+## Rozwiązanie:
+
+Zmiana ordered faktorów na integery, próba agresywnego wybrania sensownych zmiennych oraz MBO na ranger:
+
+```{r message=FALSE}
+set.seed(123)
+task <- makeClassifTask("1", DF, target = "CARAVAN")
+
+fv = generateFilterValuesData(task, method = "FSelectorRcpp_information.gain")
+filtered.task = filterFeatures(task, fval = fv, perc = 0.25)
+
+outer <- makeResampleDesc(method = "CV", iters = 3)
+inner <- makeResampleDesc(method = "CV", iters = 3)
+ps <- makeParamSet(
+  makeIntegerParam("mtry", lower = 1, upper = 3),
+  makeIntegerParam("num.trees", lower = 500, upper = 1200),
+  makeNumericParam(id = "sample.fraction", lower = 0.1, upper = 0.5)
+)
+
+ctrl <- makeMBOControl()
+ctrl <- setMBOControlTermination(ctrl, iters = 5)
+tunectrl <- makeTuneControlMBO(mbo.control = ctrl)
+
+ranger_wrapper <- makeTuneWrapper(learner = makeLearner("classif.ranger", predict.type = "prob"), 
+                                  resampling = inner, 
+                                  par.set = ps,
+                                  measures = auc,
+                                  control = tunectrl)
+rsp <- resample(learner = ranger_wrapper, task = filtered.task, resampling = outer, measures = auc, 
+                extract = getTuneResult)
+d <- getNestedTuneResultsOptPathDf(rsp)
+ranger_result <- d[which.max(d$auc.test.mean),]
+
+ranger_result
+```
+
+gbm
+
+```{r}
+set.seed(123)
+
+ps = makeParamSet(
+  makeIntegerParam("n.trees", lower = 100, upper = 800),
+  makeIntegerParam("n.minobsinnode", lower = 8, upper = 21),
+  makeNumericParam("shrinkage", lower = -8, upper = -0.5, trafo = function(x) 2^x)
+  
+)
+ranger_wrapper <- makeTuneWrapper(learner = makeLearner("classif.gbm", predict.type = "prob"), 
+                                  resampling = inner, 
+                                  par.set = ps,
+                                  measures = auc,
+                                  control = makeTuneControlRandom(maxit = 10L))
+rsp <- resample(learner = ranger_wrapper, task = filtered.task, resampling = outer, measures = auc, 
+                extract = getTuneResult)
+d <- getNestedTuneResultsOptPathDf(rsp)
+gbm_result <- d[which.max(d$auc.test.mean),]
+
+gbm_result
+```
